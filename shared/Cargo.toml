@@ -1,0 +1,16 @@
+[package]
+name = "shared"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+naive = []
+standard = []
+standard-arena = []
+optimized = []
+
+[dependencies]
+divan = { workspace = true }
+tokio = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }

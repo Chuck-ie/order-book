@@ -1,0 +1,51 @@
+place_order_different_levels/ob_naive/1000
+                        time:   [176.22 µs 176.29 µs 176.37 µs]
+                        thrpt:  [5.6700 Melem/s 5.6724 Melem/s 5.6746 Melem/s]
+place_order_different_levels/ob_arena_optimized/1000
+                        time:   [85.172 µs 85.241 µs 85.331 µs]
+                        thrpt:  [11.719 Melem/s 11.731 Melem/s 11.741 Melem/s]
+
+
+place_order_different_levels/ob_naive/10000
+                        time:   [11.776 ms 11.783 ms 11.792 ms]
+                        thrpt:  [848.05 Kelem/s 848.69 Kelem/s 849.18 Kelem/s]
+place_order_different_levels/ob_arena_optimized/10000
+                        time:   [1.4034 ms 1.4214 ms 1.4391 ms]
+                        thrpt:  [6.9489 Melem/s 7.0351 Melem/s 7.1253 Melem/s]
+
+
+place_order_different_levels/ob_naive/100000
+                        time:   [1.3661 s 1.3681 s 1.3702 s]
+                        thrpt:  [72.980 Kelem/s 73.095 Kelem/s 73.203 Kelem/s]
+place_order_different_levels/ob_arena_optimized/100000
+                        time:   [16.991 ms 17.206 ms 17.431 ms]
+                        thrpt:  [5.7370 Melem/s 5.8120 Melem/s 5.8854 Melem/s]
+
+
+
+
+
+
+
+cancel_order_different_levels/ob_naive/1000
+                        time:   [86.122 µs 86.323 µs 86.533 µs]
+                        thrpt:  [11.556 Melem/s 11.584 Melem/s 11.611 Melem/s]
+cancel_order_different_levels/ob_arena_optimized/1000
+                        time:   [55.305 µs 55.417 µs 55.537 µs]
+                        thrpt:  [18.006 Melem/s 18.045 Melem/s 18.082 Melem/s]
+
+
+cancel_order_different_levels/ob_naive/10000
+                        time:   [4.2680 ms 4.2755 ms 4.2843 ms]
+                        thrpt:  [2.3341 Melem/s 2.3389 Melem/s 2.3430 Melem/s]
+cancel_order_different_levels/ob_arena_optimized/10000
+                        time:   [998.93 µs 1.0017 ms 1.0050 ms]
+                        thrpt:  [9.9504 Melem/s 9.9828 Melem/s 10.011 Melem/s]
+
+
+cancel_order_different_levels/ob_naive/100000
+                        time:   [388.77 ms 390.12 ms 391.67 ms]
+                        thrpt:  [255.32 Kelem/s 256.33 Kelem/s 257.22 Kelem/s]
+cancel_order_different_levels/ob_arena_optimized/100000
+                        time:   [20.516 ms 20.843 ms 21.178 ms]
+                        thrpt:  [4.7220 Melem/s 4.7978 Melem/s 4.8742 Melem/s]
