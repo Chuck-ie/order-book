@@ -1,0 +1,27 @@
+[package]
+name = "orderbook"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+naive = ["shared/naive"]
+standard = ["shared/standard"]
+standard-arena = ["shared/standard-arena"]
+
+[dependencies]
+shared = { path = "../shared", default-features = false }
+tokio = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }
+
+[[bench]]
+name = "basic"
+harness = false
+
+[[bench]]
+name = "arena_alloc"
+harness = false
+
+[[bench]]
+name = "optimized"
+harness = false

@@ -1,0 +1,20 @@
+[package]
+name = "benchmarks"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+naive = ["shared/naive"]
+standard = ["shared/standard"]
+standard-arena = ["shared/standard-arena"]
+
+[dependencies]
+criterion = "0.8.2"
+shared = { path = "../shared", default-features = false }
+tokio = { workspace = true }
+rand = { workspace = true }
+rand_distr = { workspace = true }
+
+[[bench]]
+name = "benchmarks"
+harness = false
