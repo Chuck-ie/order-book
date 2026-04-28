@@ -48,7 +48,10 @@ impl OrderBookExt for OrderBook {
 
         match side {
             OrderSide::Bid => {
-                self.bids.entry(Reverse(limit)).or_default().push(new_order_id);
+                self.bids
+                    .entry(Reverse(limit))
+                    .or_default()
+                    .push(new_order_id);
             }
             OrderSide::Ask => {
                 self.asks.entry(limit).or_default().push(new_order_id);
@@ -60,18 +63,28 @@ impl OrderBookExt for OrderBook {
     }
 
     fn cancel_order(&mut self, order_id: Self::OrderId) {
-        let order = self.orders.get_mut(&order_id).expect("FIXME: missing order");
+        let order = self
+            .orders
+            .get_mut(&order_id)
+            .expect("FIXME: missing order");
         let price = order.limit;
         let side = order.side;
 
         let order_ids = match side {
-            OrderSide::Bid => {
-                self.bids.get_mut(&Reverse(price)).expect("FIXME: missing price limit")
-            }
-            OrderSide::Ask => self.asks.get_mut(&price).expect("FIXME: missing price limit"),
+            OrderSide::Bid => self
+                .bids
+                .get_mut(&Reverse(price))
+                .expect("FIXME: missing price limit"),
+            OrderSide::Ask => self
+                .asks
+                .get_mut(&price)
+                .expect("FIXME: missing price limit"),
         };
 
-        let pos = order_ids.iter().position(|&id| id == order_id).expect("FIXME: missing order_id");
+        let pos = order_ids
+            .iter()
+            .position(|&id| id == order_id)
+            .expect("FIXME: missing order_id");
         order_ids.remove(pos);
 
         if order_ids.is_empty() {
@@ -196,7 +209,12 @@ impl OrderMatcherExt for OrderMatcher {
 
         order_ids
             .iter()
-            .map(|id| self.order_book.get_order(*id).expect("order not found").amount as usize)
+            .map(|id| {
+                self.order_book
+                    .get_order(*id)
+                    .expect("order not found")
+                    .amount as usize
+            })
             .sum()
     }
 
