@@ -83,12 +83,7 @@ impl OrderBookExt for OrderBook {
     }
 
     fn cancel_order(&mut self, order_id: Self::OrderId) {
-        let Some(LimitOrder {
-            side,
-            limit,
-            ..
-        }) = self.orders.get(&order_id)
-        else {
+        let Some(LimitOrder { side, limit, .. }) = self.orders.get(&order_id) else {
             return;
         };
 
@@ -99,7 +94,11 @@ impl OrderBookExt for OrderBook {
 
         let level = &mut levels[i];
 
-        let pos = level.order_ids.iter().position(|&id| id == order_id).expect("FIXME: order_book");
+        let pos = level
+            .order_ids
+            .iter()
+            .position(|&id| id == order_id)
+            .expect("FIXME: order_book");
         level.order_ids.remove(pos);
 
         if level.order_ids.is_empty() {
@@ -184,7 +183,11 @@ impl OrderMatcherExt for OrderMatcher {
             }
 
             for id in &level.order_ids {
-                let current_order = self.order_book.orders.get_mut(id).expect("FIXME: order_book");
+                let current_order = self
+                    .order_book
+                    .orders
+                    .get_mut(id)
+                    .expect("FIXME: order_book");
                 let deduction = current_order.amount.min(remaining_amount);
 
                 current_order.amount -= deduction;
@@ -238,7 +241,12 @@ impl OrderMatcherExt for OrderMatcher {
         level
             .order_ids
             .iter()
-            .map(|id| self.order_book.get_order(*id).expect("order not found").amount as usize)
+            .map(|id| {
+                self.order_book
+                    .get_order(*id)
+                    .expect("order not found")
+                    .amount as usize
+            })
             .sum()
     }
 

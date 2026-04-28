@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["benchmarks","orderbook", "shared"]
+members = ["benchmarks", "shared"]
 
 [workspace.dependencies]
 divan = "0.1.21"
