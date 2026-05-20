@@ -84,7 +84,7 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            queue: SlotMapUnsafe::new(),
+            queue: SlotMapUnsafe::with_capacity(1_000_000),
         }
     }
 
