@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 
-pub mod fully_optimized;
-pub mod fully_optimized_old;
 pub mod ob_naive;
 pub mod ob_slot_map_naive;
 pub mod ob_slot_map_optimized;
