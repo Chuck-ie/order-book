@@ -8,8 +8,11 @@ tokio = { version = "1.50", features = ["full"] }
 rand = "0.10.0"
 rand_distr = "0.6.0"
 
-[profile.bench]
-debug = true
+[profile.release]
+debug = 2
+strip = "none"
 opt-level = 3
+lto = false
 codegen-units = 1
-lto = true
+debug-assertions = false
+overflow-checks = false

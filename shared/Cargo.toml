@@ -6,8 +6,9 @@ edition = "2024"
 [features]
 naive = []
 standard = []
-standard-arena = []
-optimized = []
+sm-naive =[]
+sm-optimized =[]
+sm-unsafe =[]
 
 [dependencies]
 divan = { workspace = true }

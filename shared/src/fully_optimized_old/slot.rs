@@ -59,7 +59,10 @@ impl Slot<Tagged> {
 
     #[must_use]
     pub fn as_free_unchecked_mut(&mut self) -> &mut Slot<Free> {
-        debug_assert!(self.is_free(), "tried casting a non Free tagged slot to Free");
+        debug_assert!(
+            self.is_free(),
+            "tried casting a non Free tagged slot to Free"
+        );
         // Safety: since the arena returns an index to an occupied slot on arena insert, the caller
         // usually has the knowledge of if a slot is free or occupied. The debug assert is there
         // to help during development in case the caller makes a mistake.
@@ -85,7 +88,10 @@ impl Slot<Tagged> {
 
     #[must_use]
     pub fn as_occupied_unchecked_mut(&mut self) -> &mut Slot<Occupied> {
-        debug_assert!(self.is_occupied(), "tried casting a non Occupied tagged slot to Occupied");
+        debug_assert!(
+            self.is_occupied(),
+            "tried casting a non Occupied tagged slot to Occupied"
+        );
         // Safety: since the arena returns an index to an occupied slot on arena insert, the caller
         // usually has the knowledge of if a slot is free or occupied. The debug assert is there
         // to help during development in case the caller makes a mistake.

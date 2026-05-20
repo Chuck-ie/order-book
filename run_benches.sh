@@ -61,12 +61,13 @@ run_benchmark() {
   echo "-------------------------------------------------------"
   ssh -T orderbook-vm << EOF
     cd /home/chuckie/orderbook
-    RUSTFLAGS='-Awarnings' cargo bench -p benchmarks --features naive,standard,standard-arena
+    RUSTFLAGS='-Awarnings' cargo bench -p benchmarks
 EOF
 
   cleanup
 }
 
+    # RUSTFLAGS='-Awarnings' cargo bench -p benchmarks --features naive,standard,standard-arena
 LOG_FILE="benchmark_$(date +%Y%m%d_%H%M%S).log"
 
 run_benchmark 2>&1 | tee "$LOG_FILE"

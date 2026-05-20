@@ -1,6 +1,6 @@
-use crate::{Arena, Linkable, TestableArena};
+use crate::{Linkable, SlotMap, TestableSlotMap};
 
-pub struct OptimizedArena<T> {
+pub struct SlotMapOptimized<T> {
     pub head: u32,
     pub tail: u32,
     pub free_head: u32,
@@ -28,14 +28,26 @@ pub struct Link {
 // ex7: [id, id, id] -> [free(None), id, id], head: Some(1), tail: Some(2), free: Some(0)
 // ex8: [id, free(None), id], free: Some(1) -> [id, id, id], free: None
 // ex9: [id, free(None), free(1)], free: Some(2) -> [id, free(None), id], free: Some(1)
-impl<T> OptimizedArena<T> {
+impl<T> SlotMapOptimized<T> {
     #[must_use]
     pub fn iter(&self) -> ArenaIter<'_, T> {
         self.into_iter()
     }
+
+    #[must_use]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            head: u32::MAX,
+            tail: u32::MAX,
+            free_head: u32::MAX,
+            slots: Vec::with_capacity(capacity),
+            links: Vec::with_capacity(capacity),
+            capacity: 0,
+        }
+    }
 }
 
-impl<T> Default for OptimizedArena<T> {
+impl<T> Default for SlotMapOptimized<T> {
     fn default() -> Self {
         Self {
             head: u32::MAX,
@@ -48,7 +60,7 @@ impl<T> Default for OptimizedArena<T> {
     }
 }
 
-impl<T> Arena for OptimizedArena<T> {
+impl<T> SlotMap for SlotMapOptimized<T> {
     type Data = T;
     type Utype = u32;
 
@@ -172,7 +184,7 @@ impl<T> Arena for OptimizedArena<T> {
     }
 }
 
-impl<T: PartialEq> TestableArena for OptimizedArena<T> {
+impl<T: PartialEq> TestableSlotMap for SlotMapOptimized<T> {
     type Data = T;
     type Utype = u32;
 
@@ -244,7 +256,7 @@ impl Linkable for Link {
 }
 
 pub struct ArenaIter<'a, T> {
-    arena: &'a OptimizedArena<T>,
+    arena: &'a SlotMapOptimized<T>,
     current: u32,
 }
 
@@ -270,7 +282,7 @@ impl<'a, T> Iterator for ArenaIter<'a, T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a OptimizedArena<T> {
+impl<'a, T> IntoIterator for &'a SlotMapOptimized<T> {
     type Item = &'a T;
     type IntoIter = ArenaIter<'a, T>;
 

@@ -1,23 +1,31 @@
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
+    use std::{marker::PhantomData, num::NonZeroU32};
 
-    #[repr(transparent)]
-    pub struct Slot<S: SlotState>(u64, PhantomData<S>);
+    pub enum TestSlot<T> {
+        Free { next_free: u32 },
+        Occupied { data: T, prev: u32, next: u32 },
+    }
 
-    pub trait SlotState {}
-    pub struct Tagged;
-    pub struct Free;
-    pub struct Occupied;
+    pub struct Order {
+        pub side: OrderSide,
+        pub price: u128,
+        pub qty: u128,
+        pub level_slot_idx: u32,
+    }
 
-    impl SlotState for Tagged {}
-    impl SlotState for Free {}
-    impl SlotState for Occupied {}
+    #[derive(Clone, Copy)]
+    pub enum OrderSide {
+        Bid,
+        Ask,
+    }
 
     #[test]
     fn random() {
-        println!("Slot-undefined: {}", std::mem::size_of::<Slot<Tagged>>());
-        println!("Slot-free: {}", std::mem::size_of::<Slot<Free>>());
-        println!("Slot-occupied: {}", std::mem::size_of::<Slot<Occupied>>());
+        println!("TestSlot<u32>: {}", std::mem::size_of::<TestSlot<u32>>());
+        println!(
+            "TestSlot<Order>: {}",
+            std::mem::size_of::<TestSlot<Order>>()
+        );
     }
 }
