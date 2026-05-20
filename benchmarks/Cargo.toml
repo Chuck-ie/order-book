@@ -6,10 +6,12 @@ edition = "2024"
 [features]
 naive = ["shared/naive"]
 standard = ["shared/standard"]
-standard-arena = ["shared/standard-arena"]
+sm-naive =["shared/sm-naive"]
+sm-optimized =["shared/sm-optimized"]
+sm-unsafe =["shared/sm-unsafe"]
 
 [dependencies]
-criterion = "0.8.2"
+criterion = { version = "0.8", features = ["html_reports"] }
 shared = { path = "../shared", default-features = false }
 tokio = { workspace = true }
 rand = { workspace = true }
@@ -18,3 +20,7 @@ rand_distr = { workspace = true }
 [[bench]]
 name = "benchmarks"
 harness = false
+
+[[bin]]
+name = "profile_bench"
+path = "src/lib.rs"

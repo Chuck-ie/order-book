@@ -1,7 +1,7 @@
-use crate::{Arena, Linkable, TestableArena};
+use crate::{Linkable, SlotMap, TestableSlotMap};
 
 #[derive(Default)]
-pub struct NaiveArena<T> {
+pub struct SlotMapNaive<T> {
     slots: Vec<Slot<T>>,
     pub head: Option<usize>,
     pub tail: Option<usize>,
@@ -27,14 +27,14 @@ pub enum Slot<T> {
 // ex7: [id, id, id] -> [free(None), id, id], head: Some(1), tail: Some(2), free: Some(0)
 // ex8: [id, free(None), id], free: Some(1) -> [id, id, id], free: None
 // ex9: [id, free(None), free(1)], free: Some(2) -> [id, free(None), id], free: Some(1)
-impl<T> NaiveArena<T> {
+impl<T> SlotMapNaive<T> {
     #[must_use]
     pub fn iter(&self) -> NaiveArenaIter<'_, T> {
         self.into_iter()
     }
 }
 
-impl<T> Arena for NaiveArena<T> {
+impl<T> SlotMap for SlotMapNaive<T> {
     type Data = T;
     type Utype = usize;
 
@@ -169,7 +169,7 @@ impl<T> Arena for NaiveArena<T> {
     }
 }
 
-impl<T: PartialEq> TestableArena for NaiveArena<T> {
+impl<T: PartialEq> TestableSlotMap for SlotMapNaive<T> {
     type Data = T;
     type Utype = usize;
 
@@ -231,7 +231,7 @@ impl<T> Linkable for Slot<T> {
 }
 
 pub struct NaiveArenaIter<'a, T> {
-    arena: &'a NaiveArena<T>,
+    arena: &'a SlotMapNaive<T>,
     current: Option<usize>,
 }
 
@@ -250,7 +250,7 @@ impl<'a, T> Iterator for NaiveArenaIter<'a, T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a NaiveArena<T> {
+impl<'a, T> IntoIterator for &'a SlotMapNaive<T> {
     type Item = &'a T;
     type IntoIter = NaiveArenaIter<'a, T>;
 

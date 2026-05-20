@@ -1,10 +1,10 @@
 use std::hint::black_box;
 
-use criterion::{criterion_group, criterion_main, BatchSize, Criterion, Throughput};
+use criterion::{BatchSize, Criterion, Throughput, criterion_group, criterion_main};
 use shared::{
-    ob_arena_naive, ob_arena_optimized,
+    MatcherCommand, OrderMatcherExt, OrderSide,
     ob_naive::{self},
-    ob_standard, MatcherCommand, OrderMatcherExt, OrderSide,
+    ob_standard,
 };
 
 #[inline(always)]
@@ -22,6 +22,8 @@ macro_rules! bench_impl {
     ($c:expr, $bench_name:expr, [ $( ($name:expr, $matcher:ty) ),* ], $setup:ident) => {
         let mut group = $c.benchmark_group($bench_name);
         let sizes = [1_000, 10_000, 100_000];
+        // let sizes = [1_000, 10_000];
+        // let sizes = [100_000];
 
         for n in sizes {
         let (samples, measurement) = match n {
@@ -69,9 +71,9 @@ fn bench_place_order_same_level(c: &mut Criterion) {
         c,
         "place_order_same_level",
         [
-            ("ob_naive", ob_naive::OrderMatcher),
-            ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_arena_naive", ob_arena_naive::OrderMatcher),
+            // ("ob_naive", ob_naive::OrderMatcher),
+            // ("ob_standard", ob_standard::OrderMatcher),
+            // ("ob_arena_naive", ob_arena_naive::OrderMatcher),
             ("ob_arena_optimized", ob_arena_optimized::OrderMatcher)
         ],
         setup
@@ -96,7 +98,7 @@ fn bench_place_order_different_levels(c: &mut Criterion) {
         "place_order_different_levels",
         [
             // ("ob_naive", ob_naive::OrderMatcher),
-            ("ob_standard", ob_standard::OrderMatcher),
+            // ("ob_standard", ob_standard::OrderMatcher),
             // ("ob_arena_naive", ob_arena_naive::OrderMatcher),
             ("ob_arena_optimized", ob_arena_optimized::OrderMatcher)
         ],
@@ -124,9 +126,9 @@ fn bench_cancel_order_same_level(c: &mut Criterion) {
         c,
         "cancel_order_same_level",
         [
-            ("ob_naive", ob_naive::OrderMatcher),
-            ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_arena_naive", ob_arena_naive::OrderMatcher),
+            // ("ob_naive", ob_naive::OrderMatcher),
+            // ("ob_standard", ob_standard::OrderMatcher),
+            // ("ob_arena_naive", ob_arena_naive::OrderMatcher),
             ("ob_arena_optimized", ob_arena_optimized::OrderMatcher)
         ],
         setup
@@ -154,9 +156,9 @@ fn bench_cancel_order_different_levels(c: &mut Criterion) {
         c,
         "cancel_order_different_levels",
         [
-            ("ob_naive", ob_naive::OrderMatcher),
-            ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_arena_naive", ob_arena_naive::OrderMatcher),
+            // ("ob_naive", ob_naive::OrderMatcher),
+            // ("ob_standard", ob_standard::OrderMatcher),
+            // ("ob_arena_naive", ob_arena_naive::OrderMatcher),
             ("ob_arena_optimized", ob_arena_optimized::OrderMatcher)
         ],
         setup

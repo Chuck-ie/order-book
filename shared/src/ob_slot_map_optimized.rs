@@ -1,27 +1,25 @@
 use crate::{
-    arena_naive::NaiveArena, Arena, LimitOrder, LimitOrderRequest, OrderBookExt, OrderMatcherExt,
-    OrderSide,
+    LimitOrder, LimitOrderRequest, OrderBookExt, OrderMatcherExt, OrderSide, SlotMap,
+    slot_map_optimized::SlotMapOptimized,
 };
 use std::{cmp::Reverse, collections::BTreeMap};
 
 pub struct OrderBook {
-    pub bids: BTreeMap<Reverse<u64>, NaiveArena<u64>>,
-    pub asks: BTreeMap<u64, NaiveArena<u64>>,
-    pub orders: NaiveArena<LimitOrder<u64>>,
+    pub bids: BTreeMap<Reverse<u32>, SlotMapOptimized<u32>>,
+    pub asks: BTreeMap<u32, SlotMapOptimized<u32>>,
+    pub orders: SlotMapOptimized<LimitOrder<u32>>,
 }
 
 impl OrderBookExt for OrderBook {
-    type OrderId = u64;
+    type OrderId = u32;
     type Order = LimitOrder<Self::OrderId>;
-
     fn new() -> Self {
         Self {
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
-            orders: NaiveArena::new(),
+            orders: SlotMapOptimized::with_capacity(1_000_000),
         }
     }
-
     #[allow(clippy::cast_possible_truncation)]
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
         let LimitOrderRequest {
@@ -29,19 +27,22 @@ impl OrderBookExt for OrderBook {
             limit: price,
             amount,
         } = request;
-
         let new_order = LimitOrder::new(0, side, price, amount);
-        let new_order_id = self.orders.insert(new_order) as u64;
-
+        let new_order_id = self.orders.insert(new_order);
         let level_idx = match side {
-            OrderSide::Bid => {
-                self.bids.entry(Reverse(price.into())).or_default().insert(new_order_id)
-            }
-            OrderSide::Ask => self.asks.entry(price.into()).or_default().insert(new_order_id),
+            OrderSide::Bid => self
+                .bids
+                .entry(Reverse(price))
+                .or_default()
+                .insert(new_order_id),
+            OrderSide::Ask => self.asks.entry(price).or_default().insert(new_order_id),
         };
 
-        let order = self.orders.get_mut(new_order_id as usize).expect("previous insert failed");
-        order.id = level_idx as u64;
+        let order = self
+            .orders
+            .get_mut(new_order_id as usize)
+            .expect("previous insert failed");
+        order.id = level_idx;
 
         new_order_id
     }
@@ -49,13 +50,16 @@ impl OrderBookExt for OrderBook {
     #[allow(clippy::cast_possible_truncation)]
     fn cancel_order(&mut self, order_id: Self::OrderId) {
         let (price, side, internal_id) = match self.orders.get(order_id as usize) {
-            Some(order) => (u64::from(order.limit), order.side, order.id as usize),
+            Some(order) => (order.limit, order.side, order.id),
             None => return,
         };
 
         let level_is_empty = {
             let level = match side {
-                OrderSide::Bid => self.bids.get_mut(&Reverse(price)).expect("missing price level"),
+                OrderSide::Bid => self
+                    .bids
+                    .get_mut(&Reverse(price))
+                    .expect("missing price level"),
                 OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
             };
 
@@ -70,7 +74,7 @@ impl OrderBookExt for OrderBook {
             };
         }
 
-        self.orders.remove(order_id as usize);
+        self.orders.remove(order_id);
     }
 
     #[allow(clippy::cast_possible_truncation)]
@@ -81,23 +85,23 @@ impl OrderBookExt for OrderBook {
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
-    pub queue: NaiveArena<u64>,
+    pub queue: SlotMapOptimized<u32>,
 }
 
 impl OrderMatcherExt for OrderMatcher {
-    type OrderId = u64;
+    type OrderId = u32;
     type OrderBook = OrderBook;
 
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            queue: NaiveArena::new(),
+            queue: SlotMapOptimized::new(),
         }
     }
 
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
         let new_order_id = self.order_book.place_order(request);
-        self.queue.insert(new_order_id) as u64
+        self.queue.insert(new_order_id)
     }
 
     fn cancel_order(&mut self, order_id: Self::OrderId) {
@@ -106,11 +110,11 @@ impl OrderMatcherExt for OrderMatcher {
 
     #[allow(clippy::cast_possible_truncation)]
     fn process_limit_order(&mut self, mut request: LimitOrderRequest) -> LimitOrderRequest {
-        let limit = u64::from(request.limit);
+        let limit = request.limit;
         let mut remaining_amount = request.amount;
         let mut orders_to_remove = vec![];
 
-        let side_iterator: Box<dyn Iterator<Item = (&u64, &mut NaiveArena<u64>)>> =
+        let side_iterator: Box<dyn Iterator<Item = (&u32, &mut SlotMapOptimized<u32>)>> =
             match request.side {
                 OrderSide::Bid => Box::new(self.order_book.asks.iter_mut()),
                 OrderSide::Ask => Box::new(self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v))),
@@ -158,7 +162,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     #[allow(clippy::cast_possible_truncation)]
     fn best_bid(&self) -> Option<usize> {
-        if let Some((price, _)) = self.order_book.bids.first_key_value() {
+        if let Some((price, _)) = self.order_book.bids.last_key_value() {
             Some(price.0 as usize)
         } else {
             None
@@ -174,17 +178,23 @@ impl OrderMatcherExt for OrderMatcher {
         }
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
         let Some(order_ids) = (match side {
-            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u64)),
-            OrderSide::Ask => self.order_book.asks.get(&(price as u64)),
+            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u32)),
+            OrderSide::Ask => self.order_book.asks.get(&(price as u32)),
         }) else {
             return 0;
         };
 
         order_ids
             .iter()
-            .map(|id| self.order_book.get_order(*id).expect("order not found").amount as usize)
+            .map(|id| {
+                self.order_book
+                    .get_order(*id)
+                    .expect("order not found")
+                    .amount as usize
+            })
             .sum()
     }
 

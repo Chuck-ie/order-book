@@ -1,4 +1,4 @@
-use crate::fully_optimized::{
+use crate::fully_optimized_old::{
     slot::{Occupied, Slot, Tagged},
     types::NonZeroIndex,
 };
@@ -88,7 +88,11 @@ impl Arena {
 
         let insert_idx = if let Some(free_idx) = free_idx {
             let free_idx = free_idx.to_raw();
-            let slot = unsafe { self.slots.get_unchecked_mut(free_idx).as_free_unchecked_mut() };
+            let slot = unsafe {
+                self.slots
+                    .get_unchecked_mut(free_idx)
+                    .as_free_unchecked_mut()
+            };
             self.next_free = Some(NonZeroIndex::from_raw(slot.value() as usize));
             free_idx
         } else {
@@ -150,7 +154,10 @@ impl Arena {
         }
 
         unsafe {
-            let removed_slot = self.slots.get_unchecked_mut(index).make_free_unchecked_mut();
+            let removed_slot = self
+                .slots
+                .get_unchecked_mut(index)
+                .make_free_unchecked_mut();
             // removed_slot.set_value(self.next_free);
         }
     }

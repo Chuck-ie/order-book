@@ -1,12 +1,15 @@
 use std::fmt::Debug;
 
-pub mod arena_naive;
-pub mod arena_optimized;
 pub mod fully_optimized;
-pub mod ob_arena_naive;
-pub mod ob_arena_optimized;
+pub mod fully_optimized_old;
 pub mod ob_naive;
+pub mod ob_slot_map_naive;
+pub mod ob_slot_map_optimized;
+pub mod ob_slot_map_unsafe;
 pub mod ob_standard;
+pub mod slot_map_naive;
+pub mod slot_map_optimized;
+pub mod slot_map_unsafe;
 
 pub trait OrderBookExt {
     type OrderId;
@@ -58,7 +61,7 @@ pub trait OrderMatcherExt {
     fn order_book(&self) -> &Self::OrderBook;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum OrderSide {
     Bid,
     Ask,
@@ -104,7 +107,7 @@ pub struct LimitOrderRequest {
     pub amount: u32,
 }
 
-pub trait Arena {
+pub trait SlotMap {
     type Data;
     type Utype: TryFrom<usize> + Debug + PartialEq + Copy;
 
@@ -120,7 +123,7 @@ pub trait Arena {
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Data>;
 }
 
-pub trait TestableArena {
+pub trait TestableSlotMap {
     type Data: PartialEq;
     type Utype: TryFrom<usize> + Debug + PartialEq + Copy;
 
