@@ -1,6 +1,4 @@
-use std::fs::exists;
-
-use crate::{Linkable, SlotMap, TestableSlotMap, slot_map_unsafe};
+use crate::{Linkable, SlotMap, TestableSlotMap};
 
 pub struct SlotMapUnsafe<T> {
     pub head: u32,
