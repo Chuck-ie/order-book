@@ -16,6 +16,8 @@ shared = { path = "../shared", default-features = false }
 tokio = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }
+csv = { workspace = true }
+serde = { workspace = true }
 
 [[bench]]
 name = "benchmarks"

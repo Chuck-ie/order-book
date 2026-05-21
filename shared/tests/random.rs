@@ -1,31 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use std::{marker::PhantomData, num::NonZeroU32};
-
-    pub enum TestSlot<T> {
-        Free { next_free: u32 },
-        Occupied { data: T, prev: u32, next: u32 },
-    }
-
-    pub struct Order {
-        pub side: OrderSide,
-        pub price: u128,
-        pub qty: u128,
-        pub level_slot_idx: u32,
-    }
-
-    #[derive(Clone, Copy)]
-    pub enum OrderSide {
-        Bid,
-        Ask,
-    }
+    use shared::slot_map_unsafe::{Slot, SlotMapUnsafe};
 
     #[test]
     fn random() {
-        println!("TestSlot<u32>: {}", std::mem::size_of::<TestSlot<u32>>());
-        println!(
-            "TestSlot<Order>: {}",
-            std::mem::size_of::<TestSlot<Order>>()
-        );
+        let test_vec_1: Vec<u32> = vec![];
+        let test_vec_2: Vec<u32> = Vec::with_capacity(16);
+        // let test_vec_3: Vec<u32> = Vec::with(16);
+
+        println!("test_vec_1: {}", test_vec_1.len());
+        println!("test_vec_2: {}", test_vec_2.len());
+
+        println!("size_of: {}", std::mem::size_of::<Slot<u32>>());
     }
 }
