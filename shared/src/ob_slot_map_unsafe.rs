@@ -13,13 +13,15 @@ pub struct OrderBook {
 impl OrderBookExt for OrderBook {
     type OrderId = u32;
     type Order = LimitOrder<Self::OrderId>;
+
     fn new() -> Self {
         Self {
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
-            orders: SlotMapUnsafe::with_capacity(1_000_000),
+            orders: SlotMapUnsafe::new(),
         }
     }
+
     #[allow(clippy::cast_possible_truncation)]
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
         let LimitOrderRequest {
@@ -33,16 +35,18 @@ impl OrderBookExt for OrderBook {
             OrderSide::Bid => self
                 .bids
                 .entry(Reverse(price))
-                .or_default()
+                .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
                 .insert(new_order_id),
-            OrderSide::Ask => self.asks.entry(price).or_default().insert(new_order_id),
+            OrderSide::Ask => self
+                .asks
+                .entry(price)
+                .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
+                .insert(new_order_id),
         };
 
-        let order = self
-            .orders
-            .get_mut(new_order_id as usize)
-            .expect("previous insert failed");
-        order.id = level_idx;
+        self.orders
+            .get_occupied_unchecked_mut(new_order_id as usize)
+            .id = level_idx;
 
         new_order_id
     }
@@ -75,6 +79,7 @@ impl OrderBookExt for OrderBook {
 pub struct OrderMatcher {
     pub order_book: OrderBook,
     pub queue: SlotMapUnsafe<u32>,
+    cancelation_buffer: Vec<u32>,
 }
 
 impl OrderMatcherExt for OrderMatcher {
@@ -84,7 +89,8 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            queue: SlotMapUnsafe::with_capacity(1_000_000),
+            queue: SlotMapUnsafe::with_capacity(1_048_576), // 2^20 * 16 = 16777216 = 16MB
+            cancelation_buffer: Vec::with_capacity(128),
         }
     }
 
@@ -101,7 +107,6 @@ impl OrderMatcherExt for OrderMatcher {
     fn process_limit_order(&mut self, mut request: LimitOrderRequest) -> LimitOrderRequest {
         let limit = request.limit;
         let mut remaining_amount = request.amount;
-        let mut orders_to_remove = vec![];
 
         macro_rules! execute_matching {
             ($iter:expr, $op:tt) => {
@@ -111,19 +116,14 @@ impl OrderMatcherExt for OrderMatcher {
                     }
 
                     for id in &*order_ids {
-                        let current_order = self
-                            .order_book
-                            .orders
-                            .get_mut(*id as usize)
-                            .expect("orderbook and -matcher out of sync");
-
+                        let current_order = self.order_book.orders.get_occupied_unchecked_mut(*id as usize);
                         let fill_amount = current_order.amount.min(remaining_amount);
 
                         current_order.amount -= fill_amount;
                         remaining_amount -= fill_amount;
 
                         if current_order.amount == 0 {
-                            orders_to_remove.push(*id);
+                            self.cancelation_buffer.push(*id);
                         }
 
                         if remaining_amount == 0 {
@@ -143,9 +143,11 @@ impl OrderMatcherExt for OrderMatcher {
             }
         }
 
-        for id in orders_to_remove {
-            self.cancel_order(id);
+        for i in 0..self.cancelation_buffer.len() {
+            self.cancel_order(self.cancelation_buffer[i]);
         }
+
+        self.cancelation_buffer.clear();
 
         request.amount = remaining_amount;
         request

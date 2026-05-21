@@ -1,4 +1,6 @@
-use crate::{Linkable, SlotMap, TestableSlotMap};
+use std::fs::exists;
+
+use crate::{Linkable, SlotMap, TestableSlotMap, slot_map_unsafe};
 
 pub struct SlotMapUnsafe<T> {
     pub head: u32,
@@ -70,6 +72,22 @@ impl<T> SlotMapUnsafe<T> {
             slots: Vec::with_capacity(capacity),
             capacity: 0,
         }
+    }
+
+    #[must_use]
+    pub fn get_occupied_unchecked(&self, index: usize) -> &T {
+        let (data, _, _) = unsafe { self.slots.get_unchecked(index).as_occupied_unchecked() };
+        data
+    }
+
+    #[must_use]
+    pub fn get_occupied_unchecked_mut(&mut self, index: usize) -> &mut T {
+        let (data, _, _) = unsafe {
+            self.slots
+                .get_unchecked_mut(index)
+                .as_occupied_unchecked_mut()
+        };
+        data
     }
 }
 
@@ -248,19 +266,23 @@ impl<T> SlotMap for SlotMapUnsafe<T> {
     }
 
     fn get(&self, index: usize) -> Option<&Self::Data> {
-        let Some(Slot::Occupied { data, .. }) = self.slots.get(index) else {
-            return None;
-        };
+        let slot_ref = unsafe { self.slots.get_unchecked(index) };
 
-        Some(data)
+        if let Slot::Occupied { data, .. } = slot_ref {
+            Some(data)
+        } else {
+            None
+        }
     }
 
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Data> {
-        let Some(Slot::Occupied { data, .. }) = self.slots.get_mut(index) else {
-            return None;
-        };
+        let slot_ref = unsafe { self.slots.get_unchecked_mut(index) };
 
-        Some(data)
+        if let Slot::Occupied { data, .. } = slot_ref {
+            Some(data)
+        } else {
+            None
+        }
     }
 }
 

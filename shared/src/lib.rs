@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use serde::Deserialize;
+
 pub mod ob_naive;
 pub mod ob_slot_map_naive;
 pub mod ob_slot_map_optimized;
@@ -59,10 +61,16 @@ pub trait OrderMatcherExt {
     fn order_book(&self) -> &Self::OrderBook;
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Deserialize)]
 pub enum OrderSide {
     Bid,
     Ask,
+}
+
+impl From<i8> for OrderSide {
+    fn from(val: i8) -> Self {
+        if val == 1 { Self::Bid } else { Self::Ask }
+    }
 }
 
 pub struct LimitOrder<ID> {
@@ -83,6 +91,7 @@ impl<ID> LimitOrder<ID> {
     }
 }
 
+#[derive(Debug)]
 pub enum MatcherCommand<ID> {
     PlaceOrder(LimitOrderRequest),
     CancelOrder(ID),
@@ -99,6 +108,7 @@ impl<ID> MatcherCommand<ID> {
     }
 }
 
+#[derive(Debug)]
 pub struct LimitOrderRequest {
     pub side: OrderSide,
     pub limit: u32,
