@@ -3,13 +3,6 @@ name = "shared"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-naive = []
-standard = []
-sm-naive =[]
-sm-optimized =[]
-sm-unsafe =[]
-
 [dependencies]
 divan = { workspace = true }
 tokio = { workspace = true }

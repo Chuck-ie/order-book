@@ -2,8 +2,8 @@ use std::{any::type_name, time::Instant};
 
 use serde::Deserialize;
 use shared::{
-    LimitOrderRequest, MatcherCommand, OrderMatcherExt, ob_naive, ob_slot_map_naive,
-    ob_slot_map_optimized, ob_slot_map_unsafe, ob_standard,
+    LimitOrderRequest, MatcherCommand, OrderMatcherExt, ob_naive, ob_slot_map_optimized,
+    ob_slot_map_standard, ob_standard,
 };
 
 #[derive(Debug, Deserialize)]
@@ -19,21 +19,20 @@ struct CsvOrder {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     run_benchmark::<ob_naive::OrderMatcher>()?;
     run_benchmark::<ob_standard::OrderMatcher>()?;
-    run_benchmark::<ob_slot_map_naive::OrderMatcher>()?;
+    run_benchmark::<ob_slot_map_standard::OrderMatcher>()?;
     run_benchmark::<ob_slot_map_optimized::OrderMatcher>()?;
-    run_benchmark::<ob_slot_map_unsafe::OrderMatcher>()?;
 
     Ok(())
 }
 
+// TODO: could be written in a way to only load csv data once and
+// reuse for all matchers, but not important for now
 fn run_benchmark<M>() -> Result<(), Box<dyn std::error::Error>>
 where
     M: OrderMatcherExt,
 {
-    let full_name = type_name::<M>();
-    // let readable_name = full_name.split("::").nth_back(1).unwrap_or(full_name);
-
-    println!("\nBenchmarking: {full_name}");
+    let matcher_name = type_name::<M>();
+    println!("\nBenchmarking: {matcher_name}");
 
     let tickers = vec!["AAPL", "AMZN", "GOOG", "INTC", "MSFT"];
     let mut total_commands = 0;

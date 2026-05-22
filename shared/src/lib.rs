@@ -3,13 +3,11 @@ use std::fmt::Debug;
 use serde::Deserialize;
 
 pub mod ob_naive;
-pub mod ob_slot_map_naive;
 pub mod ob_slot_map_optimized;
-pub mod ob_slot_map_unsafe;
+pub mod ob_slot_map_standard;
 pub mod ob_standard;
-pub mod slot_map_naive;
 pub mod slot_map_optimized;
-pub mod slot_map_unsafe;
+pub mod slot_map_standard;
 
 pub trait OrderBookExt {
     type OrderId;

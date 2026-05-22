@@ -2,8 +2,8 @@ use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, Throughput, criterion_group, criterion_main};
 use shared::{
-    MatcherCommand, OrderMatcherExt, OrderSide, ob_naive, ob_slot_map_naive, ob_slot_map_optimized,
-    ob_slot_map_unsafe, ob_standard,
+    MatcherCommand, OrderMatcherExt, OrderSide, ob_naive, ob_slot_map_optimized,
+    ob_slot_map_standard, ob_standard,
 };
 
 #[inline(always)]
@@ -72,9 +72,8 @@ fn bench_place_order_same_level(c: &mut Criterion) {
         [
             ("ob_naive", ob_naive::OrderMatcher),
             ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
-            ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
+            ("ob_slot_map_standard", ob_slot_map_standard::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher)
         ],
         setup
     );
@@ -99,9 +98,8 @@ fn bench_place_order_different_levels(c: &mut Criterion) {
         [
             ("ob_naive", ob_naive::OrderMatcher),
             ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
-            ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
+            ("ob_slot_map_standard", ob_slot_map_standard::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher)
         ],
         setup
     );
@@ -129,9 +127,8 @@ fn bench_cancel_order_same_level(c: &mut Criterion) {
         [
             ("ob_naive", ob_naive::OrderMatcher),
             ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
-            ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
+            ("ob_slot_map_standard", ob_slot_map_standard::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher)
         ],
         setup
     );
@@ -160,9 +157,8 @@ fn bench_cancel_order_different_levels(c: &mut Criterion) {
         [
             ("ob_naive", ob_naive::OrderMatcher),
             ("ob_standard", ob_standard::OrderMatcher),
-            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
-            ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
+            ("ob_slot_map_standard", ob_slot_map_standard::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher)
         ],
         setup
     );
