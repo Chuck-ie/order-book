@@ -19,15 +19,6 @@ pub struct Link {
     pub next: u32,
 }
 
-// ex1: [] -> [id], head: Some(0), tail: Some(0), free: None -> 0
-// ex2: [id] -> [id, id], head: Some(0), tail: Some(1), free: None -> 1
-// ex3: [id, id] -> [id, id, id], head: Some(0), tail: Some(2), free: None -> 2
-// ex4: [id, id, id] -> [id, free(None), id], head: Some(0), tail: Some(2), free: Some(1)
-// ex5: [id, free(None), id] -> [id, free(None), free(1)], head: Some(0), tail: Some(0), free: Some(2)
-// ex6: [id, id, id] -> [id, id, free(None)], head: Some(0), tail: Some(1), free: Some(2)
-// ex7: [id, id, id] -> [free(None), id, id], head: Some(1), tail: Some(2), free: Some(0)
-// ex8: [id, free(None), id], free: Some(1) -> [id, id, id], free: None
-// ex9: [id, free(None), free(1)], free: Some(2) -> [id, free(None), id], free: Some(1)
 impl<T> SlotMapOptimized<T> {
     #[must_use]
     pub fn iter(&self) -> ArenaIter<'_, T> {

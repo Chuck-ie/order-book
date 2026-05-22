@@ -36,14 +36,10 @@ impl OrderBookExt for OrderBook {
         let level_idx = match side {
             OrderSide::Bid => self
                 .bids
-                .entry(Reverse(price.into()))
+                .entry(Reverse(price))
                 .or_default()
                 .insert(new_order_id),
-            OrderSide::Ask => self
-                .asks
-                .entry(price.into())
-                .or_default()
-                .insert(new_order_id),
+            OrderSide::Ask => self.asks.entry(price).or_default().insert(new_order_id),
         };
 
         let order = self
@@ -58,7 +54,7 @@ impl OrderBookExt for OrderBook {
     #[allow(clippy::cast_possible_truncation)]
     fn cancel_order(&mut self, order_id: Self::OrderId) {
         let (price, side, internal_id) = match self.orders.get(order_id as usize) {
-            Some(order) => (u64::from(order.limit), order.side, order.id as usize),
+            Some(order) => (order.limit, order.side, order.id as usize),
             None => return,
         };
 
@@ -118,7 +114,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     #[allow(clippy::cast_possible_truncation)]
     fn process_limit_order(&mut self, mut request: LimitOrderRequest) -> LimitOrderRequest {
-        let limit = u64::from(request.limit);
+        let limit = request.limit;
         let mut remaining_amount = request.amount;
         let mut orders_to_remove = vec![];
 
@@ -197,10 +193,13 @@ impl OrderMatcherExt for OrderMatcher {
         order_ids
             .iter()
             .map(|id| {
-                self.order_book
-                    .get_order(*id)
-                    .expect("order not found")
-                    .amount as usize
+                usize::try_from(
+                    self.order_book
+                        .get_order(*id)
+                        .expect("order not found")
+                        .amount,
+                )
+                .expect("usize should be u64")
             })
             .sum()
     }

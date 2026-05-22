@@ -9,8 +9,8 @@ pub type OrderId = u64;
 
 #[derive(Default)]
 pub struct OrderBook {
-    pub bids: BTreeMap<Reverse<u32>, Vec<OrderId>>,
-    pub asks: BTreeMap<u32, Vec<OrderId>>,
+    pub bids: BTreeMap<Reverse<u64>, Vec<OrderId>>,
+    pub asks: BTreeMap<u64, Vec<OrderId>>,
     pub orders: HashMap<OrderId, LimitOrder<OrderId>>,
     next_order_id: OrderId,
 }
@@ -141,7 +141,7 @@ impl OrderMatcherExt for OrderMatcher {
         let mut remaining_amount = request.amount;
         let mut orders_to_remove = vec![];
 
-        let side_iterator: Box<dyn Iterator<Item = (&u32, &mut Vec<OrderId>)>> = match request.side
+        let side_iterator: Box<dyn Iterator<Item = (&u64, &mut Vec<OrderId>)>> = match request.side
         {
             OrderSide::Bid => Box::new(self.order_book.asks.iter_mut()),
             OrderSide::Ask => Box::new(self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v))),
@@ -184,7 +184,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     fn best_bid(&self) -> Option<usize> {
         if let Some((price, _)) = self.order_book.bids.first_key_value() {
-            Some(price.0 as usize)
+            Some(usize::try_from(price.0).expect("usize should be u64"))
         } else {
             None
         }
@@ -192,7 +192,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     fn best_ask(&self) -> Option<usize> {
         if let Some((price, _)) = self.order_book.asks.first_key_value() {
-            Some(*price as usize)
+            Some(usize::try_from(*price).expect("usize should be u64"))
         } else {
             None
         }
@@ -201,8 +201,8 @@ impl OrderMatcherExt for OrderMatcher {
     #[allow(clippy::cast_possible_truncation)]
     fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
         let Some(order_ids) = (match side {
-            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u32)),
-            OrderSide::Ask => self.order_book.asks.get(&(price as u32)),
+            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u64)),
+            OrderSide::Ask => self.order_book.asks.get(&(price as u64)),
         }) else {
             return 0;
         };

@@ -5,21 +5,23 @@ use crate::{
 use std::{cmp::Reverse, collections::BTreeMap};
 
 pub struct OrderBook {
-    pub bids: BTreeMap<Reverse<u32>, SlotMapOptimized<u32>>,
-    pub asks: BTreeMap<u32, SlotMapOptimized<u32>>,
+    pub bids: BTreeMap<Reverse<u64>, SlotMapOptimized<u32>>,
+    pub asks: BTreeMap<u64, SlotMapOptimized<u32>>,
     pub orders: SlotMapOptimized<LimitOrder<u32>>,
 }
 
 impl OrderBookExt for OrderBook {
     type OrderId = u32;
     type Order = LimitOrder<Self::OrderId>;
+
     fn new() -> Self {
         Self {
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
-            orders: SlotMapOptimized::with_capacity(1_000_000),
+            orders: SlotMapOptimized::new(),
         }
     }
+
     #[allow(clippy::cast_possible_truncation)]
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
         let LimitOrderRequest {
@@ -114,7 +116,7 @@ impl OrderMatcherExt for OrderMatcher {
         let mut remaining_amount = request.amount;
         let mut orders_to_remove = vec![];
 
-        let side_iterator: Box<dyn Iterator<Item = (&u32, &mut SlotMapOptimized<u32>)>> =
+        let side_iterator: Box<dyn Iterator<Item = (&u64, &mut SlotMapOptimized<u32>)>> =
             match request.side {
                 OrderSide::Bid => Box::new(self.order_book.asks.iter_mut()),
                 OrderSide::Ask => Box::new(self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v))),
@@ -181,8 +183,8 @@ impl OrderMatcherExt for OrderMatcher {
     #[allow(clippy::cast_possible_truncation)]
     fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
         let Some(order_ids) = (match side {
-            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u32)),
-            OrderSide::Ask => self.order_book.asks.get(&(price as u32)),
+            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u64)),
+            OrderSide::Ask => self.order_book.asks.get(&(price as u64)),
         }) else {
             return 0;
         };

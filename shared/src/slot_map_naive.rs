@@ -5,7 +5,7 @@ pub struct SlotMapNaive<T> {
     slots: Vec<Slot<T>>,
     pub head: Option<usize>,
     pub tail: Option<usize>,
-    pub free: Option<usize>,
+    pub free_head: Option<usize>,
     capacity: usize,
 }
 
@@ -43,18 +43,18 @@ impl<T> SlotMap for SlotMapNaive<T> {
             slots: vec![],
             head: None,
             tail: None,
-            free: None,
+            free_head: None,
             capacity: 0,
         }
     }
 
     fn insert(&mut self, data: T) -> Self::Utype {
-        let insert_idx = if let Some(free_idx) = self.free {
+        let insert_idx = if let Some(free_idx) = self.free_head {
             let Some(Slot::Free(next_free_idx)) = self.slots.get(free_idx) else {
                 unreachable!("missing free slot");
             };
 
-            self.free = *next_free_idx;
+            self.free_head = *next_free_idx;
             free_idx
         } else {
             self.slots.len()
@@ -126,8 +126,8 @@ impl<T> SlotMap for SlotMapNaive<T> {
         }
 
         let new_free = Some(remove_idx);
-        self.slots[remove_idx] = Slot::Free(self.free);
-        self.free = new_free;
+        self.slots[remove_idx] = Slot::Free(self.free_head);
+        self.free_head = new_free;
 
         if curr_next.is_none() {
             self.tail = curr_prev;
@@ -182,7 +182,7 @@ impl<T: PartialEq> TestableSlotMap for SlotMapNaive<T> {
     }
 
     fn free_head(&self) -> Option<Self::Utype> {
-        self.free
+        self.free_head
     }
 
     fn is_occupied(&self, index: Self::Utype, data: T) -> bool {
