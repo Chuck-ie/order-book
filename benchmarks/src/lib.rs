@@ -18,9 +18,9 @@ struct CsvOrder {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     run_benchmark::<ob_naive::OrderMatcher>()?;
-    run_benchmark::<ob_standard::OrderMatcher>()?;
-    run_benchmark::<ob_slot_map_standard::OrderMatcher>()?;
-    run_benchmark::<ob_slot_map_optimized::OrderMatcher>()?;
+    // run_benchmark::<ob_standard::OrderMatcher>()?;
+    // run_benchmark::<ob_slot_map_standard::OrderMatcher>()?;
+    // run_benchmark::<ob_slot_map_optimized::OrderMatcher>()?;
 
     Ok(())
 }

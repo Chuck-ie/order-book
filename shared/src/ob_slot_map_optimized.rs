@@ -55,25 +55,6 @@ impl OrderBookExt for OrderBook {
         new_order_id
     }
 
-    // #[allow(clippy::cast_possible_truncation)]
-    // fn cancel_order(&mut self, order_id: Self::OrderId) {
-    //     let (price, side, internal_id) = match self.orders.get(order_id as usize) {
-    //         Some(order) => (order.limit, order.side, order.id),
-    //         None => return,
-    //     };
-    //
-    //     let level = match side {
-    //         OrderSide::Bid => self
-    //             .bids
-    //             .get_mut(&Reverse(price))
-    //             .expect("missing price level"),
-    //         OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
-    //     };
-    //
-    //     level.remove(internal_id);
-    //     self.orders.remove(order_id);
-    // }
-
     #[allow(clippy::cast_possible_truncation)]
     fn cancel_order(&mut self, order_id: Self::OrderId) {
         let (price, side, internal_id) = match self.orders.get(order_id as usize) {

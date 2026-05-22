@@ -16,4 +16,9 @@
 // BUT KEEPING EMPTY PRICE LEVELS ACTUALLY DEGRADES PERFORMANCE BECAUSE I HAVE TO ITERATE EMPTY
 // LEVELS INSIDE A BTREEMAP WHICH IS VERY SLOW (ALSO MENTION IT WAS BECAUSE OF REAL DATA BENCHES)
 
-// MENTIONED THAT REVERSE KEY IS ACTUALLY FASTER BY ~7NS
+// MENTION THAT REVERSE KEY IS ACTUALLY FASTER BY ~7NS
+
+// MENTION THAT prealloc for slot vecs doesnt help with performance
+
+// MENTION THAT AoS was actually faster than SoA in my case because data is accessed randomly per
+// slot, so fetching all data at ones was obviously better in hindsight
