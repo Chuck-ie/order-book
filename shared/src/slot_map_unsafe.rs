@@ -8,6 +8,7 @@ pub struct SlotMapUnsafe<T> {
     capacity: u32,
 }
 
+// #[repr(u32)]
 pub enum Slot<T> {
     Free { next_free: u32 },
     Occupied { data: T, prev: u32, next: u32 },
@@ -125,8 +126,6 @@ impl<T> SlotMap for SlotMapUnsafe<T> {
             // Safety: since we previously checked if free_idx == u32::MAX (meaning if its None)
             // we can safely do unsafe enum extraction. Any UB means there is a bug in defining
             // the free_idx/updating the self.free_head
-            // TODO: update to use ptrs like for the slot assignment to make this zero cost.
-            // currently blocked by: https://github.com/rust-lang/rust/issues/120141
             debug_assert!(
                 (free_idx as usize) < self.slots.len(),
                 "tail_idx out of bounds for self.slots"
@@ -369,9 +368,8 @@ impl<'a, T> Iterator for ArenaIter<'a, T> {
             return None;
         }
 
-        let index = self.current as usize;
-
-        if let Some(Slot::Occupied { data, next, .. }) = self.arena.slots.get(index) {
+        if let Some(Slot::Occupied { data, next, .. }) = self.arena.slots.get(self.current as usize)
+        {
             self.current = *next;
             return Some(data);
         }

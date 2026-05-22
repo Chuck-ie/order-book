@@ -5,8 +5,9 @@ use crate::{
 use std::{cmp::Reverse, collections::BTreeMap};
 
 pub struct OrderBook {
-    pub bids: BTreeMap<Reverse<u32>, SlotMapUnsafe<u32>>,
-    pub asks: BTreeMap<u32, SlotMapUnsafe<u32>>,
+    // pub bids: BTreeMap<Reverse<u32>, SlotMapUnsafe<u32>>,
+    pub bids: BTreeMap<Reverse<u64>, SlotMapUnsafe<u32>>,
+    pub asks: BTreeMap<u64, SlotMapUnsafe<u32>>,
     pub orders: SlotMapUnsafe<LimitOrder<u32>>,
 }
 
@@ -35,12 +36,16 @@ impl OrderBookExt for OrderBook {
             OrderSide::Bid => self
                 .bids
                 .entry(Reverse(price))
-                .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
+                // .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
+                // .or_insert_with(|| SlotMapUnsafe::with_capacity(1_024)) // 2^10 * 16 = 16384 = 16KB
+                .or_default()
                 .insert(new_order_id),
             OrderSide::Ask => self
                 .asks
                 .entry(price)
-                .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
+                // .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
+                // .or_insert_with(|| SlotMapUnsafe::with_capacity(1_024)) // 2^10 * 16 = 16384 = 16KB
+                .or_default()
                 .insert(new_order_id),
         };
 
@@ -51,6 +56,25 @@ impl OrderBookExt for OrderBook {
         new_order_id
     }
 
+    // #[allow(clippy::cast_possible_truncation)]
+    // fn cancel_order(&mut self, order_id: Self::OrderId) {
+    //     let (price, side, internal_id) = match self.orders.get(order_id as usize) {
+    //         Some(order) => (order.limit, order.side, order.id),
+    //         None => return,
+    //     };
+    //
+    //     let level = match side {
+    //         OrderSide::Bid => self
+    //             .bids
+    //             .get_mut(&Reverse(price))
+    //             .expect("missing price level"),
+    //         OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
+    //     };
+    //
+    //     level.remove(internal_id);
+    //     self.orders.remove(order_id);
+    // }
+
     #[allow(clippy::cast_possible_truncation)]
     fn cancel_order(&mut self, order_id: Self::OrderId) {
         let (price, side, internal_id) = match self.orders.get(order_id as usize) {
@@ -58,15 +82,26 @@ impl OrderBookExt for OrderBook {
             None => return,
         };
 
-        let level = match side {
-            OrderSide::Bid => self
-                .bids
-                .get_mut(&Reverse(price))
-                .expect("missing price level"),
-            OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
+        let level_is_empty = {
+            let level = match side {
+                OrderSide::Bid => self
+                    .bids
+                    .get_mut(&Reverse(price))
+                    .expect("missing price level"),
+                OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
+            };
+
+            level.remove(internal_id);
+            level.is_empty()
         };
 
-        level.remove(internal_id);
+        if level_is_empty {
+            match side {
+                OrderSide::Bid => self.bids.remove(&Reverse(price)),
+                OrderSide::Ask => self.asks.remove(&price),
+            };
+        }
+
         self.orders.remove(order_id);
     }
 
@@ -89,8 +124,9 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            queue: SlotMapUnsafe::with_capacity(1_048_576), // 2^20 * 16 = 16777216 = 16MB
-            cancelation_buffer: Vec::with_capacity(128),
+            // queue: SlotMapUnsafe::with_capacity(1_048_576), // 2^20 * 16 = 16777216 = 16MB
+            queue: SlotMapUnsafe::new(),
+            cancelation_buffer: Vec::with_capacity(1024),
         }
     }
 
@@ -178,8 +214,8 @@ impl OrderMatcherExt for OrderMatcher {
     #[allow(clippy::cast_possible_truncation)]
     fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
         let Some(order_ids) = (match side {
-            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u32)),
-            OrderSide::Ask => self.order_book.asks.get(&(price as u32)),
+            OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u64)),
+            OrderSide::Ask => self.order_book.asks.get(&(price as u64)),
         }) else {
             return 0;
         };

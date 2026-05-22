@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use criterion::{BatchSize, Criterion, Throughput, criterion_group, criterion_main};
 use shared::{
-    MatcherCommand, OrderMatcherExt, OrderSide, ob_naive, ob_slot_map_optimized,
+    MatcherCommand, OrderMatcherExt, OrderSide, ob_naive, ob_slot_map_naive, ob_slot_map_optimized,
     ob_slot_map_unsafe, ob_standard,
 };
 
@@ -20,11 +20,13 @@ where
 macro_rules! bench_impl {
     ($c:expr, $bench_name:expr, [ $( ($name:expr, $matcher:ty) ),* ], $setup:ident) => {
         let mut group = $c.benchmark_group($bench_name);
-        let sizes = [1_000, 10_000, 100_000];
+        // let sizes = [1_000, 10_000, 100_000];
+        let sizes = [100_000];
 
         for n in sizes {
         let (samples, measurement) = match n {
-                100_000 => (100, 10),
+                100_000 => (10, 10),
+                // 100_000 => (100, 10),
                 10_000  => (250, 20),
                 _       => (500, 30),
             };
@@ -68,10 +70,10 @@ fn bench_place_order_same_level(c: &mut Criterion) {
         c,
         "place_order_same_level",
         [
-            // ("ob_naive", ob_naive::OrderMatcher),
-            // ("ob_standard", ob_standard::OrderMatcher),
-            // ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            // ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
+            ("ob_naive", ob_naive::OrderMatcher),
+            ("ob_standard", ob_standard::OrderMatcher),
+            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
             ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
         ],
         setup
@@ -85,7 +87,7 @@ fn bench_place_order_different_levels(c: &mut Criterion) {
 
         #[allow(clippy::cast_possible_truncation)]
         (0..n).for_each(|i| {
-            commands.push(MatcherCommand::new_limit_order(OrderSide::Bid, i as u32, 1));
+            commands.push(MatcherCommand::new_limit_order(OrderSide::Bid, i as u64, 1));
         });
 
         (matcher, commands)
@@ -95,10 +97,10 @@ fn bench_place_order_different_levels(c: &mut Criterion) {
         c,
         "place_order_different_levels",
         [
-            // ("ob_naive", ob_naive::OrderMatcher),
-            // ("ob_standard", ob_standard::OrderMatcher),
-            // ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            // ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
+            ("ob_naive", ob_naive::OrderMatcher),
+            ("ob_standard", ob_standard::OrderMatcher),
+            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
             ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
         ],
         setup
@@ -125,10 +127,10 @@ fn bench_cancel_order_same_level(c: &mut Criterion) {
         c,
         "cancel_order_same_level",
         [
-            // ("ob_naive", ob_naive::OrderMatcher),
-            // ("ob_standard", ob_standard::OrderMatcher),
-            // ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            // ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
+            ("ob_naive", ob_naive::OrderMatcher),
+            ("ob_standard", ob_standard::OrderMatcher),
+            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
             ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
         ],
         setup
@@ -143,7 +145,7 @@ fn bench_cancel_order_different_levels(c: &mut Criterion) {
         #[allow(clippy::cast_possible_truncation)]
         (0..n).for_each(|i| {
             let id = matcher
-                .process(MatcherCommand::new_limit_order(OrderSide::Bid, i as u32, 1))
+                .process(MatcherCommand::new_limit_order(OrderSide::Bid, i as u64, 1))
                 .unwrap();
 
             commands.push(MatcherCommand::CancelOrder(id));
@@ -156,10 +158,10 @@ fn bench_cancel_order_different_levels(c: &mut Criterion) {
         c,
         "cancel_order_different_levels",
         [
-            // ("ob_naive", ob_naive::OrderMatcher),
-            // ("ob_standard", ob_standard::OrderMatcher),
-            // ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
-            // ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
+            ("ob_naive", ob_naive::OrderMatcher),
+            ("ob_standard", ob_standard::OrderMatcher),
+            ("ob_slot_map_naive", ob_slot_map_naive::OrderMatcher),
+            ("ob_slot_map_optimized", ob_slot_map_optimized::OrderMatcher),
             ("ob_slot_map_unsafe", ob_slot_map_unsafe::OrderMatcher)
         ],
         setup

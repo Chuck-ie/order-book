@@ -13,7 +13,7 @@ pub struct OrderBook {
 
 #[derive(Debug)]
 pub struct PriceLevel {
-    pub price: usize,
+    pub price: u64,
     pub order_ids: Vec<OrderId>,
 }
 
@@ -32,7 +32,7 @@ impl OrderBook {
     fn find_level(
         &mut self,
         side: OrderSide,
-        price: usize,
+        price: u64,
     ) -> (&mut Vec<PriceLevel>, Result<usize, usize>) {
         match side {
             OrderSide::Bid => {
@@ -71,7 +71,7 @@ impl OrderBookExt for OrderBook {
 
         let new_order_id = self.next_order_id();
         let new_order = LimitOrder::new(new_order_id, side, limit, amount);
-        let (levels, search_res) = self.find_level(side, limit as usize);
+        let (levels, search_res) = self.find_level(side, limit);
 
         match search_res {
             Ok(i) => levels[i].order_ids.push(new_order_id),
@@ -87,7 +87,7 @@ impl OrderBookExt for OrderBook {
             return;
         };
 
-        let (levels, search_res) = self.find_level(*side, *limit as usize);
+        let (levels, search_res) = self.find_level(*side, *limit);
         let Ok(i) = search_res else {
             return;
         };
@@ -99,6 +99,7 @@ impl OrderBookExt for OrderBook {
             .iter()
             .position(|&id| id == order_id)
             .expect("FIXME: order_book");
+
         level.order_ids.remove(pos);
 
         if level.order_ids.is_empty() {
@@ -115,17 +116,17 @@ impl OrderBookExt for OrderBook {
 
 impl PriceLevel {
     #[must_use]
-    pub const fn empty(price: u32) -> Self {
+    pub const fn empty(price: u64) -> Self {
         Self {
-            price: price as usize,
+            price,
             order_ids: vec![],
         }
     }
 
     #[must_use]
-    pub fn from_order(price: u32, order_id: OrderId) -> Self {
+    pub fn from_order(price: u64, order_id: OrderId) -> Self {
         Self {
-            price: price as usize,
+            price,
             order_ids: vec![order_id],
         }
     }
@@ -162,7 +163,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     fn process_limit_order(&mut self, mut request: LimitOrderRequest) -> LimitOrderRequest {
         let side = request.side;
-        let limit = request.limit as usize;
+        let limit = request.limit;
 
         let levels = match side {
             OrderSide::Bid => &mut self.order_book.asks,
@@ -212,23 +213,31 @@ impl OrderMatcherExt for OrderMatcher {
     }
 
     fn best_bid(&self) -> Option<usize> {
-        self.order_book.bids.first().map(|level| level.price)
+        self.order_book
+            .bids
+            .first()
+            .map(|level| usize::try_from(level.price).expect("usize should be u64"))
     }
 
     fn best_ask(&self) -> Option<usize> {
-        self.order_book.asks.first().map(|level| level.price)
+        self.order_book
+            .asks
+            .first()
+            .map(|level| usize::try_from(level.price).expect("usize should be u64"))
     }
 
     fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
         let (levels, search_res) = match side {
             OrderSide::Bid => {
                 let bids = &self.order_book.bids;
-                let result = bids.binary_search_by(|level| price.cmp(&level.price));
+                let result = bids.binary_search_by(|level| {
+                    price.cmp(&(usize::try_from(level.price).expect("usize should be u64")))
+                });
                 (bids, result)
             }
             OrderSide::Ask => {
                 let asks = &self.order_book.asks;
-                let result = asks.binary_search_by(|level| level.price.cmp(&price));
+                let result = asks.binary_search_by(|level| level.price.cmp(&(price as u64)));
                 (asks, result)
             }
         };
@@ -242,10 +251,13 @@ impl OrderMatcherExt for OrderMatcher {
             .order_ids
             .iter()
             .map(|id| {
-                self.order_book
-                    .get_order(*id)
-                    .expect("order not found")
-                    .amount as usize
+                usize::try_from(
+                    self.order_book
+                        .get_order(*id)
+                        .expect("order not found")
+                        .amount,
+                )
+                .expect("usize should be u64")
             })
             .sum()
     }

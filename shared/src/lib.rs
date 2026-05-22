@@ -76,12 +76,12 @@ impl From<i8> for OrderSide {
 pub struct LimitOrder<ID> {
     pub id: ID,
     pub side: OrderSide,
-    pub limit: u32,
-    pub amount: u32,
+    pub limit: u64,
+    pub amount: u64,
 }
 
 impl<ID> LimitOrder<ID> {
-    pub const fn new(id: ID, side: OrderSide, limit: u32, amount: u32) -> Self {
+    pub const fn new(id: ID, side: OrderSide, limit: u64, amount: u64) -> Self {
         Self {
             id,
             side,
@@ -99,7 +99,7 @@ pub enum MatcherCommand<ID> {
 
 impl<ID> MatcherCommand<ID> {
     #[must_use]
-    pub const fn new_limit_order(side: OrderSide, limit: u32, amount: u32) -> Self {
+    pub const fn new_limit_order(side: OrderSide, limit: u64, amount: u64) -> Self {
         Self::PlaceOrder(LimitOrderRequest {
             side,
             limit,
@@ -111,8 +111,8 @@ impl<ID> MatcherCommand<ID> {
 #[derive(Debug)]
 pub struct LimitOrderRequest {
     pub side: OrderSide,
-    pub limit: u32,
-    pub amount: u32,
+    pub limit: u64,
+    pub amount: u64,
 }
 
 pub trait SlotMap {

@@ -3,8 +3,10 @@ mod tests {
     use std::fmt::Debug;
 
     use shared::{
-        Linkable, SlotMap, TestableSlotMap, slot_map_naive::SlotMapNaive,
-        slot_map_optimized::SlotMapOptimized, slot_map_unsafe::SlotMapUnsafe,
+        Linkable, SlotMap, TestableSlotMap,
+        slot_map_naive::SlotMapNaive,
+        slot_map_optimized::SlotMapOptimized,
+        slot_map_unsafe::{self, SlotMapUnsafe},
     };
 
     macro_rules! test_slot_map_impl {
