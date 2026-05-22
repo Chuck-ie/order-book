@@ -1,6 +1,15 @@
 ## Order Book Matching Engine comparisons in Rust
 
 ## Overview
+## Performance 
+### Results
+### Benchmarking methodology
+## Implementations
+### 1. Naive
+### 2. Standard
+### 3. Slot map standard
+### 4. Slot map optimized
+## Key findings
 
 // TODO: KEEP THAT I TRIED TO OPTIMIZED THE REMOVE FUNCTION TO JUST NOT CLEAN EMPTY LEVELS BECAUSE
 // IT SEEMED LIKE IT WAS CAUSING SLOW DOWN BECAUSE DEALLOC AND ALLOC WAS TAKING QUITE SOME SPACE
