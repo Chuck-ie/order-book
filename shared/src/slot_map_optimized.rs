@@ -4,19 +4,55 @@ pub struct SlotMapOptimized<T> {
     pub head: u32,
     pub tail: u32,
     pub free_head: u32,
-    slots: Vec<Slot<T>>,
-    pub links: Vec<Option<Link>>,
+    pub slots: Vec<Slot<T>>,
     capacity: u32,
 }
 
 pub enum Slot<T> {
-    Occupied(T),
-    Free(u32),
+    Free { next_free: u32 },
+    Occupied { data: T, prev: u32, next: u32 },
 }
 
-pub struct Link {
-    pub prev: u32,
-    pub next: u32,
+impl<T> Slot<T> {
+    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
+    const unsafe fn as_occupied_unchecked(&self) -> (&T, &u32, &u32) {
+        match self {
+            Self::Occupied { data, prev, next } => (data, prev, next),
+            Self::Free { .. } => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
+
+    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
+    const unsafe fn as_occupied_unchecked_mut(&mut self) -> (&mut T, &mut u32, &mut u32) {
+        match self {
+            Self::Occupied { data, prev, next } => (data, prev, next),
+            Self::Free { .. } => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
+
+    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
+    const unsafe fn as_free_unchecked(&self) -> &u32 {
+        match self {
+            Self::Free { next_free } => next_free,
+            Self::Occupied { .. } => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
+
+    // // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    // #[allow(clippy::inline_always)]
+    // #[inline(always)]
+    // const unsafe fn as_free_unchecked_mut(&mut self) -> &mut u32 {
+    //     match self {
+    //         Self::Free { next_free } => next_free,
+    //         Self::Occupied { .. } => unsafe { std::hint::unreachable_unchecked() },
+    //     }
+    // }
 }
 
 impl<T> SlotMapOptimized<T> {
@@ -32,9 +68,24 @@ impl<T> SlotMapOptimized<T> {
             tail: u32::MAX,
             free_head: u32::MAX,
             slots: Vec::with_capacity(capacity),
-            links: Vec::with_capacity(capacity),
             capacity: 0,
         }
+    }
+
+    #[must_use]
+    pub fn get_occupied_unchecked(&self, index: usize) -> &T {
+        let (data, _, _) = unsafe { self.slots.get_unchecked(index).as_occupied_unchecked() };
+        data
+    }
+
+    #[must_use]
+    pub fn get_occupied_unchecked_mut(&mut self, index: usize) -> &mut T {
+        let (data, _, _) = unsafe {
+            self.slots
+                .get_unchecked_mut(index)
+                .as_occupied_unchecked_mut()
+        };
+        data
     }
 }
 
@@ -45,7 +96,6 @@ impl<T> Default for SlotMapOptimized<T> {
             tail: u32::MAX,
             free_head: u32::MAX,
             slots: vec![],
-            links: vec![],
             capacity: 0,
         }
     }
@@ -61,7 +111,6 @@ impl<T> SlotMap for SlotMapOptimized<T> {
             tail: u32::MAX,
             free_head: u32::MAX,
             slots: vec![],
-            links: vec![],
             capacity: 0,
         }
     }
@@ -71,33 +120,62 @@ impl<T> SlotMap for SlotMapOptimized<T> {
         let free_idx = self.free_head;
 
         let insert_idx = if free_idx == u32::MAX {
-            self.total() as u32
+            self.slots.len() as u32
         } else {
-            let Slot::Free(next_free_idx) = self.slots[free_idx as usize] else {
-                unreachable!("missing free slot");
+            // Safety: since we previously checked if free_idx == u32::MAX (meaning if its None)
+            // we can safely do unsafe enum extraction. Any UB means there is a bug in defining
+            // the free_idx/updating the self.free_head
+            debug_assert!(
+                (free_idx as usize) < self.slots.len(),
+                "tail_idx out of bounds for self.slots"
+            );
+
+            let next_free_idx = unsafe {
+                self.slots
+                    .get_unchecked(free_idx as usize)
+                    .as_free_unchecked()
             };
 
-            self.free_head = next_free_idx;
+            self.free_head = *next_free_idx;
             free_idx
         };
 
         let tail_idx = self.tail;
 
-        if tail_idx != u32::MAX
-            && let Some(tail_link) = &mut self.links[tail_idx as usize]
-        {
-            tail_link.next = insert_idx;
+        if tail_idx != u32::MAX {
+            // Safety: since we previously checked if tail_idx != u32::MAX (meaning if its Some)
+            // we can safely do unsafe enum extraction. Any UB means there is a bug in updating
+            // the tail_idx/self.tail value somewhere else
+            debug_assert!(
+                (tail_idx as usize) < self.slots.len(),
+                "tail_idx out of bounds for self.slots"
+            );
+            unsafe {
+                let (_, _, next) = self
+                    .slots
+                    .get_unchecked_mut(tail_idx as usize)
+                    .as_occupied_unchecked_mut();
+
+                *next = insert_idx;
+            }
         }
 
-        let new_slot = Slot::Occupied(data);
-        let new_link = Some(Link::from_prev_tail(tail_idx));
+        let new_slot = Slot::Occupied {
+            data,
+            prev: tail_idx,
+            next: u32::MAX,
+        };
 
-        if insert_idx < self.total() as u32 {
-            self.slots[insert_idx as usize] = new_slot;
-            self.links[insert_idx as usize] = new_link;
+        if insert_idx < self.slots.len() as u32 {
+            // Safety: previously did bounds checks via self.slots.len() already. We also guarantee
+            // insert_idx to be either inside the array bounds or exactly 1 out of bounds with
+            // index self.slots.len()
+            unsafe {
+                let insert_slot_ref = self.slots.get_unchecked_mut(insert_idx as usize);
+                *insert_slot_ref = new_slot;
+            }
         } else {
             self.slots.push(new_slot);
-            self.links.push(new_link);
         }
 
         if self.head == u32::MAX {
@@ -111,27 +189,52 @@ impl<T> SlotMap for SlotMapOptimized<T> {
     }
 
     fn remove(&mut self, remove_idx: Self::Utype) {
-        let Some(Some(curr_link)) = self.links.get_mut(remove_idx as usize) else {
-            return;
+        // Safety: tbh there is no safety here protecting the api. I just want to pinky promise to
+        // myself that im never doing anything like double frees which could corrupt the slotmap.
+        // Since this is for a portfolio and testing optimizations, im gonna do it anyway.
+        debug_assert!(
+            self.slots
+                .get(remove_idx as usize)
+                .is_some_and(|s| matches!(s, Slot::Occupied { .. })),
+            "Attempted to remove an empty or invalid slot, this might be a double free bug or something similar."
+        );
+
+        let (curr_prev, curr_next) = unsafe {
+            let (_, prev, next) = self
+                .slots
+                .get_unchecked(remove_idx as usize)
+                .as_occupied_unchecked();
+
+            (*prev, *next)
         };
 
-        let curr_prev = curr_link.prev;
-        let curr_next = curr_link.next;
-
-        if curr_prev != u32::MAX
-            && let Some(Some(prev_link)) = self.links.get_mut(curr_prev as usize)
-        {
-            prev_link.next = curr_next;
+        if curr_prev != u32::MAX {
+            unsafe {
+                let (_, _, next) = self
+                    .slots
+                    .get_unchecked_mut(curr_prev as usize)
+                    .as_occupied_unchecked_mut();
+                *next = curr_next;
+            }
         }
 
-        if curr_next != u32::MAX
-            && let Some(Some(next_link)) = self.links.get_mut(curr_next as usize)
-        {
-            next_link.prev = curr_prev;
+        if curr_next != u32::MAX {
+            unsafe {
+                let (_, prev, _) = self
+                    .slots
+                    .get_unchecked_mut(curr_next as usize)
+                    .as_occupied_unchecked_mut();
+                *prev = curr_prev;
+            }
         }
 
-        self.slots[remove_idx as usize] = Slot::Free(self.free_head);
-        self.links[remove_idx as usize] = None;
+        unsafe {
+            let remove_slot_ref = self.slots.get_unchecked_mut(remove_idx as usize);
+            *remove_slot_ref = Slot::Free {
+                next_free: self.free_head,
+            };
+        };
+
         self.free_head = remove_idx;
 
         if curr_next == u32::MAX {
@@ -159,19 +262,45 @@ impl<T> SlotMap for SlotMapOptimized<T> {
     }
 
     fn get(&self, index: usize) -> Option<&Self::Data> {
-        let Some(Slot::Occupied(data)) = self.slots.get(index) else {
-            return None;
-        };
+        let slot_ref = unsafe { self.slots.get_unchecked(index) };
 
-        Some(data)
+        if let Slot::Occupied { data, .. } = slot_ref {
+            Some(data)
+        } else {
+            None
+        }
     }
 
     fn get_mut(&mut self, index: usize) -> Option<&mut Self::Data> {
-        let Some(Slot::Occupied(data)) = self.slots.get_mut(index) else {
-            return None;
-        };
+        let slot_ref = unsafe { self.slots.get_unchecked_mut(index) };
 
-        Some(data)
+        if let Slot::Occupied { data, .. } = slot_ref {
+            Some(data)
+        } else {
+            None
+        }
+    }
+}
+
+impl<T> Linkable for Slot<T> {
+    fn prev(&self) -> Option<usize> {
+        if let Self::Occupied { prev, .. } = self
+            && *prev != u32::MAX
+        {
+            Some(*prev as usize)
+        } else {
+            None
+        }
+    }
+
+    fn next(&self) -> Option<usize> {
+        if let Self::Occupied { next, .. } = self
+            && *next != u32::MAX
+        {
+            Some(*next as usize)
+        } else {
+            None
+        }
     }
 }
 
@@ -203,46 +332,25 @@ impl<T: PartialEq> TestableSlotMap for SlotMapOptimized<T> {
         }
     }
 
-    fn is_occupied(&self, index: usize, data: T) -> bool {
+    fn is_occupied(&self, index: usize, check_data: T) -> bool {
         let Some(slot) = self.slots.get(index) else {
             return false;
         };
 
         match slot {
-            Slot::Free(_) => false,
-            Slot::Occupied(curr_data) => curr_data == &data,
+            Slot::Free { .. } => false,
+            Slot::Occupied { data, .. } => *data == check_data,
         }
     }
 
     fn get_link(&self, index: usize) -> Option<&impl Linkable> {
-        self.links[index].as_ref()
-    }
-}
+        let slot = self.slots.get(index)?;
 
-impl Link {
-    #[must_use]
-    pub const fn from_prev_tail(prev_tail: u32) -> Self {
-        Self {
-            prev: prev_tail,
-            next: u32::MAX,
+        if matches!(slot, Slot::Free { .. }) {
+            return None;
         }
-    }
-}
 
-impl Linkable for Link {
-    fn prev(&self) -> Option<usize> {
-        if self.prev == u32::MAX {
-            None
-        } else {
-            Some(self.prev as usize)
-        }
-    }
-    fn next(&self) -> Option<usize> {
-        if self.next == u32::MAX {
-            None
-        } else {
-            Some(self.next as usize)
-        }
+        Some(slot)
     }
 }
 
@@ -259,12 +367,9 @@ impl<'a, T> Iterator for ArenaIter<'a, T> {
             return None;
         }
 
-        let index = self.current as usize;
-
-        if let (Some(Slot::Occupied(data)), Some(Some(link))) =
-            (self.arena.slots.get(index), self.arena.links.get(index))
+        if let Some(Slot::Occupied { data, next, .. }) = self.arena.slots.get(self.current as usize)
         {
-            self.current = link.next;
+            self.current = *next;
             return Some(data);
         }
 

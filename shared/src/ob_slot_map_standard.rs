@@ -1,14 +1,13 @@
 use crate::{
     LimitOrder, LimitOrderRequest, OrderBookExt, OrderMatcherExt, OrderSide, SlotMap,
-    slot_map_unsafe::SlotMapUnsafe,
+    slot_map_standard::SlotMapStandard,
 };
 use std::{cmp::Reverse, collections::BTreeMap};
 
 pub struct OrderBook {
-    // pub bids: BTreeMap<Reverse<u32>, SlotMapUnsafe<u32>>,
-    pub bids: BTreeMap<Reverse<u64>, SlotMapUnsafe<u32>>,
-    pub asks: BTreeMap<u64, SlotMapUnsafe<u32>>,
-    pub orders: SlotMapUnsafe<LimitOrder<u32>>,
+    pub bids: BTreeMap<Reverse<u64>, SlotMapStandard<u32>>,
+    pub asks: BTreeMap<u64, SlotMapStandard<u32>>,
+    pub orders: SlotMapStandard<LimitOrder<u32>>,
 }
 
 impl OrderBookExt for OrderBook {
@@ -19,7 +18,7 @@ impl OrderBookExt for OrderBook {
         Self {
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
-            orders: SlotMapUnsafe::new(),
+            orders: SlotMapStandard::new(),
         }
     }
 
@@ -36,44 +35,19 @@ impl OrderBookExt for OrderBook {
             OrderSide::Bid => self
                 .bids
                 .entry(Reverse(price))
-                // .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
-                // .or_insert_with(|| SlotMapUnsafe::with_capacity(1_024)) // 2^10 * 16 = 16384 = 16KB
                 .or_default()
                 .insert(new_order_id),
-            OrderSide::Ask => self
-                .asks
-                .entry(price)
-                // .or_insert_with(|| SlotMapUnsafe::with_capacity(16_384)) // 2^14 * 16 = 262144 = 256
-                // .or_insert_with(|| SlotMapUnsafe::with_capacity(1_024)) // 2^10 * 16 = 16384 = 16KB
-                .or_default()
-                .insert(new_order_id),
+            OrderSide::Ask => self.asks.entry(price).or_default().insert(new_order_id),
         };
 
-        self.orders
-            .get_occupied_unchecked_mut(new_order_id as usize)
-            .id = level_idx;
+        let order = self
+            .orders
+            .get_mut(new_order_id as usize)
+            .expect("previous insert failed");
+        order.id = level_idx;
 
         new_order_id
     }
-
-    // #[allow(clippy::cast_possible_truncation)]
-    // fn cancel_order(&mut self, order_id: Self::OrderId) {
-    //     let (price, side, internal_id) = match self.orders.get(order_id as usize) {
-    //         Some(order) => (order.limit, order.side, order.id),
-    //         None => return,
-    //     };
-    //
-    //     let level = match side {
-    //         OrderSide::Bid => self
-    //             .bids
-    //             .get_mut(&Reverse(price))
-    //             .expect("missing price level"),
-    //         OrderSide::Ask => self.asks.get_mut(&price).expect("missing price level"),
-    //     };
-    //
-    //     level.remove(internal_id);
-    //     self.orders.remove(order_id);
-    // }
 
     #[allow(clippy::cast_possible_truncation)]
     fn cancel_order(&mut self, order_id: Self::OrderId) {
@@ -113,8 +87,7 @@ impl OrderBookExt for OrderBook {
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
-    pub queue: SlotMapUnsafe<u32>,
-    cancelation_buffer: Vec<u32>,
+    pub queue: SlotMapStandard<u32>,
 }
 
 impl OrderMatcherExt for OrderMatcher {
@@ -124,9 +97,7 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            // queue: SlotMapUnsafe::with_capacity(1_048_576), // 2^20 * 16 = 16777216 = 16MB
-            queue: SlotMapUnsafe::new(),
-            cancelation_buffer: Vec::with_capacity(1024),
+            queue: SlotMapStandard::new(),
         }
     }
 
@@ -143,47 +114,49 @@ impl OrderMatcherExt for OrderMatcher {
     fn process_limit_order(&mut self, mut request: LimitOrderRequest) -> LimitOrderRequest {
         let limit = request.limit;
         let mut remaining_amount = request.amount;
+        let mut orders_to_remove = vec![];
 
-        macro_rules! execute_matching {
-            ($iter:expr, $op:tt) => {
-                for (price, order_ids) in $iter {
-                    if !(*price $op limit) || remaining_amount == 0 {
-                        break;
-                    }
-
-                    for id in &*order_ids {
-                        let current_order = self.order_book.orders.get_occupied_unchecked_mut(*id as usize);
-                        let fill_amount = current_order.amount.min(remaining_amount);
-
-                        current_order.amount -= fill_amount;
-                        remaining_amount -= fill_amount;
-
-                        if current_order.amount == 0 {
-                            self.cancelation_buffer.push(*id);
-                        }
-
-                        if remaining_amount == 0 {
-                            break;
-                        }
-                    }
-                }
+        let side_iterator: Box<dyn Iterator<Item = (&u64, &mut SlotMapStandard<u32>)>> =
+            match request.side {
+                OrderSide::Bid => Box::new(self.order_book.asks.iter_mut()),
+                OrderSide::Ask => Box::new(self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v))),
             };
-        }
 
-        match request.side {
-            OrderSide::Bid => {
-                execute_matching!(self.order_book.asks.iter_mut(), <=);
+        for (price, order_ids) in side_iterator {
+            let price_matches = match request.side {
+                OrderSide::Bid => *price <= limit,
+                OrderSide::Ask => *price >= limit,
+            };
+
+            if !price_matches || remaining_amount == 0 {
+                break;
             }
-            OrderSide::Ask => {
-                execute_matching!(self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v)), >=);
+
+            for id in &*order_ids {
+                let current_order = self
+                    .order_book
+                    .orders
+                    .get_mut(*id as usize)
+                    .expect("orderbook and -matcher out of sync");
+
+                let fill_amount = current_order.amount.min(remaining_amount);
+
+                current_order.amount -= fill_amount;
+                remaining_amount -= fill_amount;
+
+                if current_order.amount == 0 {
+                    orders_to_remove.push(*id);
+                }
+
+                if remaining_amount == 0 {
+                    break;
+                }
             }
         }
 
-        for i in 0..self.cancelation_buffer.len() {
-            self.cancel_order(self.cancelation_buffer[i]);
+        for id in orders_to_remove {
+            self.cancel_order(id);
         }
-
-        self.cancelation_buffer.clear();
 
         request.amount = remaining_amount;
         request
@@ -191,9 +164,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     #[allow(clippy::cast_possible_truncation)]
     fn best_bid(&self) -> Option<usize> {
-        if let Some((price, ids)) = self.order_book.bids.last_key_value()
-            && ids.capacity() != 0
-        {
+        if let Some((price, _)) = self.order_book.bids.last_key_value() {
             Some(price.0 as usize)
         } else {
             None
@@ -202,9 +173,7 @@ impl OrderMatcherExt for OrderMatcher {
 
     #[allow(clippy::cast_possible_truncation)]
     fn best_ask(&self) -> Option<usize> {
-        if let Some((price, ids)) = self.order_book.asks.first_key_value()
-            && ids.capacity() != 0
-        {
+        if let Some((price, _)) = self.order_book.asks.first_key_value() {
             Some(*price as usize)
         } else {
             None

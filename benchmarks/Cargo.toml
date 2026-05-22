@@ -3,13 +3,6 @@ name = "benchmarks"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-naive = ["shared/naive"]
-standard = ["shared/standard"]
-sm-naive =["shared/sm-naive"]
-sm-optimized =["shared/sm-optimized"]
-sm-unsafe =["shared/sm-unsafe"]
-
 [dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
 shared = { path = "../shared", default-features = false }
