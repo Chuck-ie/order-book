@@ -22,3 +22,5 @@
 
 // MENTION THAT AoS was actually faster than SoA in my case because data is accessed randomly per
 // slot, so fetching all data at ones was obviously better in hindsight
+
+// https://data.lobsterdata.com/info/DataSamples.php

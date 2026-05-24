@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
 divan = "0.1.21"
+textplots = "0.8.7"
+rgb = "0.8.53"
 shared = { path = "../shared", default-features = false }
 tokio = { workspace = true }
 rand = { workspace = true }
@@ -24,4 +26,9 @@ path = "src/lib.rs"
 [[bench]]
 name = "divan_benchmarks"
 path = "benches/divan_benchmarks.rs"
+harness = false
+
+[[bench]]
+name = "rand_distr_plots"
+path = "benches/rand_distr_plots.rs"
 harness = false
