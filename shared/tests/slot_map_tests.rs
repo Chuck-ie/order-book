@@ -3,8 +3,8 @@ mod tests {
     use std::fmt::Debug;
 
     use shared::{
-        Linkable, SlotMap, TestableSlotMap, slot_map_optimized::SlotMapOptimized,
-        slot_map_standard::SlotMapStandard,
+        Linkable, SlotMap, TestableSlotMap, slot_map::optimized::SlotMapOptimized,
+        slot_map::standard::SlotMapStandard,
     };
 
     macro_rules! test_slot_map_impl {
@@ -64,12 +64,12 @@ mod tests {
     test_slot_map_impl!(sm_optimized, SlotMapOptimized<u32>, u32);
 
     pub trait TestSlotMap<U>:
-        SlotMap<Data = u32, Utype = U> + TestableSlotMap<Data = u32, Utype = U>
+        SlotMap<Data = u32, Id = U> + TestableSlotMap<Data = u32, Utype = U>
     {
     }
 
     impl<T, U> TestSlotMap<U> for T where
-        T: SlotMap<Data = u32, Utype = U> + TestableSlotMap<Data = u32, Utype = U>
+        T: SlotMap<Data = u32, Id = U> + TestableSlotMap<Data = u32, Utype = U>
     {
     }
 

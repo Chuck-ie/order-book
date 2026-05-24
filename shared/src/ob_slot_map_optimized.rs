@@ -1,6 +1,6 @@
 use crate::{
     LimitOrder, LimitOrderRequest, OrderBookExt, OrderMatcherExt, OrderSide, SlotMap,
-    slot_map_optimized::SlotMapOptimized,
+    slot_map::optimized::SlotMapOptimized,
 };
 use std::{cmp::Reverse, collections::BTreeMap};
 
@@ -89,11 +89,14 @@ impl OrderBookExt for OrderBook {
     fn get_order(&self, order_id: Self::OrderId) -> Option<&Self::Order> {
         self.orders.get(order_id as usize)
     }
+
+    fn capacity(&self) -> usize {
+        self.orders.capacity()
+    }
 }
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
-    pub queue: SlotMapOptimized<u32>,
     cancelation_buffer: Vec<u32>,
 }
 
@@ -104,15 +107,12 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            // queue: SlotMapUnsafe::with_capacity(1_048_576), // 2^20 * 16 = 16777216 = 16MB
-            queue: SlotMapOptimized::new(),
             cancelation_buffer: Vec::with_capacity(1024),
         }
     }
 
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
-        let new_order_id = self.order_book.place_order(request);
-        self.queue.insert(new_order_id)
+        self.order_book.place_order(request)
     }
 
     fn cancel_order(&mut self, order_id: Self::OrderId) {

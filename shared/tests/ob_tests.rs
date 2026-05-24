@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use shared::{
-        MatcherCommand, OrderBookExt, OrderMatcherExt, OrderSide, ob_naive, ob_slot_map_optimized,
-        ob_slot_map_standard, ob_standard,
+        MatcherCommand, OrderBookExt, OrderMatcherExt, OrderSide, ob_arena_slot_map, ob_naive,
+        ob_slot_map_optimized, ob_slot_map_standard, ob_standard,
     };
 
     macro_rules! test_order_matcher_impl {
@@ -62,6 +62,7 @@ mod tests {
     test_order_matcher_impl!(standard, ob_standard::OrderMatcher);
     test_order_matcher_impl!(sm_standard, ob_slot_map_standard::OrderMatcher);
     test_order_matcher_impl!(sm_optimized, ob_slot_map_optimized::OrderMatcher);
+    test_order_matcher_impl!(sm_arena_slot_map, ob_arena_slot_map::OrderMatcher);
 
     pub fn unresolved_spread<M: OrderMatcherExt>() {
         let mut matcher = M::new();

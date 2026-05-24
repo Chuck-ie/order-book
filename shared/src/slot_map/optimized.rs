@@ -1,72 +1,95 @@
-use crate::{Linkable, SlotMap, TestableSlotMap};
+use crate::{Linkable, SlotMap, TestableSlotMap, slot_map::NonMaxU32};
 
 pub struct SlotMapOptimized<T> {
-    pub head: u32,
-    pub tail: u32,
-    pub free_head: u32,
+    pub head: NonMaxU32,
+    pub tail: NonMaxU32,
+    pub free_head: NonMaxU32,
     pub slots: Vec<Slot<T>>,
-    capacity: u32,
+    capacity: usize,
 }
 
 pub enum Slot<T> {
-    Free { next_free: u32 },
-    Occupied { data: T, prev: u32, next: u32 },
+    Free {
+        next_free: NonMaxU32,
+    },
+    Occupied {
+        data: T,
+        prev: NonMaxU32,
+        next: NonMaxU32,
+    },
 }
 
 impl<T> Slot<T> {
-    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    /// # Safety
+    ///
+    /// Caller must guarantee the slot is `Slot::Occupied`.
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    const unsafe fn as_occupied_unchecked(&self) -> (&T, &u32, &u32) {
+    pub const unsafe fn as_occupied_unchecked(&self) -> (&T, &NonMaxU32, &NonMaxU32) {
         match self {
             Self::Occupied { data, prev, next } => (data, prev, next),
             Self::Free { .. } => unsafe { std::hint::unreachable_unchecked() },
         }
     }
 
-    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    /// # Safety
+    ///
+    /// Caller must guarantee the slot is `Slot::Occupied`.
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    const unsafe fn as_occupied_unchecked_mut(&mut self) -> (&mut T, &mut u32, &mut u32) {
+    pub const unsafe fn as_occupied_unchecked_mut(
+        &mut self,
+    ) -> (&mut T, &mut NonMaxU32, &mut NonMaxU32) {
         match self {
             Self::Occupied { data, prev, next } => (data, prev, next),
             Self::Free { .. } => unsafe { std::hint::unreachable_unchecked() },
         }
     }
 
-    // Safety: Caller must guarantee the slot is `Slot::Occupied`.
+    /// # Safety
+    ///
+    /// Caller must guarantee the slot is `Slot::Free`.
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    const unsafe fn as_free_unchecked(&self) -> &u32 {
+    pub const unsafe fn as_free_unchecked(&self) -> &NonMaxU32 {
         match self {
             Self::Free { next_free } => next_free,
             Self::Occupied { .. } => unsafe { std::hint::unreachable_unchecked() },
         }
     }
 
-    // // Safety: Caller must guarantee the slot is `Slot::Occupied`.
-    // #[allow(clippy::inline_always)]
-    // #[inline(always)]
-    // const unsafe fn as_free_unchecked_mut(&mut self) -> &mut u32 {
-    //     match self {
-    //         Self::Free { next_free } => next_free,
-    //         Self::Occupied { .. } => unsafe { std::hint::unreachable_unchecked() },
-    //     }
-    // }
+    /// # Safety
+    ///
+    /// Caller must guarantee the slot is `Slot::Free`.
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
+    pub const unsafe fn as_free_unchecked_mut(&mut self) -> &mut NonMaxU32 {
+        match self {
+            Self::Free { next_free } => next_free,
+            Self::Occupied { .. } => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
 }
 
 impl<T> SlotMapOptimized<T> {
     #[must_use]
-    pub fn iter(&self) -> ArenaIter<'_, T> {
+    pub fn iter(&self) -> SlotMapIter<'_, T> {
         self.into_iter()
+    }
+
+    #[must_use]
+    pub fn iter_mut(&mut self) -> SlotMapIterMut<'_, T> {
+        SlotMapIterMut {
+            iter: self.slots.iter_mut(),
+        }
     }
 
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            head: u32::MAX,
-            tail: u32::MAX,
-            free_head: u32::MAX,
+            head: NonMaxU32::new_none(),
+            tail: NonMaxU32::new_none(),
+            free_head: NonMaxU32::new_none(),
             slots: Vec::with_capacity(capacity),
             capacity: 0,
         }
@@ -92,9 +115,9 @@ impl<T> SlotMapOptimized<T> {
 impl<T> Default for SlotMapOptimized<T> {
     fn default() -> Self {
         Self {
-            head: u32::MAX,
-            tail: u32::MAX,
-            free_head: u32::MAX,
+            head: NonMaxU32::new_none(),
+            tail: NonMaxU32::new_none(),
+            free_head: NonMaxU32::new_none(),
             slots: vec![],
             capacity: 0,
         }
@@ -103,67 +126,67 @@ impl<T> Default for SlotMapOptimized<T> {
 
 impl<T> SlotMap for SlotMapOptimized<T> {
     type Data = T;
-    type Utype = u32;
+    type Id = u32;
 
     fn new() -> Self {
         Self {
-            head: u32::MAX,
-            tail: u32::MAX,
-            free_head: u32::MAX,
+            head: NonMaxU32::new_none(),
+            tail: NonMaxU32::new_none(),
+            free_head: NonMaxU32::new_none(),
             slots: vec![],
             capacity: 0,
         }
     }
 
     #[allow(clippy::cast_possible_truncation)]
-    fn insert(&mut self, data: Self::Data) -> Self::Utype {
+    fn insert(&mut self, data: Self::Data) -> Self::Id {
         let free_idx = self.free_head;
 
-        let insert_idx = if free_idx == u32::MAX {
+        let insert_idx = if free_idx.is_none() {
             self.slots.len() as u32
         } else {
             // Safety: since we previously checked if free_idx == u32::MAX (meaning if its None)
             // we can safely do unsafe enum extraction. Any UB means there is a bug in defining
             // the free_idx/updating the self.free_head
             debug_assert!(
-                (free_idx as usize) < self.slots.len(),
+                (free_idx.0 as usize) < self.slots.len(),
                 "tail_idx out of bounds for self.slots"
             );
 
             let next_free_idx = unsafe {
                 self.slots
-                    .get_unchecked(free_idx as usize)
+                    .get_unchecked(free_idx.0 as usize)
                     .as_free_unchecked()
             };
 
             self.free_head = *next_free_idx;
-            free_idx
+            free_idx.0
         };
 
         let tail_idx = self.tail;
 
-        if tail_idx != u32::MAX {
+        if tail_idx.is_some() {
             // Safety: since we previously checked if tail_idx != u32::MAX (meaning if its Some)
             // we can safely do unsafe enum extraction. Any UB means there is a bug in updating
             // the tail_idx/self.tail value somewhere else
             debug_assert!(
-                (tail_idx as usize) < self.slots.len(),
+                (tail_idx.0 as usize) < self.slots.len(),
                 "tail_idx out of bounds for self.slots"
             );
             unsafe {
                 let (_, _, next) = self
                     .slots
-                    .get_unchecked_mut(tail_idx as usize)
+                    .get_unchecked_mut(tail_idx.0 as usize)
                     .as_occupied_unchecked_mut();
 
-                *next = insert_idx;
+                next.0 = insert_idx;
             }
         }
 
         let new_slot = Slot::Occupied {
             data,
             prev: tail_idx,
-            next: u32::MAX,
+            next: NonMaxU32::new_none(),
         };
 
         if insert_idx < self.slots.len() as u32 {
@@ -178,17 +201,17 @@ impl<T> SlotMap for SlotMapOptimized<T> {
             self.slots.push(new_slot);
         }
 
-        if self.head == u32::MAX {
-            self.head = insert_idx;
+        if self.head.is_none() {
+            self.head.0 = insert_idx;
         }
 
-        self.tail = insert_idx;
+        self.tail.0 = insert_idx;
         self.capacity += 1;
 
         insert_idx
     }
 
-    fn remove(&mut self, remove_idx: Self::Utype) {
+    fn remove(&mut self, remove_idx: Self::Id) {
         // Safety: tbh there is no safety here protecting the api. I just want to pinky promise to
         // myself that im never doing anything like double frees which could corrupt the slotmap.
         // Since this is for a portfolio and testing optimizations, im gonna do it anyway.
@@ -208,21 +231,21 @@ impl<T> SlotMap for SlotMapOptimized<T> {
             (*prev, *next)
         };
 
-        if curr_prev != u32::MAX {
+        if curr_prev.is_some() {
             unsafe {
                 let (_, _, next) = self
                     .slots
-                    .get_unchecked_mut(curr_prev as usize)
+                    .get_unchecked_mut(curr_prev.0 as usize)
                     .as_occupied_unchecked_mut();
                 *next = curr_next;
             }
         }
 
-        if curr_next != u32::MAX {
+        if curr_next.is_some() {
             unsafe {
                 let (_, prev, _) = self
                     .slots
-                    .get_unchecked_mut(curr_next as usize)
+                    .get_unchecked_mut(curr_next.0 as usize)
                     .as_occupied_unchecked_mut();
                 *prev = curr_prev;
             }
@@ -235,13 +258,13 @@ impl<T> SlotMap for SlotMapOptimized<T> {
             };
         };
 
-        self.free_head = remove_idx;
+        self.free_head.0 = remove_idx;
 
-        if curr_next == u32::MAX {
+        if curr_next.is_none() {
             self.tail = curr_prev;
         }
 
-        if curr_prev == u32::MAX {
+        if curr_prev.is_none() {
             self.head = curr_next;
         }
 
@@ -254,7 +277,7 @@ impl<T> SlotMap for SlotMapOptimized<T> {
     }
 
     fn capacity(&self) -> usize {
-        self.capacity as usize
+        self.capacity
     }
 
     fn is_empty(&self) -> bool {
@@ -285,9 +308,9 @@ impl<T> SlotMap for SlotMapOptimized<T> {
 impl<T> Linkable for Slot<T> {
     fn prev(&self) -> Option<usize> {
         if let Self::Occupied { prev, .. } = self
-            && *prev != u32::MAX
+            && prev.is_some()
         {
-            Some(*prev as usize)
+            Some(prev.0 as usize)
         } else {
             None
         }
@@ -295,9 +318,9 @@ impl<T> Linkable for Slot<T> {
 
     fn next(&self) -> Option<usize> {
         if let Self::Occupied { next, .. } = self
-            && *next != u32::MAX
+            && next.is_some()
         {
-            Some(*next as usize)
+            Some(next.0 as usize)
         } else {
             None
         }
@@ -309,26 +332,26 @@ impl<T: PartialEq> TestableSlotMap for SlotMapOptimized<T> {
     type Utype = u32;
 
     fn head(&self) -> Option<Self::Utype> {
-        if self.head == u32::MAX {
+        if self.head.is_none() {
             None
         } else {
-            Some(self.head)
+            Some(self.head.0)
         }
     }
 
     fn tail(&self) -> Option<Self::Utype> {
-        if self.tail == u32::MAX {
+        if self.tail.is_none() {
             None
         } else {
-            Some(self.tail)
+            Some(self.tail.0)
         }
     }
 
     fn free_head(&self) -> Option<Self::Utype> {
-        if self.free_head == u32::MAX {
+        if self.free_head.is_none() {
             None
         } else {
-            Some(self.free_head)
+            Some(self.free_head.0)
         }
     }
 
@@ -354,12 +377,12 @@ impl<T: PartialEq> TestableSlotMap for SlotMapOptimized<T> {
     }
 }
 
-pub struct ArenaIter<'a, T> {
-    arena: &'a SlotMapOptimized<T>,
+pub struct SlotMapIter<'a, T> {
+    slot_map: &'a SlotMapOptimized<T>,
     current: u32,
 }
 
-impl<'a, T> Iterator for ArenaIter<'a, T> {
+impl<'a, T> Iterator for SlotMapIter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -367,9 +390,10 @@ impl<'a, T> Iterator for ArenaIter<'a, T> {
             return None;
         }
 
-        if let Some(Slot::Occupied { data, next, .. }) = self.arena.slots.get(self.current as usize)
+        if let Some(Slot::Occupied { data, next, .. }) =
+            self.slot_map.slots.get(self.current as usize)
         {
-            self.current = *next;
+            self.current = next.0;
             return Some(data);
         }
 
@@ -380,12 +404,38 @@ impl<'a, T> Iterator for ArenaIter<'a, T> {
 
 impl<'a, T> IntoIterator for &'a SlotMapOptimized<T> {
     type Item = &'a T;
-    type IntoIter = ArenaIter<'a, T>;
+    type IntoIter = SlotMapIter<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        ArenaIter {
-            arena: self,
-            current: self.head,
+        SlotMapIter {
+            slot_map: self,
+            current: self.head.0,
         }
+    }
+}
+
+pub struct SlotMapIterMut<'a, T> {
+    iter: std::slice::IterMut<'a, Slot<T>>,
+}
+
+impl<'a, T> Iterator for SlotMapIterMut<'a, T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for slot in self.iter.by_ref() {
+            if let Slot::Occupied { data, .. } = slot {
+                return Some(data);
+            }
+        }
+        None
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut SlotMapOptimized<T> {
+    type Item = &'a mut T;
+    type IntoIter = SlotMapIterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
     }
 }

@@ -2,12 +2,13 @@ use std::fmt::Debug;
 
 use serde::Deserialize;
 
+pub mod final_ver;
+pub mod ob_arena_slot_map;
 pub mod ob_naive;
 pub mod ob_slot_map_optimized;
 pub mod ob_slot_map_standard;
 pub mod ob_standard;
-pub mod slot_map_optimized;
-pub mod slot_map_standard;
+pub mod slot_map;
 
 pub trait OrderBookExt {
     type OrderId;
@@ -17,6 +18,7 @@ pub trait OrderBookExt {
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId;
     fn cancel_order(&mut self, order_id: Self::OrderId);
     fn get_order(&self, order_id: Self::OrderId) -> Option<&Self::Order>;
+    fn capacity(&self) -> usize;
 }
 
 pub trait OrderMatcherExt {
@@ -78,6 +80,27 @@ pub struct LimitOrder<ID> {
     pub amount: u64,
 }
 
+// pub enum Slot<T> {
+//     Free {
+//         next_free: NonMaxU32,
+//     },
+//     Occupied {
+//         data: T,
+//         prev: NonMaxU32,
+//         next: NonMaxU32,
+//     },
+// }
+//
+// #[derive(Clone, Copy)]
+// pub struct ArenaId {
+//     pub chunk_id: u32,
+//     pub slot_id: u32,
+// }
+//
+// ArenaId = 8 byte
+// LimitOrder<ArenaId> = 8 byte + 1 byte + 8 + 8 = 25 byte -> 28 byte
+// Slit<LimitOrder<ArenaId>> = 28 byte + 8
+
 impl<ID> LimitOrder<ID> {
     pub const fn new(id: ID, side: OrderSide, limit: u64, amount: u64) -> Self {
         Self {
@@ -114,12 +137,13 @@ pub struct LimitOrderRequest {
 }
 
 pub trait SlotMap {
+    type Id;
     type Data;
-    type Utype: TryFrom<usize> + Debug + PartialEq + Copy;
+    // TryFrom<usize> + Debug + PartialEq + Copy;
 
     fn new() -> Self;
-    fn insert(&mut self, data: Self::Data) -> Self::Utype;
-    fn remove(&mut self, remove_idx: Self::Utype);
+    fn insert(&mut self, data: Self::Data) -> Self::Id;
+    fn remove(&mut self, remove_idx: Self::Id);
 
     fn total(&self) -> usize;
     fn capacity(&self) -> usize;

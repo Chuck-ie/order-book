@@ -19,7 +19,7 @@ pub struct PriceLevel {
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
-    pub queue: Vec<OrderId>,
+    // pub queue: Vec<OrderId>,
 }
 
 impl OrderBook {
@@ -112,6 +112,10 @@ impl OrderBookExt for OrderBook {
     fn get_order(&self, order_id: Self::OrderId) -> Option<&Self::Order> {
         self.orders.get(&order_id)
     }
+
+    fn capacity(&self) -> usize {
+        self.orders.len()
+    }
 }
 
 impl PriceLevel {
@@ -139,25 +143,14 @@ impl OrderMatcherExt for OrderMatcher {
     fn new() -> Self {
         Self {
             order_book: OrderBook::new(),
-            queue: vec![],
         }
     }
 
     fn place_order(&mut self, request: LimitOrderRequest) -> Self::OrderId {
-        let new_order_id = self.order_book.place_order(request);
-        self.queue.push(new_order_id);
-
-        new_order_id
+        self.order_book.place_order(request)
     }
 
     fn cancel_order(&mut self, order_id: Self::OrderId) {
-        let pos = self
-            .queue
-            .iter()
-            .position(|id| id == &order_id)
-            .expect("FIXME: order not found in queue");
-
-        self.queue.remove(pos);
         self.order_book.cancel_order(order_id);
     }
 
