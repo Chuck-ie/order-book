@@ -26,7 +26,7 @@ mod tests {
     }
 
     fn extract_occupied(
-        index: ArenaId,
+        index: &ArenaId,
         arena: &mut ArenaSlotAllocator<u32>,
     ) -> (u32, u32, NonMaxU32, NonMaxU32) {
         let (generation, data, prev, next) = unsafe {
@@ -59,7 +59,7 @@ mod tests {
         assert_eq!(0, val1_idx.generation);
         assert_eq!(0, val1_idx.index);
 
-        let (gen1, data, prev, next) = extract_occupied(val1_idx, &mut arena);
+        let (gen1, data, prev, next) = extract_occupied(&val1_idx, &mut arena);
         assert_eq!(0, gen1);
         assert_eq!(1, data);
         assert!(prev.is_none());
@@ -83,17 +83,17 @@ mod tests {
         let val2_idx = slot_map.insert(2, &mut arena);
         let val3_idx = slot_map.insert(3, &mut arena);
 
-        let (_, data1, prev1, next1) = extract_occupied(val1_idx, &mut arena);
+        let (_, data1, prev1, next1) = extract_occupied(&val1_idx, &mut arena);
         assert_eq!(data1, 1);
         assert!(prev1.is_none());
         assert!(next1.is_some());
 
-        let (_, data2, prev2, next2) = extract_occupied(val2_idx, &mut arena);
+        let (_, data2, prev2, next2) = extract_occupied(&val2_idx, &mut arena);
         assert_eq!(data2, 2);
         assert!(prev2.is_some());
         assert!(next2.is_some());
 
-        let (_, data3, prev3, next3) = extract_occupied(val3_idx, &mut arena);
+        let (_, data3, prev3, next3) = extract_occupied(&val3_idx, &mut arena);
         assert_eq!(data3, 3);
         assert!(prev3.is_some());
         assert!(next3.is_none());
@@ -118,13 +118,13 @@ mod tests {
         let val5_idx = slot_map1.insert(5, &mut arena);
         assert_eq!(4, val5_idx.index);
 
-        let (_, data2, prev2, next2) = extract_occupied(val2_idx, &mut arena);
+        let (_, data2, prev2, next2) = extract_occupied(&val2_idx, &mut arena);
         assert_eq!(data2, 2);
         assert!(prev2.is_some());
         assert!(next2.is_some());
         assert_eq!(next2.0, 4);
 
-        let (_, data5, prev5, next5) = extract_occupied(val5_idx, &mut arena);
+        let (_, data5, prev5, next5) = extract_occupied(&val5_idx, &mut arena);
         assert_eq!(data5, 5);
         assert!(prev5.is_some());
         assert!(next5.is_none());
@@ -151,11 +151,11 @@ mod tests {
         assert_eq!(val4_idx.index, val2_idx.index);
         assert_eq!(val4_idx.generation, val2_idx.generation + 1);
 
-        let (_, _, _, next3) = extract_occupied(val3_idx, &mut arena);
+        let (_, _, _, next3) = extract_occupied(&val3_idx, &mut arena);
         assert!(next3.is_some());
         assert_eq!(next3.0, val4_idx.index);
 
-        let (gen4, _, prev4, next4) = extract_occupied(val4_idx, &mut arena);
+        let (gen4, _, prev4, next4) = extract_occupied(&val4_idx, &mut arena);
         assert_eq!(gen4, val2_idx.generation + 1);
         assert!(prev4.is_some());
         assert!(next4.is_none());
@@ -174,7 +174,7 @@ mod tests {
 
         slot_map.remove(&val1_idx, &mut arena);
 
-        let (_, _, prev2, _) = extract_occupied(val2_idx, &mut arena);
+        let (_, _, prev2, _) = extract_occupied(&val2_idx, &mut arena);
         assert!(prev2.is_none());
         assert_eq!(slot_map.head.0, val2_idx.index);
         assert!(slot_map.free_head.is_some());
@@ -194,7 +194,7 @@ mod tests {
 
         slot_map.remove(&val3_idx, &mut arena);
 
-        let (_, _, _, next2) = extract_occupied(val2_idx, &mut arena);
+        let (_, _, _, next2) = extract_occupied(&val2_idx, &mut arena);
         assert!(next2.is_none());
         assert_eq!(slot_map.tail.0, val2_idx.index);
         assert!(slot_map.free_head.is_some());
@@ -214,8 +214,8 @@ mod tests {
 
         slot_map.remove(&val2_idx, &mut arena);
 
-        let (_, _, _, next1) = extract_occupied(val1_idx, &mut arena);
-        let (_, _, prev3, _) = extract_occupied(val3_idx, &mut arena);
+        let (_, _, _, next1) = extract_occupied(&val1_idx, &mut arena);
+        let (_, _, prev3, _) = extract_occupied(&val3_idx, &mut arena);
         assert!(next1.is_some());
         assert!(prev3.is_some());
         assert_eq!(next1.0, val3_idx.index);
@@ -236,7 +236,7 @@ mod tests {
         let val2_idx = slot_map.insert(2, &mut arena);
         slot_map.remove(&val1_idx, &mut arena);
 
-        let (gen2, data2, _, _) = extract_occupied(val2_idx, &mut arena);
+        let (gen2, data2, _, _) = extract_occupied(&val2_idx, &mut arena);
         assert_eq!(2, data2);
         assert_eq!(1, gen2);
     }

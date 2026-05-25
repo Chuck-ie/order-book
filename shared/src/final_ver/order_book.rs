@@ -33,8 +33,11 @@ pub struct OrderBook {
 
 impl Default for OrderBook {
     fn default() -> Self {
-        // 4096 price levels * 1024 orders per price level = 4_194_304 orders
-        Self::new(4096, 1024)
+        Self {
+            arena: ArenaSlotAllocator::new(128, 1024),
+            bids: BTreeMap::new(),
+            asks: BTreeMap::new(),
+        }
     }
 }
 

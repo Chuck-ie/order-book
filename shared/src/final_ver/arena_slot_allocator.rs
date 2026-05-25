@@ -10,7 +10,7 @@ pub struct ArenaSlotAllocator<T> {
 #[repr(transparent)]
 pub struct ArenaChunkIndex(pub usize);
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ArenaId {
     pub generation: u32,
     pub index: u32,

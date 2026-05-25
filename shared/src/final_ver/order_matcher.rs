@@ -34,7 +34,10 @@ pub struct OrderMatcher {
 
 impl Default for OrderMatcher {
     fn default() -> Self {
-        Self::new(4096, 1024)
+        Self {
+            order_book: OrderBook::default(),
+            cancelation_buffer: Vec::with_capacity(1024),
+        }
     }
 }
 
