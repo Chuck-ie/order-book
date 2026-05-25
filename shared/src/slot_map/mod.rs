@@ -1,7 +1,7 @@
 pub mod optimized;
 pub mod standard;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct NonMaxU32(pub u32);
 

@@ -18,8 +18,8 @@ mod tests {
                 }
 
                 #[test]
-                fn init_arena_test() {
-                    super::init_arena::<$slot_map, $utype>();
+                fn init_slot_map_test() {
+                    super::init_slot_map::<$slot_map, $utype>();
                 }
 
                 #[test]
@@ -98,7 +98,7 @@ mod tests {
         assert_eq!(slot_map_new.free_head(), slot_map_default.free_head());
     }
 
-    pub fn init_arena<SM, U>()
+    pub fn init_slot_map<SM, U>()
     where
         SM: TestSlotMap<U>,
         U: TestUtype,

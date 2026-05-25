@@ -61,7 +61,7 @@ pub trait OrderMatcherExt {
     fn order_book(&self) -> &Self::OrderBook;
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 pub enum OrderSide {
     Bid,
     Ask,
@@ -79,27 +79,6 @@ pub struct LimitOrder<ID> {
     pub limit: u64,
     pub amount: u64,
 }
-
-// pub enum Slot<T> {
-//     Free {
-//         next_free: NonMaxU32,
-//     },
-//     Occupied {
-//         data: T,
-//         prev: NonMaxU32,
-//         next: NonMaxU32,
-//     },
-// }
-//
-// #[derive(Clone, Copy)]
-// pub struct ArenaId {
-//     pub chunk_id: u32,
-//     pub slot_id: u32,
-// }
-//
-// ArenaId = 8 byte
-// LimitOrder<ArenaId> = 8 byte + 1 byte + 8 + 8 = 25 byte -> 28 byte
-// Slit<LimitOrder<ArenaId>> = 28 byte + 8
 
 impl<ID> LimitOrder<ID> {
     pub const fn new(id: ID, side: OrderSide, limit: u64, amount: u64) -> Self {

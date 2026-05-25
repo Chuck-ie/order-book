@@ -2,8 +2,9 @@ use divan::AllocProfiler;
 use rand_distr::weighted::WeightedIndex;
 use rand_distr::{Bernoulli, Distribution, Exp, LogNormal, Normal, Uniform};
 use rgb::RGB8;
+use shared::OrderSide;
+use shared::final_ver::order_matcher::MatcherCommand;
 use shared::{LimitOrderRequest, OrderMatcherExt};
-use shared::{MatcherCommand, OrderSide};
 use textplots::{Chart, ColorPlot, Shape};
 
 #[global_allocator]
@@ -162,16 +163,14 @@ mod place_synthetic_orders {
                 for cmd in commands {
                     divan::black_box(matcher.process(divan::black_box(cmd)));
                 }
-
-                println!("\norders in queue: {}", matcher.order_book().capacity());
             });
     }
 
     macro_rules! register_bench {
         ($bench_name:ident, $matcher_type:ty) => {
             // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
-            #[divan::bench(sample_count = 1, args = [10_000_000])]
-            // #[divan::bench(sample_count = 100, args = [1_000_000])]
+            #[divan::bench(sample_count = 1, args = [10_000, 100_000, 1_000_000])]
+            // #[divan::bench(sample_count = 1, args = [1_000_000])]
             fn $bench_name(bencher: divan::Bencher, n: usize) {
                 run_bench::<$matcher_type>(bencher, n);
             }
@@ -182,30 +181,61 @@ mod place_synthetic_orders {
     // register_bench!(standard, Standard);
     // register_bench!(slot_map_standard, SlotMapStandard);
     // register_bench!(slot_map_optimized, SlotMapOptimized);
-    register_bench!(arena_slot_map, ArenaSlotMap);
+    // register_bench!(arena_slot_map, ArenaSlotMap);
 }
 
-fn generate_same_level_commands<ID>(total_orders: usize) -> Vec<MatcherCommand<ID>> {
+#[divan::bench_group(name = "place_synthetic_orders_2")]
+mod place_synthetic_orders_2 {
+    use crate::generate_synthetic_commands_2;
+
+    // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
+    #[divan::bench(sample_count = 1, args = [10_000, 100_000, 1_000_000])]
+    // #[divan::bench(sample_count = 1, args = [10_000_000])]
+    fn run_bench(bencher: divan::Bencher, total_orders: usize) {
+        bencher
+            // .with_inputs(|| (M::new(), generate_synthetic_commands(total_orders)))
+            .with_inputs(|| {
+                let mut matcher = shared::final_ver::order_matcher::OrderMatcher::new(256, 1024);
+
+                // process the first orders to warmup the orderbook, so its not an empty start
+                for cmd in generate_synthetic_commands_2(total_orders) {
+                    matcher.process(cmd);
+                }
+
+                // generate a second set of fresh orders
+                (matcher, generate_synthetic_commands_2(total_orders))
+            })
+            .input_counter(move |_| divan::counter::ItemsCount::new(total_orders))
+            .bench_values(|(mut matcher, commands)| {
+                for cmd in commands {
+                    divan::black_box(matcher.process(divan::black_box(cmd)));
+                }
+            });
+    }
+}
+
+fn generate_same_level_commands<ID>(total_orders: usize) -> Vec<shared::MatcherCommand<ID>> {
     (0..total_orders)
-        .map(|_| MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1))
+        .map(|_| shared::MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1))
         .collect()
 }
 
 fn generate_diff_level_commands<ID>(
     total_levels: usize,
     total_orders: usize,
-) -> Vec<MatcherCommand<ID>> {
+) -> Vec<shared::MatcherCommand<ID>> {
     let orders_per_level = total_orders / total_levels;
 
     (0..total_levels)
         .flat_map(|level| {
-            (0..orders_per_level)
-                .map(move |_| MatcherCommand::new_limit_order(OrderSide::Bid, level as u64, 1))
+            (0..orders_per_level).map(move |_| {
+                shared::MatcherCommand::new_limit_order(OrderSide::Bid, level as u64, 1)
+            })
         })
         .collect()
 }
 
-fn generate_synthetic_commands<ID>(total_orders: usize) -> Vec<MatcherCommand<ID>> {
+fn generate_synthetic_commands<ID>(total_orders: usize) -> Vec<shared::MatcherCommand<ID>> {
     let mut commands = Vec::with_capacity(total_orders);
     let mut rng = rand::rng();
 
@@ -264,13 +294,84 @@ fn generate_synthetic_commands<ID>(total_orders: usize) -> Vec<MatcherCommand<ID
             _ => unreachable!(),
         };
 
-        commands.push(MatcherCommand::new_limit_order(
+        commands.push(shared::MatcherCommand::new_limit_order(
             if is_bid {
                 OrderSide::Bid
             } else {
                 OrderSide::Ask
             },
             price as u64,
+            qty,
+        ));
+    }
+    commands
+}
+
+fn generate_synthetic_commands_2(total_orders: usize) -> Vec<MatcherCommand> {
+    let mut commands = Vec::with_capacity(total_orders);
+    let mut rng = rand::rng();
+
+    let mid_price: i64 = 10_000;
+    let half_spread: i64 = 1;
+
+    // let type_distr = WeightedIndex::new([60, 30, 10]).unwrap();
+    let type_distr = WeightedIndex::new([5, 90, 5]).unwrap();
+    // let type_distr = WeightedIndex::new([90, 5, 5]).unwrap();
+
+    // 50% bids, 50% asks
+    let side_distr = Bernoulli::new(0.50).unwrap();
+
+    let qty_distr = LogNormal::new(3.4, 0.9).unwrap();
+
+    let passive_distr = Exp::new(0.4).unwrap();
+
+    let marketable_distr = Uniform::new(0, 4).unwrap();
+
+    let far_distr = Uniform::new(20, 80).unwrap();
+
+    #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    for _ in 0..total_orders {
+        let is_bid = side_distr.sample(&mut rng);
+        let qty = (qty_distr.sample(&mut rng) as f64).max(1.0).round() as u32;
+        let order_type = type_distr.sample(&mut rng);
+
+        let price: i64 = match order_type {
+            0 => {
+                let dist = ((passive_distr.sample(&mut rng) as f64).round() as i64).clamp(0, 50);
+
+                if is_bid {
+                    mid_price - half_spread - dist
+                } else {
+                    mid_price + half_spread + dist
+                }
+            }
+            1 => {
+                let aggression = marketable_distr.sample(&mut rng);
+                if is_bid {
+                    mid_price + half_spread + aggression
+                } else {
+                    mid_price - half_spread - aggression
+                }
+            }
+            2 => {
+                let dist = far_distr.sample(&mut rng);
+                if is_bid {
+                    mid_price - half_spread - dist
+                } else {
+                    mid_price + half_spread + dist
+                }
+            }
+            _ => unreachable!(),
+        };
+
+        commands.push(MatcherCommand::new_limit_order(
+            if is_bid {
+                OrderSide::Bid
+            } else {
+                OrderSide::Ask
+            },
+            price as u32,
             qty,
         ));
     }
