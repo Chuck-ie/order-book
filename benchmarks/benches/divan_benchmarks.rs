@@ -169,7 +169,7 @@ mod place_synthetic_orders {
     macro_rules! register_bench {
         ($bench_name:ident, $matcher_type:ty) => {
             // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
-            #[divan::bench(sample_count = 1, args = [10_000, 100_000, 1_000_000])]
+            // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
             // #[divan::bench(sample_count = 1, args = [1_000_000])]
             fn $bench_name(bencher: divan::Bencher, n: usize) {
                 run_bench::<$matcher_type>(bencher, n);
@@ -188,13 +188,13 @@ mod place_synthetic_orders {
 mod place_synthetic_orders_2 {
     use crate::generate_synthetic_commands_2;
 
-    // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
-    #[divan::bench(sample_count = 1, args = [10_000, 100_000, 1_000_000])]
+    #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
     // #[divan::bench(sample_count = 1, args = [10_000_000])]
     fn run_bench(bencher: divan::Bencher, total_orders: usize) {
         bencher
             // .with_inputs(|| (M::new(), generate_synthetic_commands(total_orders)))
             .with_inputs(|| {
+                // let mut matcher = shared::final_ver::order_matcher::OrderMatcher::new(2048, 2048);
                 let mut matcher = shared::final_ver::order_matcher::OrderMatcher::new(256, 1024);
 
                 // process the first orders to warmup the orderbook, so its not an empty start

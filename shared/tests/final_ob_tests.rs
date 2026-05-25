@@ -104,7 +104,7 @@ mod final_ob_tests {
         let mut matcher = OrderMatcher::new(16, 16);
         let first_bid_id = matcher.process(MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1));
         let last_bid_id = matcher.process(MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1));
-        matcher.process(MatcherCommand::CancelOrder(first_bid_id.unwrap()));
+        matcher.process(MatcherCommand::CancelOrder(first_bid_id.clone().unwrap()));
         matcher.process(MatcherCommand::new_limit_order(OrderSide::Ask, 100, 1));
 
         let first_bid = matcher.order_book.get_order(first_bid_id.unwrap());
@@ -123,7 +123,7 @@ mod final_ob_tests {
         let mid_bid_id = matcher.process(MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1));
         let last_bid_id = matcher.process(MatcherCommand::new_limit_order(OrderSide::Bid, 100, 1));
 
-        matcher.process(MatcherCommand::CancelOrder(mid_bid_id.unwrap()));
+        matcher.process(MatcherCommand::CancelOrder(mid_bid_id.clone().unwrap()));
         matcher.process(MatcherCommand::new_limit_order(OrderSide::Ask, 100, 2));
 
         let first_bid = matcher.order_book.get_order(first_bid_id.unwrap());
