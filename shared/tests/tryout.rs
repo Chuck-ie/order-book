@@ -1,5 +1,6 @@
 #[cfg(test)]
-mod tests {
+mod tryout {
+
     use shared::{
         LimitOrder, final_ver::arena_slot_map::ArenaSlot, ob_arena_slot_map::ArenaId,
         slot_map::optimized::Slot,
@@ -19,6 +20,13 @@ mod tests {
             std::mem::size_of::<Slot<LimitOrder<ArenaId>>>()
         );
 
-        println!("ArenaSlot: {}", std::mem::size_of::<ArenaSlot>());
+        println!(
+            "ArenaSlot<LimitOrder>-size: {}",
+            std::mem::size_of::<ArenaSlot<shared::final_ver::order_book::LimitOrder>>()
+        );
+        println!(
+            "ArenaSlot<LimitOrder>-align: {}",
+            std::mem::align_of::<ArenaSlot<shared::final_ver::order_book::LimitOrder>>()
+        );
     }
 }

@@ -1,13 +1,14 @@
+use std::marker::PhantomData;
+
 use crate::{
     final_ver::{
-        ArenaIndex,
+        ArenaId,
         arena_slot_allocator::{ArenaChunkIndex, ArenaSlotAllocator},
-        orderbook::LimitOrder,
     },
     slot_map::NonMaxU32,
 };
 
-pub struct ArenaSlotMap {
+pub struct ArenaSlotMap<T> {
     pub head: NonMaxU32,
     pub tail: NonMaxU32,
     pub free_head: NonMaxU32,
@@ -15,11 +16,55 @@ pub struct ArenaSlotMap {
     pub total_capacity: usize,
     pub total_len: usize,
     pub total_occupied: usize,
+    _slot: PhantomData<T>,
 }
 
-impl ArenaSlotMap {
+pub struct ArenaSlotMapWalker<'a, T> {
+    arena: &'a mut ArenaSlotAllocator<T>,
+    curr: NonMaxU32,
+}
+
+impl<T> ArenaSlotMapWalker<'_, T> {
+    pub fn next_pair(&mut self) -> Option<(ArenaId, &mut T)> {
+        if self.curr.is_none() {
+            return None;
+        }
+
+        let index = self.curr.0 as usize;
+
+        let (generation, data, _, next) = unsafe {
+            self.arena
+                .get_unchecked_mut(index)
+                .as_occupied_unchecked_mut()
+        };
+
+        let arena_id = ArenaId {
+            generation: *generation,
+            index: self.curr.0,
+        };
+
+        self.curr = *next;
+        Some((arena_id, data))
+    }
+}
+
+impl<T> ArenaSlotMap<T> {
+    #[must_use]
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
+    pub const fn walk<'a>(
+        &mut self,
+        arena: &'a mut ArenaSlotAllocator<T>,
+    ) -> ArenaSlotMapWalker<'a, T> {
+        ArenaSlotMapWalker {
+            arena,
+            curr: self.head,
+        }
+    }
+
     // TODO: check if with_capacity has any performance impact (positive or negative)
-    pub fn from_arena(arena: &mut ArenaSlotAllocator) -> Self {
+    // TODO: check if smallvec could help too
+    pub fn from_arena(arena: &mut ArenaSlotAllocator<T>) -> Self {
         let chunk_size = arena.chunk_size();
         let chunk_index = unsafe { arena.claim_chunk() };
         let mut owned_chunks = Vec::with_capacity(4);
@@ -34,24 +79,23 @@ impl ArenaSlotMap {
             total_capacity: chunk_size,
             total_len: 0,
             total_occupied: 0,
+            _slot: PhantomData,
         }
     }
 
-    // ex1: insert into empty
-
     #[allow(clippy::cast_possible_truncation)]
-    pub fn insert(&mut self, data: LimitOrder, arena: &mut ArenaSlotAllocator) -> ArenaIndex {
+    pub fn insert(&mut self, data: T, arena: &mut ArenaSlotAllocator<T>) -> ArenaId {
         let free_index = self.free_head;
         // we have a slot to recycle
-        let insert_index = if free_index.is_some() {
-            let (_, next_free) = unsafe {
+        let (generation, insert_index) = if free_index.is_some() {
+            let (generation, next_free) = unsafe {
                 arena
                     .get_unchecked(free_index.0 as usize)
                     .as_free_unchecked()
             };
 
             self.free_head = *next_free;
-            free_index.0
+            (*generation, free_index.0)
         // we need to check if we need to allocate a new chunk of slots
         // case1: allocate slot + write to index 0
         // case2: allocate to the latest index
@@ -59,7 +103,7 @@ impl ArenaSlotMap {
             // 1024 means we need a new chunk
             let chunk_offset = self.total_len % arena.chunk_size();
 
-            if chunk_offset == 0 {
+            if self.total_len == self.total_capacity {
                 let new_chunk_index = unsafe { arena.claim_chunk() };
                 self.owned_chunks.push(new_chunk_index);
                 self.total_capacity += arena.chunk_size();
@@ -70,7 +114,10 @@ impl ArenaSlotMap {
             };
 
             self.total_len += 1;
-            (last_chunk_index.0 * arena.chunk_size() + chunk_offset) as u32
+            (
+                0_u32,
+                (last_chunk_index.0 * arena.chunk_size() + chunk_offset) as u32,
+            )
         };
 
         let tail_index = self.tail;
@@ -86,7 +133,7 @@ impl ArenaSlotMap {
         }
 
         let insert_slot_ref = unsafe { arena.get_unchecked_mut(insert_index as usize) };
-        *insert_slot_ref = ArenaSlot::occupied_with_prev(data, tail_index);
+        *insert_slot_ref = ArenaSlot::occupied_with_prev(data, tail_index, generation);
 
         if self.head.is_none() {
             self.head.0 = insert_index;
@@ -95,25 +142,25 @@ impl ArenaSlotMap {
         self.tail.0 = insert_index;
         self.total_occupied += 1;
 
-        ArenaIndex {
-            generation: 0,
+        ArenaId {
+            generation,
             index: insert_index,
         }
     }
 
-    pub fn remove(&mut self, remove_index: &ArenaIndex, arena: &mut ArenaSlotAllocator) -> bool {
+    pub fn remove(&mut self, remove_id: &ArenaId, arena: &mut ArenaSlotAllocator<T>) -> bool {
         let (generation, curr_prev, curr_next) = {
             let Some(ArenaSlot::Occupied {
                 generation,
                 prev,
                 next,
                 ..
-            }) = arena.get(remove_index.index as usize)
+            }) = arena.get(remove_id.index as usize)
             else {
                 return false;
             };
 
-            if *generation != remove_index.generation {
+            if *generation != remove_id.generation {
                 return false;
             }
 
@@ -145,37 +192,49 @@ impl ArenaSlotMap {
         }
 
         unsafe {
-            let remove_slot_ref = arena.get_unchecked_mut(remove_index.index as usize);
+            let remove_slot_ref = arena.get_unchecked_mut(remove_id.index as usize);
             *remove_slot_ref = ArenaSlot::Free {
-                generation,
+                generation: generation + 1,
                 next_free: self.free_head,
             }
         }
 
-        self.free_head.0 = remove_index.index;
+        self.free_head.0 = remove_id.index;
         self.total_occupied -= 1;
         self.total_occupied == 0
     }
 }
 
-pub enum ArenaSlot {
+#[derive(Debug, PartialEq, Eq)]
+// #[repr(C, align(64))]
+#[repr(C, align(32))]
+pub enum ArenaSlot<T> {
     Free {
         generation: u32,
         next_free: NonMaxU32,
     },
     Occupied {
+        data: T,
         generation: u32,
-        data: LimitOrder,
         prev: NonMaxU32,
         next: NonMaxU32,
     },
 }
 
-impl ArenaSlot {
-    #[must_use]
-    pub const fn occupied_with_prev(data: LimitOrder, prev: NonMaxU32) -> Self {
-        Self::Occupied {
+impl<T> Default for ArenaSlot<T> {
+    fn default() -> Self {
+        Self::Free {
             generation: 0,
+            next_free: NonMaxU32::new_none(),
+        }
+    }
+}
+
+impl<T> ArenaSlot<T> {
+    #[must_use]
+    pub const fn occupied_with_prev(data: T, prev: NonMaxU32, generation: u32) -> Self {
+        Self::Occupied {
+            generation,
             data,
             prev,
             next: NonMaxU32::new_none(),
@@ -183,9 +242,9 @@ impl ArenaSlot {
     }
 
     #[must_use]
-    pub const fn free_with_next(next_free: NonMaxU32) -> Self {
+    pub const fn free_with_next(next_free: NonMaxU32, generation: u32) -> Self {
         Self::Free {
-            generation: 0,
+            generation,
             next_free,
         }
     }
@@ -196,9 +255,7 @@ impl ArenaSlot {
     #[allow(clippy::inline_always)]
     #[inline(always)]
     #[must_use]
-    pub const unsafe fn as_occupied_unchecked(
-        &self,
-    ) -> (&u32, &LimitOrder, &NonMaxU32, &NonMaxU32) {
+    pub const unsafe fn as_occupied_unchecked(&self) -> (&u32, &T, &NonMaxU32, &NonMaxU32) {
         match self {
             Self::Occupied {
                 generation,
@@ -218,7 +275,7 @@ impl ArenaSlot {
     #[must_use]
     pub const unsafe fn as_occupied_unchecked_mut(
         &mut self,
-    ) -> (&mut u32, &mut LimitOrder, &mut NonMaxU32, &mut NonMaxU32) {
+    ) -> (&mut u32, &mut T, &mut NonMaxU32, &mut NonMaxU32) {
         match self {
             Self::Occupied {
                 generation,
@@ -262,3 +319,37 @@ impl ArenaSlot {
         }
     }
 }
+
+// TODO: According to AI this is very bad to do, because someone could get multiple mut references
+// to the next return values at the same time, which the current walker version doesnt allow
+//
+// pub struct ArenaSlotMapPairMut<'b, T> {
+//     arena: &'b mut ArenaSlotAllocator<T>,
+//     curr: NonMaxU32,
+// }
+//
+// impl<'b, T> Iterator for ArenaSlotMapPairMut<'b, T> {
+//     type Item = (ArenaIndex, &'b mut T);
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         if self.curr.is_none() {
+//             return None;
+//         }
+//
+//         let (generation, data_ref, _, next) = unsafe {
+//             self.arena
+//                 .get_unchecked_mut(self.curr.0 as usize)
+//                 .as_occupied_unchecked_mut()
+//         };
+//
+//         let arena_index = ArenaIndex {
+//             generation: *generation,
+//             index: self.curr.0,
+//         };
+//
+//         let data = unsafe { &mut *std::ptr::from_mut::<T>(data_ref) };
+//
+//         self.curr = *next;
+//         Some((arena_index, data))
+//     }
+// }
