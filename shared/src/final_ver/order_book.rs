@@ -16,44 +16,27 @@ pub struct LimitOrder {
     pub side: OrderSide,
 }
 
+#[derive(Default)]
 pub struct OrderBook {
-    pub arena: ArenaSlotAllocator<LimitOrder>,
-    // pub level_arena:
     pub bids: BTreeMap<Reverse<u32>, ArenaSlotMap<LimitOrder>>,
     pub asks: BTreeMap<u32, ArenaSlotMap<LimitOrder>>,
 }
 
-impl Default for OrderBook {
-    fn default() -> Self {
-        Self {
-            arena: ArenaSlotAllocator::new(128, 1024),
-            bids: BTreeMap::new(),
-            asks: BTreeMap::new(),
-        }
-    }
-}
-
 impl OrderBook {
     #[must_use]
-    pub const fn from_arena(arena: ArenaSlotAllocator<LimitOrder>) -> Self {
+    pub const fn new() -> Self {
         Self {
-            arena,
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
         }
     }
 
     #[must_use]
-    pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
-        Self {
-            arena: ArenaSlotAllocator::new(chunk_count, chunk_size),
-            bids: BTreeMap::new(),
-            asks: BTreeMap::new(),
-        }
-    }
-
-    #[must_use]
-    pub fn place_order(&mut self, order: LimitOrder) -> ArenaId {
+    pub fn place_order(
+        &mut self,
+        order: LimitOrder,
+        arena: &mut ArenaSlotAllocator<LimitOrder>,
+    ) -> ArenaId {
         let LimitOrder {
             side,
             limit: price,
@@ -64,20 +47,20 @@ impl OrderBook {
             OrderSide::Bid => self
                 .bids
                 .entry(Reverse(price))
-                .or_insert_with(|| ArenaSlotMap::from_arena(&mut self.arena))
-                .insert(order, &mut self.arena),
+                .or_insert_with(|| ArenaSlotMap::from_arena(arena))
+                .insert(order, arena),
             OrderSide::Ask => self
                 .asks
                 .entry(price)
-                .or_insert_with(|| ArenaSlotMap::from_arena(&mut self.arena))
-                .insert(order, &mut self.arena),
+                .or_insert_with(|| ArenaSlotMap::from_arena(arena))
+                .insert(order, arena),
         }
     }
 
     // TODO: check if brancing can be avoid by using previous branch checks
     // of the matcher and then just adding place_bid and place_ask
-    pub fn cancel_order(&mut self, order_id: &ArenaId) {
-        let (price, side) = match self.arena.get(order_id.index as usize) {
+    pub fn cancel_order(&mut self, order_id: &ArenaId, arena: &mut ArenaSlotAllocator<LimitOrder>) {
+        let (price, side) = match arena.get(order_id.index as usize) {
             Some(ArenaSlot::Occupied {
                 generation: _,
                 data,
@@ -94,11 +77,11 @@ impl OrderBook {
                     unsafe { std::hint::unreachable_unchecked() }
                 };
 
-                let level_is_empty = level.remove(order_id, &mut self.arena);
+                let level_is_empty = level.remove(order_id, arena);
 
                 if level_is_empty {
                     for chunk_index in level.owned_chunks.drain(..) {
-                        self.arena.release_chunk(chunk_index);
+                        arena.release_chunk(chunk_index);
                     }
 
                     self.bids.remove(&price_key);
@@ -109,11 +92,11 @@ impl OrderBook {
                     unsafe { std::hint::unreachable_unchecked() }
                 };
 
-                let level_is_empty = level.remove(order_id, &mut self.arena);
+                let level_is_empty = level.remove(order_id, arena);
 
                 if level_is_empty {
                     for chunk_index in level.owned_chunks.drain(..) {
-                        self.arena.release_chunk(chunk_index);
+                        arena.release_chunk(chunk_index);
                     }
 
                     self.asks.remove(&price);
@@ -123,13 +106,17 @@ impl OrderBook {
     }
 
     #[must_use]
-    pub fn get_order(&self, arena_id: ArenaId) -> Option<&LimitOrder> {
+    pub fn get_order<'a>(
+        &self,
+        arena_id: ArenaId,
+        arena: &'a mut ArenaSlotAllocator<LimitOrder>,
+    ) -> Option<&'a LimitOrder> {
         if let ArenaSlot::Occupied {
             data,
             generation: _,
             prev: _,
             next: _,
-        } = unsafe { self.arena.get_unchecked(arena_id.index as usize) }
+        } = unsafe { arena.get_unchecked(arena_id.index as usize) }
         {
             Some(data)
         } else {

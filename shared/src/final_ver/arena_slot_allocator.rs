@@ -2,7 +2,7 @@ use crate::final_ver::arena_slot_map::ArenaSlot;
 
 pub struct ArenaSlotAllocator<T> {
     slots: Vec<ArenaSlot<T>>,
-    free_stack: Vec<usize>,
+    pub free_stack: Vec<usize>,
     chunk_count: usize,
     chunk_size: usize,
 }

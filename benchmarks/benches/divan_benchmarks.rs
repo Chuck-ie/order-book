@@ -1,4 +1,5 @@
 use divan::AllocProfiler;
+use mimalloc::MiMalloc;
 use rand_distr::weighted::WeightedIndex;
 use rand_distr::{Bernoulli, Distribution, Exp, LogNormal, Normal, Uniform};
 use rgb::RGB8;
@@ -8,7 +9,10 @@ use shared::{LimitOrderRequest, OrderMatcherExt};
 use textplots::{Chart, ColorPlot, Shape};
 
 #[global_allocator]
-static ALLOC: AllocProfiler = AllocProfiler::system();
+static ALLOC: AllocProfiler<MiMalloc> = AllocProfiler::new(MiMalloc);
+
+// #[global_allocator]
+// static GLOBAL: MiMalloc = MiMalloc;
 
 #[allow(clippy::cast_precision_loss)]
 fn main() {
@@ -146,22 +150,14 @@ mod place_synthetic_orders {
 
     fn run_bench<M: OrderMatcherExt>(bencher: divan::Bencher, total_orders: usize) {
         bencher
-            // .with_inputs(|| (M::new(), generate_synthetic_commands(total_orders)))
             .with_inputs(|| {
-                let mut matcher = M::new();
-
-                // process the first orders to warmup the orderbook, so its not an empty start
-                for cmd in generate_synthetic_commands(total_orders) {
-                    matcher.process(cmd);
-                }
-
-                // generate a second set of fresh orders
+                let matcher = M::new();
                 (matcher, generate_synthetic_commands(total_orders))
             })
             .input_counter(move |_| divan::counter::ItemsCount::new(total_orders))
             .bench_values(|(mut matcher, commands)| {
                 for cmd in commands {
-                    divan::black_box(matcher.process(divan::black_box(cmd)));
+                    matcher.process(divan::black_box(cmd));
                 }
             });
     }
@@ -169,7 +165,8 @@ mod place_synthetic_orders {
     macro_rules! register_bench {
         ($bench_name:ident, $matcher_type:ty) => {
             // #[divan::bench(sample_count = 100, args = [10_000, 100_000, 1_000_000])]
-            #[divan::bench(sample_count = 1, args = [100_000_000])]
+            // #[divan::bench(sample_count = 1, args = [100_000_000])]
+            #[divan::bench(sample_count = 100, args = [100_000])]
             fn $bench_name(bencher: divan::Bencher, n: usize) {
                 run_bench::<$matcher_type>(bencher, n);
             }
@@ -179,38 +176,36 @@ mod place_synthetic_orders {
     // register_bench!(naive, Naive);
     // register_bench!(standard, Standard);
     // register_bench!(slot_map_standard, SlotMapStandard);
-    register_bench!(slot_map_optimized, SlotMapOptimized);
+    // register_bench!(slot_map_optimized, SlotMapOptimized);
     // register_bench!(arena_slot_map, ArenaSlotMap);
 }
 
 #[divan::bench_group(name = "place_synthetic_orders_2")]
 mod place_synthetic_orders_2 {
     use crate::generate_synthetic_commands_2;
+    use shared::final_ver::arena_slot_allocator::ArenaSlotAllocator;
 
     // #[divan::bench(sample_count = 10, args = [10_000, 100_000, 1_000_000])]
     // #[divan::bench(sample_count = 1, args = [100_000_000])]
+    #[divan::bench(sample_count = 1000, args = [100_000])]
     fn run_bench(bencher: divan::Bencher, total_orders: usize) {
+        let mut arena = ArenaSlotAllocator::new(4096, 4096);
+
         bencher
-            // .with_inputs(|| (M::new(), generate_synthetic_commands(total_orders)))
             .with_inputs(|| {
-                // let mut matcher = shared::final_ver::order_matcher::OrderMatcher::new(256, 1024);
-                let mut matcher = shared::final_ver::order_matcher::OrderMatcher::new(4096, 4096);
-                // let mut matcher =
-                //     shared::final_ver::order_matcher_vec::OrderMatcher::new(256, 1024);
-
-                // process the first orders to warmup the orderbook, so its not an empty start
-                for cmd in generate_synthetic_commands_2(total_orders) {
-                    matcher.process(cmd);
-                }
-
-                // generate a second set of fresh orders
+                let matcher = shared::final_ver::order_matcher::OrderMatcher::new();
                 (matcher, generate_synthetic_commands_2(total_orders))
             })
             .input_counter(move |_| divan::counter::ItemsCount::new(total_orders))
-            .bench_values(|(mut matcher, commands)| {
+            .bench_local_values(|(mut matcher, commands)| {
+                let commands = divan::black_box(commands);
+
                 for cmd in commands {
-                    divan::black_box(matcher.process(divan::black_box(cmd)));
+                    matcher.process(cmd, &mut arena);
                 }
+
+                matcher.clean_up(&mut arena);
+                arena.free_stack = (0..arena.chunk_count()).rev().collect();
             });
     }
 }
