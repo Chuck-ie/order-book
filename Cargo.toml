@@ -9,6 +9,7 @@ rand_distr = "0.6.0"
 csv = "1.4.0"
 serde = "1.0.228"
 mimalloc = "0.1.52"
+memmap2 = "0.9.10"
 
 [profile.release]
 debug = true

@@ -8,3 +8,4 @@ tokio = { workspace = true }
 rand = { workspace = true }
 rand_distr = { workspace = true }
 serde = { workspace = true }
+memmap2 = { workspace = true }
