@@ -189,28 +189,4 @@ impl OrderMatcher {
 
         total_volume
     }
-
-    // #[allow(clippy::cast_possible_truncation)]
-    // fn total_volume_at(&self, side: OrderSide, price: usize) -> usize {
-    //     let Some(order_ids) = (match side {
-    //         OrderSide::Bid => self.order_book.bids.get(&Reverse(price as u64)),
-    //         OrderSide::Ask => self.order_book.asks.get(&(price as u64)),
-    //     }) else {
-    //         return 0;
-    //     };
-    //
-    //     order_ids
-    //         .iter()
-    //         .map(|id| {
-    //             self.order_book
-    //                 .get_order(*id)
-    //                 .expect("order not found")
-    //                 .amount as usize
-    //         })
-    //         .sum()
-    // }
-    //
-    // fn order_book(&self) -> &Self::OrderBook {
-    //     &self.order_book
-    // }
 }
