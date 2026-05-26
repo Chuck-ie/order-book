@@ -9,13 +9,6 @@ use crate::{
     },
 };
 
-// #[derive(Debug, PartialEq, Eq)]
-// pub struct LimitOrder {
-//     pub limit: u64,
-//     pub amount: u64,
-//     pub side: OrderSide,
-// }
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct LimitOrder {
     pub limit: u32,
@@ -25,8 +18,7 @@ pub struct LimitOrder {
 
 pub struct OrderBook {
     pub arena: ArenaSlotAllocator<LimitOrder>,
-    // pub bids: BTreeMap<Reverse<u64>, ArenaSlotMap<LimitOrder>>,
-    // pub asks: BTreeMap<u64, ArenaSlotMap<LimitOrder>>,
+    // pub level_arena:
     pub bids: BTreeMap<Reverse<u32>, ArenaSlotMap<LimitOrder>>,
     pub asks: BTreeMap<u32, ArenaSlotMap<LimitOrder>>,
 }
@@ -54,7 +46,6 @@ impl OrderBook {
     #[must_use]
     pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
         Self {
-            // 4096 price levels * 2048 orders per price level = 8_388_608 orders = 512 MB (or 256MB if i get size down to 32 byte orders)
             arena: ArenaSlotAllocator::new(chunk_count, chunk_size),
             bids: BTreeMap::new(),
             asks: BTreeMap::new(),
