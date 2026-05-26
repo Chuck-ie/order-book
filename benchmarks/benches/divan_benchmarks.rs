@@ -186,12 +186,14 @@ mod place_synthetic_orders_2 {
     use shared::final_ver::arena_slot_allocator::ArenaSlotAllocator;
 
     // #[divan::bench(sample_count = 10, args = [10_000, 100_000, 1_000_000])]
+    // #[divan::bench(sample_count = 1, args = [1_000_000_000])]
     #[divan::bench(sample_count = 1, args = [100_000_000])]
     // #[divan::bench(sample_count = 1000, args = [100_000])]
     fn run_bench(bencher: divan::Bencher, total_orders: usize) {
-        // let mut arena = ArenaSlotAllocator::new(4096, 4096);
+        let mut arena = ArenaSlotAllocator::new(4096, 4096);
         // let mut arena = ArenaSlotAllocator::new(4096, 16384);
-        let mut arena = ArenaSlotAllocator::new(16384, 4096);
+        // let mut arena = ArenaSlotAllocator::new(32768, 4096);
+        // let mut arena = ArenaSlotAllocator::new(32768, 16384);
 
         bencher
             .with_inputs(|| {
@@ -312,8 +314,8 @@ fn generate_synthetic_commands_2(total_orders: usize) -> Vec<MatcherCommand> {
     let mid_price: i64 = 10_000;
     let half_spread: i64 = 1;
 
-    let type_distr = WeightedIndex::new([60, 30, 10]).unwrap();
-    // let type_distr = WeightedIndex::new([5, 90, 5]).unwrap();
+    // let type_distr = WeightedIndex::new([60, 30, 10]).unwrap();
+    let type_distr = WeightedIndex::new([5, 90, 5]).unwrap();
     // let type_distr = WeightedIndex::new([0, 100, 0]).unwrap();
 
     // 50% bids, 50% asks

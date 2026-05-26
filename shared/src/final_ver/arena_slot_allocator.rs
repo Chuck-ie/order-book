@@ -27,6 +27,21 @@ use crate::final_ver::arena_slot_map::ArenaSlot;
 // HugePages_Free:      256
 // ...
 // Hugetlb:          524288 kB
+//
+//
+// for 1GB huge pages check this:
+//
+// set to 1 page
+// sudo bash -c 'echo 1 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages'
+//
+// set to 0 pages
+// sudo bash -c 'echo 0 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages'
+//
+// should say 1
+// grep "" /sys/kernel/mm/hugepages/hugepages-1048576kB/*
+//
+// verify during runtime of the program if it uses the pages (should change from 1 to 0 and back once the program stops)
+// cat /sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages
 pub struct ArenaSlotAllocator<T> {
     mmap_memory: MmapMut,
     pub free_stack: Vec<usize>,
@@ -51,8 +66,13 @@ impl<T> ArenaSlotAllocator<T> {
     #[must_use]
     pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
         let total_bytes = chunk_count * chunk_size * mem::size_of::<ArenaSlot<T>>();
+        // let total_bytes = 1 << 30;
+
         let mmap_memory = MmapOptions::new()
             .len(total_bytes)
+            // from the memmap2 example, this is for 2MB huge pages like my system has
+            .huge(Some(21))
+            // .huge(Some(30))
             .populate()
             .map_anon()
             .expect("Failed to mmap anonymous memory");
