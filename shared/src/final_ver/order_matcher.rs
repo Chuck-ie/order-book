@@ -42,44 +42,58 @@ impl Default for OrderMatcher {
 }
 
 impl OrderMatcher {
+    // #[must_use]
+    // pub fn from_arena(arena: &ArenaSlotAllocator<LimitOrder>) -> Self {
+    //     Self {
+    //         order_book: OrderBook::from_arena(arena),
+    //         cancelation_buffer: Vec::with_capacity(1024),
+    //     }
+    // }
+
+    // #[must_use]
+    // pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
+    //     Self {
+    //         order_book: OrderBook::new(chunk_count, chunk_size),
+    //         cancelation_buffer: Vec::with_capacity(1024),
+    //     }
+    // }
+
     #[must_use]
-    pub fn from_arena(arena: ArenaSlotAllocator<LimitOrder>) -> Self {
+    pub fn new() -> Self {
         Self {
-            order_book: OrderBook::from_arena(arena),
+            order_book: OrderBook::new(),
             cancelation_buffer: Vec::with_capacity(1024),
         }
     }
 
-    #[must_use]
-    pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
-        Self {
-            order_book: OrderBook::new(chunk_count, chunk_size),
-            cancelation_buffer: Vec::with_capacity(1024),
-        }
-    }
-
-    pub fn process(&mut self, command: MatcherCommand) -> Option<ArenaId> {
+    // helper so that perf report can always see this function
+    // #[inline(never)]
+    pub fn process(
+        &mut self,
+        command: MatcherCommand,
+        arena: &mut ArenaSlotAllocator<LimitOrder>,
+    ) -> Option<ArenaId> {
         match command {
             MatcherCommand::PlaceOrder(mut order) => {
                 match order.side {
-                    OrderSide::Bid => self.process_bid(&mut order),
-                    OrderSide::Ask => self.process_ask(&mut order),
+                    OrderSide::Bid => self.process_bid(&mut order, arena),
+                    OrderSide::Ask => self.process_ask(&mut order, arena),
                 }
 
                 if order.amount > 0 {
-                    Some(self.order_book.place_order(order))
+                    Some(self.order_book.place_order(order, arena))
                 } else {
                     None
                 }
             }
             MatcherCommand::CancelOrder(order_id) => {
-                self.order_book.cancel_order(&order_id);
+                self.order_book.cancel_order(&order_id, arena);
                 None
             }
         }
     }
 
-    fn process_bid(&mut self, order: &mut LimitOrder) {
+    fn process_bid(&mut self, order: &mut LimitOrder, arena: &mut ArenaSlotAllocator<LimitOrder>) {
         let mut remaining_amount = order.amount;
 
         for (price, level) in &mut self.order_book.asks {
@@ -87,7 +101,7 @@ impl OrderMatcher {
                 break;
             }
 
-            let mut iter = level.walk(&mut self.order_book.arena);
+            let mut iter = level.walk(arena);
 
             while remaining_amount > 0 {
                 let Some((arena_id, current_order)) = iter.next_pair() else {
@@ -105,10 +119,13 @@ impl OrderMatcher {
         }
 
         order.amount = remaining_amount;
-        self.clean_up();
+
+        for arena_id in self.cancelation_buffer.drain(..) {
+            self.order_book.cancel_order(&arena_id, arena);
+        }
     }
 
-    fn process_ask(&mut self, order: &mut LimitOrder) {
+    fn process_ask(&mut self, order: &mut LimitOrder, arena: &mut ArenaSlotAllocator<LimitOrder>) {
         let mut remaining_amount = order.amount;
 
         for (price, level) in &mut self.order_book.bids.iter_mut().map(|(r, v)| (&r.0, v)) {
@@ -116,7 +133,7 @@ impl OrderMatcher {
                 break;
             }
 
-            let mut iter = level.walk(&mut self.order_book.arena);
+            let mut iter = level.walk(arena);
 
             while remaining_amount > 0 {
                 let Some((arena_id, current_order)) = iter.next_pair() else {
@@ -134,14 +151,23 @@ impl OrderMatcher {
         }
 
         order.amount = remaining_amount;
-        self.clean_up();
+
+        for arena_id in self.cancelation_buffer.drain(..) {
+            self.order_book.cancel_order(&arena_id, arena);
+        }
     }
 
-    #[allow(clippy::inline_always)]
-    #[inline(always)]
-    fn clean_up(&mut self) {
-        for arena_id in self.cancelation_buffer.drain(..) {
-            self.order_book.cancel_order(&arena_id);
+    pub fn clean_up(&mut self, arena: &mut ArenaSlotAllocator<LimitOrder>) {
+        for level in self.order_book.bids.values_mut() {
+            for chunk_index in level.owned_chunks.drain(..) {
+                arena.release_chunk(chunk_index);
+            }
+        }
+
+        for level in self.order_book.asks.values_mut() {
+            for chunk_index in level.owned_chunks.drain(..) {
+                arena.release_chunk(chunk_index);
+            }
         }
     }
 
@@ -171,7 +197,12 @@ impl OrderMatcher {
 
     #[must_use]
     // pub fn total_volume_at(&mut self, side: OrderSide, price: u64) -> u64 {
-    pub fn total_volume_at(&mut self, side: OrderSide, price: u32) -> u32 {
+    pub fn total_volume_at(
+        &mut self,
+        side: OrderSide,
+        price: u32,
+        arena: &mut ArenaSlotAllocator<LimitOrder>,
+    ) -> u32 {
         let Some(level) = (match side {
             OrderSide::Bid => self.order_book.bids.get_mut(&Reverse(price)),
             OrderSide::Ask => self.order_book.asks.get_mut(&(price)),
@@ -179,7 +210,7 @@ impl OrderMatcher {
             return 0;
         };
 
-        let mut iter = level.walk(&mut self.order_book.arena);
+        let mut iter = level.walk(arena);
 
         let mut total_volume = 0;
 
