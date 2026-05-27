@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 use serde::Deserialize;
 
+pub mod common;
+pub mod engine;
 pub mod final_ver;
 pub mod ob_arena_slot_map;
 pub mod ob_naive;
@@ -61,89 +63,9 @@ pub trait OrderMatcherExt {
     fn order_book(&self) -> &Self::OrderBook;
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
-pub enum OrderSide {
-    Bid,
-    Ask,
-}
-
-impl From<i8> for OrderSide {
-    fn from(val: i8) -> Self {
-        if val == 1 { Self::Bid } else { Self::Ask }
-    }
-}
-
-pub struct LimitOrder<ID> {
-    pub id: ID,
-    pub side: OrderSide,
-    pub limit: u64,
-    pub amount: u64,
-}
-
-impl<ID> LimitOrder<ID> {
-    pub const fn new(id: ID, side: OrderSide, limit: u64, amount: u64) -> Self {
-        Self {
-            id,
-            side,
-            limit,
-            amount,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum MatcherCommand<ID> {
-    PlaceOrder(LimitOrderRequest),
-    CancelOrder(ID),
-}
-
-impl<ID> MatcherCommand<ID> {
-    #[must_use]
-    pub const fn new_limit_order(side: OrderSide, limit: u64, amount: u64) -> Self {
-        Self::PlaceOrder(LimitOrderRequest {
-            side,
-            limit,
-            amount,
-        })
-    }
-}
-
 #[derive(Debug)]
 pub struct LimitOrderRequest {
     pub side: OrderSide,
     pub limit: u64,
     pub amount: u64,
-}
-
-pub trait SlotMap {
-    type Id;
-    type Data;
-    // TryFrom<usize> + Debug + PartialEq + Copy;
-
-    fn new() -> Self;
-    fn insert(&mut self, data: Self::Data) -> Self::Id;
-    fn remove(&mut self, remove_idx: Self::Id);
-
-    fn total(&self) -> usize;
-    fn capacity(&self) -> usize;
-    fn is_empty(&self) -> bool;
-
-    fn get(&self, index: usize) -> Option<&Self::Data>;
-    fn get_mut(&mut self, index: usize) -> Option<&mut Self::Data>;
-}
-
-pub trait TestableSlotMap {
-    type Data: PartialEq;
-    type Utype: TryFrom<usize> + Debug + PartialEq + Copy;
-
-    fn head(&self) -> Option<Self::Utype>;
-    fn tail(&self) -> Option<Self::Utype>;
-    fn free_head(&self) -> Option<Self::Utype>;
-    fn is_occupied(&self, index: usize, data: Self::Data) -> bool;
-    fn get_link(&self, index: usize) -> Option<&impl Linkable>;
-}
-
-pub trait Linkable {
-    fn prev(&self) -> Option<usize>;
-    fn next(&self) -> Option<usize>;
 }

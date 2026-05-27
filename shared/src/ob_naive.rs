@@ -19,7 +19,6 @@ pub struct PriceLevel {
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
-    // pub queue: Vec<OrderId>,
 }
 
 impl OrderBook {
