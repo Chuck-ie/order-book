@@ -852,11 +852,13 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "csv",
+ "divan",
  "memmap2",
+ "mimalloc",
  "rand",
  "rand_distr",
  "serde",
- "tokio",
 ]
 
 [[package]]

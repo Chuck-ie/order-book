@@ -4,8 +4,22 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tokio = { workspace = true }
-rand = { workspace = true }
-rand_distr = { workspace = true }
-serde = { workspace = true }
-memmap2 = { workspace = true }
+divan = "0.1.21"
+rand = "0.10.0"
+rand_distr = "0.6.0"
+csv = "1.4.0"
+serde = "1.0.228"
+mimalloc = "0.1.52"
+memmap2 = "0.9.10"
+
+[profile.release]
+debug = true
+strip = false
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[[bench]]
+name = "bench_naive"
+path = "benches/bench_naive.rs"
+harness = false
