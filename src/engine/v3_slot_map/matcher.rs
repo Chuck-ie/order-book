@@ -11,6 +11,12 @@ pub struct OrderMatcher {
     cancelation_buffer: Vec<OrderIdU32>,
 }
 
+impl Default for OrderMatcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OrderMatcherExt for OrderMatcher {
     type OrderId = OrderIdU32;
     type OrderBook = OrderBook;

@@ -7,6 +7,12 @@ pub struct OrderMatcher {
     order_book: OrderBook,
 }
 
+impl Default for OrderMatcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OrderMatcherExt for OrderMatcher {
     type OrderId = OrderIdU64;
     type OrderBook = OrderBook;

@@ -1,7 +1,6 @@
 use crate::common::{LimitOrder, LimitOrderRequest, OrderBookExt, OrderIdU64, OrderSide};
 use std::collections::HashMap;
 
-#[derive(Default)]
 pub struct OrderBook {
     pub(crate) bids: Vec<PriceLevel>,
     pub(crate) asks: Vec<PriceLevel>,

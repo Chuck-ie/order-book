@@ -1,5 +1,5 @@
 use serde::Deserialize;
-//
+
 #[repr(transparent)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OrderIdU64(pub u64);
