@@ -1,31 +1,31 @@
 use std::cmp::Reverse;
 
 use crate::{
-    OrderSide,
+    common::{MatcherCommand, OrderSide},
     final_ver::{
         arena_slot_allocator::{ArenaId, ArenaSlotAllocator},
         order_book::{LimitOrder, OrderBook},
     },
 };
-
-pub enum MatcherCommand {
-    PlaceOrder(LimitOrder),
-    CancelOrder(ArenaId),
-}
-
-impl MatcherCommand {
-    #[must_use]
-    #[inline(always)]
-    #[allow(clippy::inline_always)]
-    // pub const fn new_limit_order(side: OrderSide, limit: u64, amount: u64) -> Self {
-    pub const fn new_limit_order(side: OrderSide, limit: u32, amount: u32) -> Self {
-        Self::PlaceOrder(LimitOrder {
-            limit,
-            amount,
-            side,
-        })
-    }
-}
+//
+// pub enum MatcherCommand {
+//     PlaceOrder(LimitOrder),
+//     CancelOrder(ArenaId),
+// }
+//
+// impl MatcherCommand {
+//     #[must_use]
+//     #[inline(always)]
+//     #[allow(clippy::inline_always)]
+//     // pub const fn new_limit_order(side: OrderSide, limit: u64, amount: u64) -> Self {
+//     pub const fn new_limit_order(side: OrderSide, limit: u32, amount: u32) -> Self {
+//         Self::PlaceOrder(LimitOrder {
+//             limit,
+//             amount,
+//             side,
+//         })
+//     }
+// }
 
 pub struct OrderMatcher {
     pub order_book: OrderBook,
@@ -42,22 +42,6 @@ impl Default for OrderMatcher {
 }
 
 impl OrderMatcher {
-    // #[must_use]
-    // pub fn from_arena(arena: &ArenaSlotAllocator<LimitOrder>) -> Self {
-    //     Self {
-    //         order_book: OrderBook::from_arena(arena),
-    //         cancelation_buffer: Vec::with_capacity(1024),
-    //     }
-    // }
-
-    // #[must_use]
-    // pub fn new(chunk_count: usize, chunk_size: usize) -> Self {
-    //     Self {
-    //         order_book: OrderBook::new(chunk_count, chunk_size),
-    //         cancelation_buffer: Vec::with_capacity(1024),
-    //     }
-    // }
-
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -70,7 +54,7 @@ impl OrderMatcher {
     // #[inline(never)]
     pub fn process(
         &mut self,
-        command: MatcherCommand,
+        command: MatcherCommand<LimitOrder, ArenaId>,
         arena: &mut ArenaSlotAllocator<LimitOrder>,
     ) -> Option<ArenaId> {
         match command {

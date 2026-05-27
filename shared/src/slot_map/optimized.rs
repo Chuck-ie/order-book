@@ -1,10 +1,13 @@
-use crate::{Linkable, SlotMap, TestableSlotMap, slot_map::NonMaxU32};
+use crate::{
+    common::OrderIdU32,
+    slot_map::{Linkable, NonMaxU32, SlotMap, TestableSlotMap},
+};
 
 pub struct SlotMapOptimized<T> {
-    pub head: NonMaxU32,
-    pub tail: NonMaxU32,
-    pub free_head: NonMaxU32,
-    pub slots: Vec<Slot<T>>,
+    head: NonMaxU32,
+    tail: NonMaxU32,
+    free_head: NonMaxU32,
+    slots: Vec<Slot<T>>,
     capacity: usize,
 }
 
@@ -125,8 +128,8 @@ impl<T> Default for SlotMapOptimized<T> {
 }
 
 impl<T> SlotMap for SlotMapOptimized<T> {
+    type Id = OrderIdU32;
     type Data = T;
-    type Id = u32;
 
     fn new() -> Self {
         Self {
@@ -208,7 +211,7 @@ impl<T> SlotMap for SlotMapOptimized<T> {
         self.tail.0 = insert_idx;
         self.capacity += 1;
 
-        insert_idx
+        OrderIdU32(insert_idx)
     }
 
     fn remove(&mut self, remove_idx: Self::Id) {
@@ -217,7 +220,7 @@ impl<T> SlotMap for SlotMapOptimized<T> {
         // Since this is for a portfolio and testing optimizations, im gonna do it anyway.
         debug_assert!(
             self.slots
-                .get(remove_idx as usize)
+                .get(remove_idx.0 as usize)
                 .is_some_and(|s| matches!(s, Slot::Occupied { .. })),
             "Attempted to remove an empty or invalid slot, this might be a double free bug or something similar."
         );
@@ -225,7 +228,7 @@ impl<T> SlotMap for SlotMapOptimized<T> {
         let (curr_prev, curr_next) = unsafe {
             let (_, prev, next) = self
                 .slots
-                .get_unchecked(remove_idx as usize)
+                .get_unchecked(remove_idx.0 as usize)
                 .as_occupied_unchecked();
 
             (*prev, *next)
@@ -252,13 +255,13 @@ impl<T> SlotMap for SlotMapOptimized<T> {
         }
 
         unsafe {
-            let remove_slot_ref = self.slots.get_unchecked_mut(remove_idx as usize);
+            let remove_slot_ref = self.slots.get_unchecked_mut(remove_idx.0 as usize);
             *remove_slot_ref = Slot::Free {
                 next_free: self.free_head,
             };
         };
 
-        self.free_head.0 = remove_idx;
+        self.free_head.0 = remove_idx.0;
 
         if curr_next.is_none() {
             self.tail = curr_prev;
