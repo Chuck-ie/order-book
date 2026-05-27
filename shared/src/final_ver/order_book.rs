@@ -1,7 +1,7 @@
 use std::{cmp::Reverse, collections::BTreeMap};
 
 use crate::{
-    OrderSide,
+    common::OrderSide,
     final_ver::{
         ArenaId,
         arena_slot_allocator::ArenaSlotAllocator,
@@ -108,7 +108,7 @@ impl OrderBook {
     #[must_use]
     pub fn get_order<'a>(
         &self,
-        arena_id: ArenaId,
+        arena_id: &ArenaId,
         arena: &'a mut ArenaSlotAllocator<LimitOrder>,
     ) -> Option<&'a LimitOrder> {
         if let ArenaSlot::Occupied {

@@ -2,15 +2,6 @@
 resolver = "3"
 members = ["benchmarks", "shared"]
 
-[workspace.dependencies]
-tokio = { version = "1.50", features = ["full"] }
-rand = "0.10.0"
-rand_distr = "0.6.0"
-csv = "1.4.0"
-serde = "1.0.228"
-mimalloc = "0.1.52"
-memmap2 = "0.9.10"
-
 [profile.release]
 debug = true
 strip = false

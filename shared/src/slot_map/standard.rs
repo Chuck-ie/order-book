@@ -1,11 +1,14 @@
-use crate::{Linkable, SlotMap, TestableSlotMap, slot_map::NonMaxU32};
+use crate::{
+    common::OrderIdU32,
+    slot_map::{Linkable, NonMaxU32, SlotMap, TestableSlotMap},
+};
 
 pub struct SlotMapStandard<T> {
-    pub head: NonMaxU32,
-    pub tail: NonMaxU32,
-    pub free_head: NonMaxU32,
+    head: NonMaxU32,
+    tail: NonMaxU32,
+    free_head: NonMaxU32,
     slots: Vec<Slot<T>>,
-    pub links: Vec<Option<Link>>,
+    links: Vec<Option<Link>>,
     capacity: usize,
 }
 
@@ -36,6 +39,18 @@ impl<T> SlotMapStandard<T> {
             capacity: 0,
         }
     }
+
+    pub fn head(&self) -> NonMaxU32 {
+        self.head
+    }
+
+    pub fn tail(&self) -> NonMaxU32 {
+        self.tail
+    }
+
+    pub fn free_head(&self) -> NonMaxU32 {
+        self.free_head
+    }
 }
 
 impl<T> Default for SlotMapStandard<T> {
@@ -52,8 +67,8 @@ impl<T> Default for SlotMapStandard<T> {
 }
 
 impl<T> SlotMap for SlotMapStandard<T> {
+    type Id = OrderIdU32;
     type Data = T;
-    type Id = u32;
 
     fn new() -> Self {
         Self {
@@ -107,11 +122,11 @@ impl<T> SlotMap for SlotMapStandard<T> {
         self.tail.0 = insert_idx;
         self.capacity += 1;
 
-        insert_idx
+        OrderIdU32(insert_idx)
     }
 
     fn remove(&mut self, remove_idx: Self::Id) {
-        let Some(Some(curr_link)) = self.links.get_mut(remove_idx as usize) else {
+        let Some(Some(curr_link)) = self.links.get_mut(remove_idx.0 as usize) else {
             return;
         };
 
@@ -130,9 +145,9 @@ impl<T> SlotMap for SlotMapStandard<T> {
             next_link.prev = curr_prev;
         }
 
-        self.slots[remove_idx as usize] = Slot::Free(self.free_head);
-        self.links[remove_idx as usize] = None;
-        self.free_head.0 = remove_idx;
+        self.slots[remove_idx.0 as usize] = Slot::Free(self.free_head);
+        self.links[remove_idx.0 as usize] = None;
+        self.free_head.0 = remove_idx.0;
 
         if curr_next.is_none() {
             self.tail = curr_prev;
