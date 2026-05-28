@@ -17,7 +17,7 @@ pub struct ChunkedSlotMap<T> {
 }
 
 impl<T> ChunkedSlotMap<T> {
-    // actually ckippy, this is an iterator, but since it needs to be a little bit special I couldnt
+    // actually clippy, this is an iterator, but since it needs to be a little bit special I couldnt
     // figure out how to implement the iterator trait directly, so I skipped it and did this
     #[allow(clippy::iter_not_returning_iterator)]
     #[must_use]
