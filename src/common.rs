@@ -39,13 +39,13 @@ impl<OrderId: Copy + PartialEq + Eq> LimitOrder<OrderId> {
     }
 }
 
-#[derive(Debug)]
-pub enum MatcherCommand<Order, OrderId> {
+#[derive(Debug, Clone)]
+pub enum MatcherCommand<Order: Clone, OrderId: Clone> {
     PlaceOrder(Order),
     CancelOrder(OrderId),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LimitOrderRequest {
     pub side: OrderSide,
     pub limit: u64,

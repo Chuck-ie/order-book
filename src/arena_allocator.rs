@@ -93,6 +93,14 @@ impl<T> ArenaAllocator<T> {
 
     /// # Safety
     ///
+    /// there is no safety, use at your own risk. This function is so unsafe you should be scared
+    /// takes back all currently claimed chunks forcefully
+    pub unsafe fn clear(&mut self) {
+        self.free_stack = (0..self.chunk_count).rev().collect();
+    }
+
+    /// # Safety
+    ///
     /// the caller needs to make sure that the allocator allocates enough chunks upfront.
     /// this function does not make sure that there is another chunk left to claim
     #[allow(clippy::inline_always)]
