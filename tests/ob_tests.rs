@@ -64,7 +64,7 @@ mod tests {
     test_order_matcher_impl!(test_v3_slot_map, v3_slot_map::matcher::OrderMatcher);
     // test_order_matcher_impl!(sm_arena_slot_map, ob_arena_slot_map::OrderMatcher);
 
-    fn new_limit_order<OrderId>(
+    fn new_limit_order<OrderId: Clone>(
         side: OrderSide,
         price: u64,
         amount: u64,
