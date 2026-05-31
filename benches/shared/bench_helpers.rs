@@ -42,7 +42,8 @@ where
     type Order: Clone;
     type OrderId: Clone;
 
-    fn process(&mut self, cmd: MatcherCommand<Self::Order, Self::OrderId>);
+    fn process(&mut self, cmd: MatcherCommand<Self::Order, Self::OrderId>)
+    -> Option<Self::OrderId>;
 }
 
 #[derive(Default)]
@@ -56,8 +57,11 @@ impl<Engine: Default + OrderMatcherExt> BenchState for DefaultBenchState<Engine>
 
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    fn process(&mut self, cmd: MatcherCommand<Self::Order, Self::OrderId>) {
-        self.engine.process(cmd);
+    fn process(
+        &mut self,
+        cmd: MatcherCommand<Self::Order, Self::OrderId>,
+    ) -> Option<Self::OrderId> {
+        self.engine.process(cmd)
     }
 }
 
@@ -88,9 +92,12 @@ impl BenchState for ArenaBenchState<v4_slot_map_arena::matcher::OrderMatcher> {
 
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    fn process(&mut self, cmd: MatcherCommand<Self::Order, Self::OrderId>) {
+    fn process(
+        &mut self,
+        cmd: MatcherCommand<Self::Order, Self::OrderId>,
+    ) -> Option<Self::OrderId> {
         let arena = unsafe { &mut *self.arena };
-        self.engine.process(cmd, arena);
+        self.engine.process(cmd, arena)
     }
 }
 
@@ -264,4 +271,25 @@ where
         .into_iter()
         .map(std::convert::Into::into)
         .collect()
+}
+
+#[must_use]
+pub fn generate_level_scaled_orders(
+    mid_price: usize,
+    total_levels: usize,
+    orders_per_level: usize,
+) -> Vec<SyntheticOrder> {
+    let mut orders = Vec::with_capacity(total_levels * orders_per_level);
+
+    for level in 0..total_levels {
+        for _ in 0..orders_per_level {
+            orders.push(SyntheticOrder {
+                side: OrderSide::Bid,
+                limit: (mid_price - level) as u64,
+                amount: 1,
+            });
+        }
+    }
+
+    orders
 }

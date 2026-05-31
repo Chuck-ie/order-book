@@ -6,18 +6,33 @@ use std::{
 use crate::shared::{
     bench_helpers::{
         ArenaBenchState, BenchState, DefaultBenchState, OrderProfile, SyntheticOrder,
-        setup_bench_place_orders,
+        generate_level_scaled_orders, setup_bench_place_orders,
     },
     charts::{SMemProfSnapshot, get_results_registry, update_shared_memory_chart},
     smem_prof::{SMEM_PROF, SMemProfGuard},
 };
-use criterion::{BenchmarkId, Criterion, Throughput};
+use criterion::{
+    BatchSize, BenchmarkGroup, BenchmarkId, Criterion, Throughput, measurement::WallTime,
+};
 use order_book::{
     common::MatcherCommand,
     engine::{v1_vec_only, v2_btree, v3_slot_map, v4_slot_map_arena},
 };
+use rand::seq::SliceRandom;
 
 mod shared;
+
+#[must_use]
+pub fn convert_orders_to_commands<Order, OrderId>(
+    orders: Vec<SyntheticOrder>,
+) -> Vec<MatcherCommand<Order, OrderId>>
+where
+    MatcherCommand<Order, OrderId>: From<SyntheticOrder>,
+    Order: Clone,
+    OrderId: Clone,
+{
+    orders.into_iter().map(std::convert::Into::into).collect()
+}
 
 type EngineV1 = DefaultBenchState<v1_vec_only::matcher::OrderMatcher>;
 type EngineV2 = DefaultBenchState<v2_btree::matcher::OrderMatcher>;
@@ -42,37 +57,37 @@ macro_rules! bench_place_orders_persistent {
 }
 
 // all versions
-bench_place_orders_persistent!(EngineV1, v1_bpop_full_n, &NARROW, 10, 10_000);
-bench_place_orders_persistent!(EngineV1, v1_bpop_full_w, &WIDE, 10, 10_000);
-bench_place_orders_persistent!(EngineV2, v2_bpop_full_n, &NARROW, 10, 10_000);
-bench_place_orders_persistent!(EngineV2, v2_bpop_full_w, &WIDE, 10, 10_000);
-bench_place_orders_persistent!(EngineV3, v3_bpop_full_n, &NARROW, 10, 10_000);
-bench_place_orders_persistent!(EngineV3, v3_bpop_full_w, &WIDE, 10, 10_000);
-bench_place_orders_persistent!(EngineV4, v4_bpop_full_n, &NARROW, 10, 10_000);
-bench_place_orders_persistent!(EngineV4, v4_bpop_full_w, &WIDE, 10, 10_000);
+bench_place_orders_persistent!(EngineV1, v1_bpop_all_n, &NARROW, 10, 10_000);
+bench_place_orders_persistent!(EngineV1, v1_bpop_all_w, &WIDE, 10, 10_000);
+bench_place_orders_persistent!(EngineV2, v2_bpop_all_n, &NARROW, 10, 10_000);
+bench_place_orders_persistent!(EngineV2, v2_bpop_all_w, &WIDE, 10, 10_000);
+bench_place_orders_persistent!(EngineV3, v3_bpop_all_n, &NARROW, 10, 10_000);
+bench_place_orders_persistent!(EngineV3, v3_bpop_all_w, &WIDE, 10, 10_000);
+bench_place_orders_persistent!(EngineV4, v4_bpop_all_n, &NARROW, 10, 10_000);
+bench_place_orders_persistent!(EngineV4, v4_bpop_all_w, &WIDE, 10, 10_000);
 
 // optimized versions only
-bench_place_orders_persistent!(EngineV3, v3_bpop_optimized_n, &NARROW, 1000, 100_000);
-bench_place_orders_persistent!(EngineV3, v3_bpop_optimized_w, &WIDE, 1000, 100_000);
-bench_place_orders_persistent!(EngineV4, v4_bpop_optimized_n, &NARROW, 1000, 100_000);
-bench_place_orders_persistent!(EngineV4, v4_bpop_optimized_w, &WIDE, 1000, 100_000);
+bench_place_orders_persistent!(EngineV3, v3_bpop_opt_n, &NARROW, 1000, 100_000);
+bench_place_orders_persistent!(EngineV3, v3_bpop_opt_w, &WIDE, 1000, 100_000);
+bench_place_orders_persistent!(EngineV4, v4_bpop_opt_n, &NARROW, 1000, 100_000);
+bench_place_orders_persistent!(EngineV4, v4_bpop_opt_w, &WIDE, 1000, 100_000);
 
 criterion::criterion_group!(
     bench_place_orders_persistent,
     // all versions
-    v1_bpop_full_n,
-    v1_bpop_full_w,
-    v2_bpop_full_n,
-    v2_bpop_full_w,
-    v3_bpop_full_n,
-    v3_bpop_full_w,
-    v4_bpop_full_n,
-    v4_bpop_full_w,
+    v1_bpop_all_n,
+    v1_bpop_all_w,
+    v2_bpop_all_n,
+    v2_bpop_all_w,
+    v3_bpop_all_n,
+    v3_bpop_all_w,
+    v4_bpop_all_n,
+    v4_bpop_all_w,
     // optimized versions only
-    v3_bpop_optimized_n,
-    v3_bpop_optimized_w,
-    v4_bpop_optimized_n,
-    v4_bpop_optimized_w,
+    v3_bpop_opt_n,
+    v3_bpop_opt_w,
+    v4_bpop_opt_n,
+    v4_bpop_opt_w,
 );
 
 fn run_bench_place_orders_persistent<S: BenchState + Default>(
@@ -153,26 +168,14 @@ const FULL_BMF_FN: &str = "bench_memory_footprint_full.html";
 /// short name for ``bench_memory_footprint_optimized`` benchmarks
 const OPT_BMF_FN: &str = "bench_memory_footprint_optimized.html";
 
-bench_memory_footprint!(EngineV1, v1_bmf_n, &NARROW, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV1, v1_bmf_w, &WIDE, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV2, v2_bmf_n, &NARROW, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV2, v2_bmf_w, &WIDE, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV3, v3_bmf_full_n, &NARROW, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV3, v3_bmf_full_w, &WIDE, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV4, v4_bmf_full_n, &NARROW, FULL_BMF_FN, 1, 100_000);
-bench_memory_footprint!(EngineV4, v4_bmf_full_w, &WIDE, FULL_BMF_FN, 1, 100_000);
-
-criterion::criterion_group!(
-    bench_memory_footprint_full,
-    v1_bmf_n,
-    v1_bmf_w,
-    v2_bmf_n,
-    v2_bmf_w,
-    v3_bmf_full_n,
-    v3_bmf_full_w,
-    v4_bmf_full_n,
-    v4_bmf_full_w
-);
+bench_memory_footprint!(EngineV1, v1_bmf_all_n, &NARROW, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV1, v1_bmf_all_w, &WIDE, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV2, v2_bmf_all_n, &NARROW, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV2, v2_bmf_all_w, &WIDE, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV3, v3_bmf_all_n, &NARROW, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV3, v3_bmf_all_w, &WIDE, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV4, v4_bmf_all_n, &NARROW, FULL_BMF_FN, 1, 100_000);
+bench_memory_footprint!(EngineV4, v4_bmf_all_w, &WIDE, FULL_BMF_FN, 1, 100_000);
 
 bench_memory_footprint!(EngineV3, v3_bmf_opt_n, &NARROW, OPT_BMF_FN, 100, 100_000);
 bench_memory_footprint!(EngineV3, v3_bmf_opt_w, &WIDE, OPT_BMF_FN, 100, 100_000);
@@ -180,7 +183,17 @@ bench_memory_footprint!(EngineV4, v4_bmf_opt_n, &NARROW, OPT_BMF_FN, 100, 100_00
 bench_memory_footprint!(EngineV4, v4_bmf_opt_w, &WIDE, OPT_BMF_FN, 100, 100_000);
 
 criterion::criterion_group!(
-    bench_memory_footprint_optimized,
+    bench_memory_footprint,
+    // all versions
+    v1_bmf_all_n,
+    v1_bmf_all_w,
+    v2_bmf_all_n,
+    v2_bmf_all_w,
+    v3_bmf_all_n,
+    v3_bmf_all_w,
+    v4_bmf_all_n,
+    v4_bmf_all_w,
+    // optimized versions only
     v3_bmf_opt_n,
     v3_bmf_opt_w,
     v4_bmf_opt_n,
@@ -230,8 +243,190 @@ fn run_bench_memory_footprint<S: BenchState + Default>(
     update_shared_memory_chart(chart_file_name);
 }
 
+const LEVEL_SCALINGS: [(usize, usize); 5] = [
+    (1, 100_000),
+    (10, 10_000),
+    (100, 1_000),
+    (1_000, 100),
+    (10_000, 10),
+];
+
+#[rustfmt::skip]
+fn bench_level_scaling_place_orders(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Level Scaling/Place Orders");
+    group.sample_size(10);
+    group.noise_threshold(0.05);
+
+    for (total_levels, orders_per_level) in LEVEL_SCALINGS {
+        let total_orders = total_levels * orders_per_level;
+        group.throughput(Throughput::Elements(total_orders as u64));
+
+        run_bench_level_scaling_place_orders::<EngineV1>(&mut group, "EngineV1", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV2>(&mut group, "EngineV2", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV3>(&mut group, "EngineV3", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV4>(&mut group, "EngineV4", total_levels, orders_per_level);
+    }
+
+    group.finish();
+}
+
+fn run_bench_level_scaling_place_orders<Engine: BenchState + Default>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    engine_name: &str,
+    total_levels: usize,
+    orders_per_level: usize,
+) where
+    MatcherCommand<Engine::Order, Engine::OrderId>: From<SyntheticOrder>,
+{
+    let parameter_id = format!("levels_{total_levels}/orders_{orders_per_level}");
+    let benchmark_id = BenchmarkId::new(engine_name, parameter_id);
+
+    group.bench_with_input(benchmark_id, &(total_levels, orders_per_level), |b, _| {
+        b.iter_batched(
+            || {
+                let orders = generate_level_scaled_orders(10_000, total_levels, orders_per_level);
+                convert_orders_to_commands(orders)
+            },
+            |commands| {
+                let mut engine = Engine::default();
+
+                for cmd in commands {
+                    engine.process(std::hint::black_box(cmd));
+                }
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+#[rustfmt::skip]
+fn bench_level_scaling_cancel_orders_default_order(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Level Scaling/Cancel Orders/Default Order");
+    group.sample_size(10);
+    group.noise_threshold(0.05);
+
+    for (total_levels, orders_per_level) in LEVEL_SCALINGS {
+        let total_orders = total_levels * orders_per_level;
+        group.throughput(Throughput::Elements(total_orders as u64));
+
+        run_bench_level_scaling_cancel_orders_reverse_order::<EngineV1>(&mut group, "EngineV1", total_levels, orders_per_level);
+        run_bench_level_scaling_cancel_orders_reverse_order::<EngineV2>(&mut group, "EngineV2", total_levels, orders_per_level);
+        run_bench_level_scaling_cancel_orders_reverse_order::<EngineV3>(&mut group, "EngineV3", total_levels, orders_per_level);
+        run_bench_level_scaling_cancel_orders_reverse_order::<EngineV4>(&mut group, "EngineV4", total_levels, orders_per_level);
+    }
+
+    group.finish();
+}
+
+fn run_bench_level_scaling_cancel_orders_default_order<Engine: BenchState + Default>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    engine_name: &str,
+    total_levels: usize,
+    orders_per_level: usize,
+) where
+    MatcherCommand<Engine::Order, Engine::OrderId>: From<SyntheticOrder>,
+{
+    let parameter_id = format!("levels_{total_levels}/orders_{orders_per_level}");
+    let benchmark_id = BenchmarkId::new(engine_name, parameter_id);
+
+    group.bench_with_input(benchmark_id, &(total_levels, orders_per_level), |b, _| {
+        b.iter_batched(
+            || {
+                let orders = generate_level_scaled_orders(10_000, total_levels, orders_per_level);
+                let commands = convert_orders_to_commands(orders);
+
+                let mut engine = Engine::default();
+                let mut cancel_commands = Vec::with_capacity(total_levels * orders_per_level);
+
+                for cmd in commands {
+                    let order_id = engine
+                        .process(std::hint::black_box(cmd))
+                        .expect("Did not receive an order id from process");
+
+                    cancel_commands.push(MatcherCommand::CancelOrder(order_id));
+                }
+
+                (engine, cancel_commands)
+            },
+            |(mut engine, commands)| {
+                for cmd in commands {
+                    engine.process(std::hint::black_box(cmd));
+                }
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+#[rustfmt::skip]
+fn bench_level_scaling_cancel_orders_random_order(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Level Scaling/Cancel Orders/Random Order");
+    group.sample_size(10);
+    group.noise_threshold(0.05);
+
+    for (total_levels, orders_per_level) in LEVEL_SCALINGS {
+        let total_orders = total_levels * orders_per_level;
+        group.throughput(Throughput::Elements(total_orders as u64));
+
+        run_bench_level_scaling_place_orders::<EngineV1>(&mut group, "EngineV1", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV2>(&mut group, "EngineV2", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV3>(&mut group, "EngineV3", total_levels, orders_per_level);
+        run_bench_level_scaling_place_orders::<EngineV4>(&mut group, "EngineV4", total_levels, orders_per_level);
+    }
+
+    group.finish();
+}
+
+fn run_bench_level_scaling_cancel_orders_reverse_order<Engine: BenchState + Default>(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    engine_name: &str,
+    total_levels: usize,
+    orders_per_level: usize,
+) where
+    MatcherCommand<Engine::Order, Engine::OrderId>: From<SyntheticOrder>,
+{
+    let parameter_id = format!("levels_{total_levels}/orders_{orders_per_level}");
+    let benchmark_id = BenchmarkId::new(engine_name, parameter_id);
+
+    group.bench_with_input(benchmark_id, &(total_levels, orders_per_level), |b, _| {
+        b.iter_batched(
+            || {
+                let orders = generate_level_scaled_orders(10_000, total_levels, orders_per_level);
+                let commands = convert_orders_to_commands(orders);
+
+                let mut engine = Engine::default();
+                let mut cancel_commands = Vec::with_capacity(total_levels * orders_per_level);
+
+                for cmd in commands {
+                    let order_id = engine
+                        .process(std::hint::black_box(cmd))
+                        .expect("Did not receive an order id from process");
+
+                    cancel_commands.push(MatcherCommand::CancelOrder(order_id));
+                }
+
+                cancel_commands.shuffle(&mut rand::rng());
+                (engine, cancel_commands)
+            },
+            |(mut engine, commands)| {
+                for cmd in commands {
+                    engine.process(std::hint::black_box(cmd));
+                }
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+criterion::criterion_group!(
+    bench_level_scaling,
+    bench_level_scaling_place_orders,
+    bench_level_scaling_cancel_orders_default_order,
+    bench_level_scaling_cancel_orders_random_order
+);
+
 criterion::criterion_main!(
-    // bench_memory_footprint_full,
-    // bench_memory_footprint_optimized,
-    bench_place_orders_persistent,
+    bench_memory_footprint,
+    // bench_place_orders_persistent,
+    // bench_level_scaling
 );
