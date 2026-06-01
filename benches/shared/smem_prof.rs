@@ -5,19 +5,21 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
 
+use serde::Serialize;
+
 thread_local! {
     static IS_PROFILING: Cell<bool> = const { Cell::new(false) };
 }
 
 #[derive(Default)]
-pub struct SMemProfGuard;
+pub struct SMemProfGuard(());
 
 impl SMemProfGuard {
     #[must_use]
     pub fn new() -> Self {
         SMEM_PROF.guard_count.fetch_add(1, Relaxed);
         IS_PROFILING.with(|cell| cell.set(true));
-        Self
+        Self(())
     }
 }
 
@@ -65,6 +67,26 @@ impl SMemProf {
         self.grow_count.store(0, Relaxed);
         self.grow_bytes.store(0, Relaxed);
     }
+
+    #[must_use]
+    pub fn as_row<'a>(
+        &self,
+        engine: &'a str,
+        total_levels: usize,
+        orders_per_level: usize,
+    ) -> SMemProfRow<'a> {
+        SMemProfRow {
+            engine,
+            total_levels,
+            orders_per_level,
+            alloc_count: self.alloc_count.load(Relaxed),
+            alloc_bytes: self.alloc_bytes.load(Relaxed),
+            dealloc_count: self.dealloc_count.load(Relaxed),
+            dealloc_bytes: self.dealloc_bytes.load(Relaxed),
+            grow_count: self.grow_count.load(Relaxed),
+            grow_bytes: self.grow_bytes.load(Relaxed),
+        }
+    }
 }
 
 impl fmt::Debug for SMemProf {
@@ -104,6 +126,19 @@ impl fmt::Debug for ReadbleBytes {
             write!(f, "{} B", self.0)
         }
     }
+}
+
+#[derive(Serialize)]
+pub struct SMemProfRow<'a> {
+    engine: &'a str,
+    total_levels: usize,
+    orders_per_level: usize,
+    alloc_count: usize,
+    alloc_bytes: usize,
+    dealloc_count: usize,
+    dealloc_bytes: usize,
+    grow_count: usize,
+    grow_bytes: usize,
 }
 
 unsafe impl GlobalAlloc for SMemProf {
