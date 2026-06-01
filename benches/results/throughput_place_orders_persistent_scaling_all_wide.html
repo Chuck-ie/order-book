@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bench Order Throughput Persistent Scaling</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+    <style> .container { display: flex; justify-content: center; align-items: center; } .item { margin: auto; } </style>
+  </head>
+  <body>
+      <div class="container">
+        <div class="item" id="chart" style="width: 1000px; height: 600px"></div>
+      </div>
+      
+      <script type="text/javascript">
+          var chart = echarts.init(document.getElementById('chart'));
+          var option = {
+  "title": [
+    {
+      "text": "Bench Order Throughput Persistent Scaling"
+    }
+  ],
+  "tooltip": {},
+  "legend": {},
+  "xAxis": {
+    "type": "category",
+    "name": "Batches of 100k orders",
+    "data": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10"
+    ]
+  },
+  "yAxis": {
+    "type": "log",
+    "name": "Million Orders/second"
+  },
+  "series": [
+    {
+      "type": "line",
+      "name": "EngineV1",
+      "data": [
+        7.4438,
+        7.7547,
+        5.5006,
+        6.1644,
+        5.8269,
+        2.3091,
+        4.874,
+        4.2809,
+        4.3211,
+        4.1912
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV2",
+      "data": [
+        7.9572,
+        6.3895,
+        3.471,
+        5.0453,
+        4.4844,
+        2.2811,
+        4.2845,
+        3.9468,
+        3.7292,
+        3.5604
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV3",
+      "data": [
+        15.517,
+        14.275,
+        14.442,
+        13.671,
+        14.823,
+        14.639,
+        6.4282,
+        12.388,
+        13.292,
+        13.216
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV4",
+      "data": [
+        16.122,
+        15.737,
+        17.746,
+        18.18,
+        18.247,
+        16.427,
+        18.289,
+        19.224,
+        18.769,
+        18.044
+      ]
+    }
+  ]
+};
+          chart.setOption(option);
+      </script>
+  </body>
+</html>

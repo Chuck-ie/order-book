@@ -1,8 +1,13 @@
-use std::{fs::File, time::Duration};
+use std::{
+    fs::File,
+    time::{Duration, Instant},
+};
 
 use crate::shared::{
     EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS, MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH,
+    NARROW, WIDE,
     bench_engine::BenchEngine,
+    bench_helpers::{OrderProfile, generate_synthetic_orders},
     generate_level_scaled_orders,
     smem_prof::{SMEM_PROF, SMemProfGuard},
 };
@@ -16,6 +21,7 @@ fn main() {
     let mut criterion = Criterion::default().configure_from_args();
     bench_place_orders_level_scaling(&mut criterion);
     bench_place_orders_level_scaling_memory_footprint();
+    bench_place_orders_persistent_scaling(&mut criterion);
 }
 
 fn bench_place_orders_level_scaling(c: &mut Criterion) {
@@ -108,4 +114,77 @@ fn bench_place_orders_level_scaling_memory_footprint() {
     }
 
     writer.flush().expect("failed to write file");
+}
+
+#[rustfmt::skip]
+fn bench_place_orders_persistent_scaling(c: &mut Criterion) {
+    fn bench_fn<Engine: BenchEngine>(
+        group: &mut BenchmarkGroup<'_, WallTime>,
+        engine_name: &str,
+        order_profile_name: &str,
+        order_profile: &OrderProfile,
+        total_batches: usize,
+        orders_per_batch: usize,
+    ) {
+        let batches_of_commands: Vec<Vec<Engine::Command>> = (0..total_batches)
+            .map(|_| {
+                generate_synthetic_orders(order_profile, orders_per_batch)
+                    .into_iter()
+                    .map(std::convert::Into::into)
+                    .collect()
+            })
+            .collect();
+
+        for batch_idx in 0..total_batches {
+            let parameter_id = format!("{order_profile_name}/batch_{}", batch_idx + 1);
+            let benchmark_id = BenchmarkId::new(engine_name, parameter_id);
+            group.throughput(Throughput::Elements(orders_per_batch as u64));
+
+            group.bench_with_input(benchmark_id, &batch_idx, |b, &current_batch_idx| {
+                b.iter_custom(|iters| {
+                    let mut total_duration = Duration::ZERO;
+
+                    for _ in 0..iters {
+                        let mut bench_state = Engine::default();
+                        let previous_commands =
+                            batches_of_commands[0..current_batch_idx].iter().cloned();
+
+                        for previous_batch in previous_commands {
+                            for cmd in previous_batch {
+                                bench_state.process(std::hint::black_box(cmd));
+                            }
+                        }
+
+                        let target_commands = batches_of_commands[current_batch_idx].clone();
+                        let start = Instant::now();
+
+                        for cmd in target_commands {
+                            bench_state.process(std::hint::black_box(cmd));
+                        }
+
+                        total_duration += start.elapsed();
+                    }
+
+                    total_duration
+                });
+            });
+        }
+    }
+
+    let mut group = c.benchmark_group("Persistent Scaling/Place Orders");
+    group.sample_size(10);
+    group.noise_threshold(0.05);
+    group.warm_up_time(Duration::from_nanos(1));
+    group.measurement_time(Duration::from_nanos(1));
+
+    bench_fn::<EngineV1>(&mut group, "EngineV1", "NARROW", &NARROW, 10, 100_000);
+    bench_fn::<EngineV1>(&mut group, "EngineV1", "WIDE", &WIDE, 10, 100_000);
+    bench_fn::<EngineV2>(&mut group, "EngineV2", "NARROW", &NARROW, 10, 100_000);
+    bench_fn::<EngineV2>(&mut group, "EngineV2", "WIDE", &WIDE, 10, 100_000);
+    bench_fn::<EngineV3>(&mut group, "EngineV3", "NARROW", &NARROW, 10, 100_000);
+    bench_fn::<EngineV3>(&mut group, "EngineV3", "WIDE", &WIDE, 10, 100_000);
+    bench_fn::<EngineV4>(&mut group, "EngineV4", "NARROW", &NARROW, 10, 100_000);
+    bench_fn::<EngineV4>(&mut group, "EngineV4", "WIDE", &WIDE, 10, 100_000);
+
+    group.finish();
 }

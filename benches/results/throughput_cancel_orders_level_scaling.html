@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bench Cancel Orders Throughput</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+    <style> .container { display: flex; justify-content: center; align-items: center; } .item { margin: auto; } </style>
+  </head>
+  <body>
+      <div class="container">
+        <div class="item" id="chart" style="width: 1000px; height: 600px"></div>
+      </div>
+      
+      <script type="text/javascript">
+          var chart = echarts.init(document.getElementById('chart'));
+          var option = {
+  "title": [
+    {
+      "text": "Bench Cancel Orders Throughput"
+    }
+  ],
+  "tooltip": {},
+  "legend": {},
+  "xAxis": {
+    "type": "value",
+    "name": "Million Orders/second"
+  },
+  "yAxis": {
+    "type": "category",
+    "name": "Engines",
+    "data": [
+      "levels_1/orders_100000",
+      "levels_10/orders_10000",
+      "levels_100/orders_1000",
+      "levels_1000/orders_100",
+      "levels_10000/orders_10"
+    ]
+  },
+  "series": [
+    {
+      "type": "bar",
+      "name": "EngineV1",
+      "data": [
+        0.108,
+        0.989,
+        4.4592,
+        7.0906,
+        4.1713
+      ]
+    },
+    {
+      "type": "bar",
+      "name": "EngineV2",
+      "data": [
+        0.105,
+        0.979,
+        4.4925,
+        6.7928,
+        5.6718
+      ]
+    },
+    {
+      "type": "bar",
+      "name": "EngineV3",
+      "data": [
+        24.225,
+        20.156,
+        16.479,
+        12.38,
+        8.1874
+      ]
+    },
+    {
+      "type": "bar",
+      "name": "EngineV4",
+      "data": [
+        129.91,
+        121.4,
+        37.375,
+        27.621,
+        22.671
+      ]
+    }
+  ]
+};
+          chart.setOption(option);
+      </script>
+  </body>
+</html>
