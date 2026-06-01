@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::File, time::Duration};
 
 use crate::shared::{
     EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS,
@@ -17,7 +17,7 @@ mod shared;
 
 fn main() {
     let mut criterion = Criterion::default().configure_from_args();
-    // bench_cancel_orders_level_scaling(&mut criterion);
+    bench_cancel_orders_level_scaling(&mut criterion);
     bench_cancel_orders_level_scaling_memory_footprint();
 }
 
@@ -28,10 +28,10 @@ enum CancelStrategy {
     Random,
 }
 
-const CANCEL_STRATEGIES: [(&str, CancelStrategy); 3] = [
-    ("Default Order", CancelStrategy::Default),
-    ("Reverse Order", CancelStrategy::Reverse),
-    ("Random Order", CancelStrategy::Random),
+const CANCEL_STRATEGIES: [(&str, CancelStrategy); 1] = [
+    // ("Default", CancelStrategy::Default),
+    // ("Reverse", CancelStrategy::Reverse),
+    ("Random", CancelStrategy::Random),
 ];
 
 #[rustfmt::skip]
@@ -46,6 +46,7 @@ fn bench_cancel_orders_level_scaling(c: &mut Criterion) {
     {
         let parameter_id = format!("levels_{total_levels}/orders_{orders_per_level}");
         let benchmark_id = BenchmarkId::new(engine_name, parameter_id);
+        group.measurement_time(Duration::from_secs(10));
 
         group.bench_with_input(benchmark_id, &(total_levels, orders_per_level), |b, _| {
             b.iter_batched(
