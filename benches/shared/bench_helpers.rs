@@ -35,7 +35,7 @@ impl From<SyntheticOrder> for MatcherCommand<LimitOrder, ArenaId> {
     }
 }
 
-pub trait BenchState
+pub trait BenchEngine
 where
     MatcherCommand<Self::Order, Self::OrderId>: From<SyntheticOrder>,
 {
@@ -47,11 +47,11 @@ where
 }
 
 #[derive(Default)]
-pub struct DefaultBenchState<Engine: Default + OrderMatcherExt> {
+pub struct DefaultBenchEngine<Engine: Default + OrderMatcherExt> {
     engine: Engine,
 }
 
-impl<Engine: Default + OrderMatcherExt> BenchState for DefaultBenchState<Engine> {
+impl<Engine: Default + OrderMatcherExt> BenchEngine for DefaultBenchEngine<Engine> {
     type Order = LimitOrderRequest;
     type OrderId = Engine::OrderId;
 
@@ -69,12 +69,12 @@ thread_local! {
     static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 16384));
 }
 
-pub struct ArenaBenchState<Engine: Default> {
+pub struct ArenaBenchEngine<Engine: Default> {
     engine: Engine,
     arena: *mut ArenaAllocator<ArenaSlot<LimitOrder>>,
 }
 
-impl<Engine: Default> Default for ArenaBenchState<Engine> {
+impl<Engine: Default> Default for ArenaBenchEngine<Engine> {
     fn default() -> Self {
         let arena = ARENA_ALLOCATOR.with(UnsafeCell::get);
         unsafe { (&mut *arena).clear() };
@@ -86,7 +86,7 @@ impl<Engine: Default> Default for ArenaBenchState<Engine> {
     }
 }
 
-impl BenchState for ArenaBenchState<v4_slot_map_arena::matcher::OrderMatcher> {
+impl BenchEngine for ArenaBenchEngine<v4_slot_map_arena::matcher::OrderMatcher> {
     type Order = LimitOrder;
     type OrderId = ArenaId;
 
