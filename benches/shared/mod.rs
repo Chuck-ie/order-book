@@ -18,6 +18,12 @@ pub type EngineV2 = DefaultBenchEngine<v2_btree::matcher::OrderMatcher>;
 pub type EngineV3 = DefaultBenchEngine<v3_slot_map::matcher::OrderMatcher>;
 pub type EngineV4 = ArenaBenchEngine<v4_slot_map_arena::matcher::OrderMatcher>;
 
+pub const MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH: &str =
+    "benches/results/memory_footprint_place_orders_level_scaling.csv";
+
+pub const MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH: &str =
+    "benches/results/memory_footprint_cancel_orders_level_scaling.csv";
+
 pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (1, 100_000),
     (10, 10_000),

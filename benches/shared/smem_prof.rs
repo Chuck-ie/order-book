@@ -5,7 +5,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering::Relaxed},
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 thread_local! {
     static IS_PROFILING: Cell<bool> = const { Cell::new(false) };
@@ -69,14 +69,14 @@ impl SMemProf {
     }
 
     #[must_use]
-    pub fn as_row<'a>(
+    pub fn as_row(
         &self,
-        engine: &'a str,
+        engine: &str,
         total_levels: usize,
         orders_per_level: usize,
-    ) -> SMemProfRow<'a> {
+    ) -> SMemProfRow {
         SMemProfRow {
-            engine,
+            engine: engine.to_string(),
             total_levels,
             orders_per_level,
             alloc_count: self.alloc_count.load(Relaxed),
@@ -128,17 +128,17 @@ impl fmt::Debug for ReadbleBytes {
     }
 }
 
-#[derive(Serialize)]
-pub struct SMemProfRow<'a> {
-    engine: &'a str,
-    total_levels: usize,
-    orders_per_level: usize,
-    alloc_count: usize,
-    alloc_bytes: usize,
-    dealloc_count: usize,
-    dealloc_bytes: usize,
-    grow_count: usize,
-    grow_bytes: usize,
+#[derive(Serialize, Deserialize)]
+pub struct SMemProfRow {
+    pub engine: String,
+    pub total_levels: usize,
+    pub orders_per_level: usize,
+    pub alloc_count: usize,
+    pub alloc_bytes: usize,
+    pub dealloc_count: usize,
+    pub dealloc_bytes: usize,
+    pub grow_count: usize,
+    pub grow_bytes: usize,
 }
 
 unsafe impl GlobalAlloc for SMemProf {
