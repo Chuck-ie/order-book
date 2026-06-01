@@ -2,6 +2,7 @@ use std::fs::File;
 
 use crate::shared::{
     EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS,
+    MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH,
     bench_engine::BenchEngine,
     generate_level_scaled_orders,
     smem_prof::{SMEM_PROF, SMemProfGuard},
@@ -151,7 +152,7 @@ fn bench_cancel_orders_level_scaling_memory_footprint() {
             .expect("failed to write row");
     }
 
-    let file = File::create("benches/results/memory_footprint_cancel_orders_level_scaling.csv")
+    let file = File::create(MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH)
         .expect("could not create file");
 
     let mut writer = Writer::from_writer(file);

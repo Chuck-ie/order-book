@@ -36,3 +36,8 @@ harness = false
 name = "bench_cancel_orders"
 path = "benches/bench_cancel_orders.rs"
 harness = false
+
+[[bench]]
+name = "create_charts"
+path = "benches/create_charts.rs"
+harness = false
