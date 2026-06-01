@@ -1,105 +1,7 @@
-use std::cell::UnsafeCell;
-
-use order_book::{
-    arena_allocator::{ArenaAllocator, ArenaId},
-    common::{LimitOrderRequest, MatcherCommand, OrderMatcherExt, OrderSide},
-    engine::v4_slot_map_arena::{self, LimitOrder},
-    slot_map::chunked::ArenaSlot,
-};
+use order_book::common::{MatcherCommand, OrderSide};
 use rand_distr::{Bernoulli, Distribution, Exp, LogNormal, Uniform, weighted::WeightedIndex};
 
-pub struct SyntheticOrder {
-    pub side: OrderSide,
-    pub limit: u64,
-    pub amount: u64,
-}
-
-impl<OrderId: Clone> From<SyntheticOrder> for MatcherCommand<LimitOrderRequest, OrderId> {
-    fn from(value: SyntheticOrder) -> Self {
-        Self::PlaceOrder(LimitOrderRequest {
-            side: value.side,
-            limit: value.limit,
-            amount: value.amount,
-        })
-    }
-}
-
-impl From<SyntheticOrder> for MatcherCommand<LimitOrder, ArenaId> {
-    #[allow(clippy::cast_possible_truncation)]
-    fn from(value: SyntheticOrder) -> Self {
-        Self::PlaceOrder(LimitOrder {
-            side: value.side,
-            limit: value.limit as u32,
-            amount: value.amount as u32,
-        })
-    }
-}
-
-pub trait BenchEngine
-where
-    MatcherCommand<Self::Order, Self::OrderId>: From<SyntheticOrder>,
-{
-    type Order: Clone;
-    type OrderId: Clone;
-
-    fn process(&mut self, cmd: MatcherCommand<Self::Order, Self::OrderId>)
-    -> Option<Self::OrderId>;
-}
-
-#[derive(Default)]
-pub struct DefaultBenchEngine<Engine: Default + OrderMatcherExt> {
-    engine: Engine,
-}
-
-impl<Engine: Default + OrderMatcherExt> BenchEngine for DefaultBenchEngine<Engine> {
-    type Order = LimitOrderRequest;
-    type OrderId = Engine::OrderId;
-
-    #[allow(clippy::inline_always)]
-    #[inline(always)]
-    fn process(
-        &mut self,
-        cmd: MatcherCommand<Self::Order, Self::OrderId>,
-    ) -> Option<Self::OrderId> {
-        self.engine.process(cmd)
-    }
-}
-
-thread_local! {
-    static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 16384));
-}
-
-pub struct ArenaBenchEngine<Engine: Default> {
-    engine: Engine,
-    arena: *mut ArenaAllocator<ArenaSlot<LimitOrder>>,
-}
-
-impl<Engine: Default> Default for ArenaBenchEngine<Engine> {
-    fn default() -> Self {
-        let arena = ARENA_ALLOCATOR.with(UnsafeCell::get);
-        unsafe { (&mut *arena).clear() };
-
-        Self {
-            engine: Engine::default(),
-            arena: arena.cast(),
-        }
-    }
-}
-
-impl BenchEngine for ArenaBenchEngine<v4_slot_map_arena::matcher::OrderMatcher> {
-    type Order = LimitOrder;
-    type OrderId = ArenaId;
-
-    #[allow(clippy::inline_always)]
-    #[inline(always)]
-    fn process(
-        &mut self,
-        cmd: MatcherCommand<Self::Order, Self::OrderId>,
-    ) -> Option<Self::OrderId> {
-        let arena = unsafe { &mut *self.arena };
-        self.engine.process(cmd, arena)
-    }
-}
+use crate::shared::SyntheticOrder;
 
 #[derive(Debug, Clone)]
 pub struct OrderProfile {
@@ -261,7 +163,7 @@ pub fn generate_synthetic_orders(
 }
 
 #[rustfmt::skip]
-pub fn setup_bench_place_orders<Order, OrderId>(order_profile: &OrderProfile, orders_to_generate: usize) -> Vec<MatcherCommand<Order, OrderId>>
+pub fn setup_bench_place_orders_2<Order, OrderId>(order_profile: &OrderProfile, orders_to_generate: usize) -> Vec<MatcherCommand<Order, OrderId>>
 where
     MatcherCommand<Order, OrderId>: From<SyntheticOrder>,
     Order: Clone,
@@ -274,22 +176,13 @@ where
 }
 
 #[must_use]
-pub fn generate_level_scaled_orders(
-    mid_price: usize,
-    total_levels: usize,
-    orders_per_level: usize,
-) -> Vec<SyntheticOrder> {
-    let mut orders = Vec::with_capacity(total_levels * orders_per_level);
-
-    for level in 0..total_levels {
-        for _ in 0..orders_per_level {
-            orders.push(SyntheticOrder {
-                side: OrderSide::Bid,
-                limit: (mid_price - level) as u64,
-                amount: 1,
-            });
-        }
-    }
-
-    orders
+pub fn convert_orders_to_commands<Order, OrderId>(
+    orders: Vec<SyntheticOrder>,
+) -> Vec<MatcherCommand<Order, OrderId>>
+where
+    MatcherCommand<Order, OrderId>: From<SyntheticOrder>,
+    Order: Clone,
+    OrderId: Clone,
+{
+    orders.into_iter().map(std::convert::Into::into).collect()
 }

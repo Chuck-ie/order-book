@@ -1,6 +1,3 @@
-use std::sync::{Mutex, OnceLock};
-
-use crate::shared::bench_helpers::SyntheticOrder;
 use charming::{
     Chart, HtmlRenderer,
     component::{Axis, DataZoom, DataZoomType, Legend, Title},
@@ -8,6 +5,9 @@ use charming::{
     series::{Bar, Scatter},
 };
 use order_book::common::OrderSide;
+use std::sync::{Mutex, OnceLock};
+
+use crate::shared::SyntheticOrder;
 
 // fn main() {
 //     macro_rules! plot_order_profile {
