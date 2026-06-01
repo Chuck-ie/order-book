@@ -1,4 +1,7 @@
-use crate::shared::bench_engine::{ArenaBenchEngine, DefaultBenchEngine};
+use crate::shared::{
+    bench_engine::{ArenaBenchEngine, DefaultBenchEngine},
+    bench_helpers::OrderProfile,
+};
 use order_book::{
     arena_allocator::ArenaId,
     common::{LimitOrderRequest, MatcherCommand, OrderSide},
@@ -31,6 +34,9 @@ pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (1_000, 100),
     (10_000, 10),
 ];
+
+pub static NARROW: OrderProfile = OrderProfile::place_narrow();
+pub static WIDE: OrderProfile = OrderProfile::place_wide();
 
 #[must_use]
 pub fn generate_level_scaled_orders(

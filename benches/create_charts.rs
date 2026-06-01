@@ -2,7 +2,7 @@ use charming::{
     Chart, HtmlRenderer,
     component::{Axis, Legend, Title},
     element::{AxisType, Tooltip},
-    series::Bar,
+    series::{Bar, Line},
 };
 use csv::Reader;
 use serde::Deserialize;
@@ -28,6 +28,18 @@ const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CSV_PATH: &str =
 const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CHART_PATH: &str =
     "benches/results/throughput_cancel_orders_level_scaling.html";
 
+const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.csv";
+
+const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.html";
+
+const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_wide.csv";
+
+const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_wide.html";
+
 #[derive(Clone, Copy)]
 enum ChartKind {
     Alloc,
@@ -35,11 +47,18 @@ enum ChartKind {
 }
 
 #[derive(Deserialize)]
-struct OrderThroughputRow {
+struct LevelScalingOrderThroughputRow {
     pub engine: String,
     pub total_levels: usize,
     pub orders_per_level: usize,
-    m_orders_per_second: f64,
+    pub m_orders_per_second: f64,
+}
+
+#[derive(Deserialize)]
+struct PersistentScalingOrderThroughputRow {
+    pub engine: String,
+    pub batch: usize,
+    pub m_orders_per_second: f64,
 }
 
 #[derive(Clone, Copy)]
@@ -76,9 +95,9 @@ fn main() {
     let throughput_rows = reader
         .deserialize()
         .map(|row| row.unwrap())
-        .collect::<Vec<OrderThroughputRow>>();
+        .collect::<Vec<LevelScalingOrderThroughputRow>>();
 
-    create_chart_order_throughput(
+    create_chart_level_scaling_throughput(
         OrderThroughputKind::PlaceOrders,
         level_scaling_labels.clone(),
         &throughput_rows,
@@ -88,12 +107,36 @@ fn main() {
     let throughput_rows = reader
         .deserialize()
         .map(|row| row.unwrap())
-        .collect::<Vec<OrderThroughputRow>>();
+        .collect::<Vec<LevelScalingOrderThroughputRow>>();
 
-    create_chart_order_throughput(
+    create_chart_level_scaling_throughput(
         OrderThroughputKind::CancelOrders,
         level_scaling_labels.clone(),
         &throughput_rows,
+    );
+
+    let mut reader =
+        Reader::from_path(THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH).unwrap();
+    let throughput_rows = reader
+        .deserialize()
+        .map(|row| row.unwrap())
+        .collect::<Vec<PersistentScalingOrderThroughputRow>>();
+
+    create_chart_persistent_scaling_throughput(
+        &throughput_rows,
+        THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH,
+    );
+
+    let mut reader =
+        Reader::from_path(THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH).unwrap();
+    let throughput_rows = reader
+        .deserialize()
+        .map(|row| row.unwrap())
+        .collect::<Vec<PersistentScalingOrderThroughputRow>>();
+
+    create_chart_persistent_scaling_throughput(
+        &throughput_rows,
+        THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH,
     );
 }
 
@@ -177,12 +220,12 @@ fn create_chart_memory_profiles(
         .expect("Failed to save chart");
 }
 
-fn create_chart_order_throughput(
+fn create_chart_level_scaling_throughput(
     throughput_kind: OrderThroughputKind,
     level_scaling_labels: Vec<String>,
-    throughput_rows: &[OrderThroughputRow],
+    throughput_rows: &[LevelScalingOrderThroughputRow],
 ) {
-    let map_row = |row: &OrderThroughputRow| row.m_orders_per_second;
+    let map_row = |row: &LevelScalingOrderThroughputRow| row.m_orders_per_second;
 
     let chart_file_name = match throughput_kind {
         OrderThroughputKind::PlaceOrders => THROUGHPUT_PLACE_ORDERS_LEVEL_SCALING_CHART_PATH,
@@ -238,6 +281,83 @@ fn create_chart_order_throughput(
         )
         .series(
             Bar::new().name("EngineV4").data(
+                throughput_rows
+                    .iter()
+                    .filter(|row| row.engine == "EngineV4")
+                    .map(map_row)
+                    .collect(),
+            ),
+        );
+
+    HtmlRenderer::new(chart_title, 1000, 600)
+        .save(&chart, chart_file_name)
+        .expect("Failed to save chart");
+}
+
+fn create_chart_persistent_scaling_throughput(
+    throughput_rows: &[PersistentScalingOrderThroughputRow],
+    chart_file_name: &str,
+) {
+    let chart_title = "Bench Order Throughput Persistent Scaling";
+    let map_row = |row: &PersistentScalingOrderThroughputRow| row.m_orders_per_second;
+
+    let mut persistent_scaling_labels = throughput_rows
+        .iter()
+        .map(|row| row.batch)
+        .collect::<Vec<usize>>();
+
+    persistent_scaling_labels.sort_unstable();
+    persistent_scaling_labels.dedup();
+
+    let unique_labels = persistent_scaling_labels
+        .iter()
+        .map(|batch_idx| format!("{batch_idx}"))
+        .collect::<Vec<String>>();
+
+    let chart = Chart::new()
+        .title(Title::new().text(chart_title))
+        .tooltip(Tooltip::new())
+        .legend(Legend::new())
+        .x_axis(
+            Axis::new()
+                .name("Batches of 100k orders")
+                .type_(AxisType::Category)
+                .data(unique_labels),
+        )
+        .y_axis(
+            Axis::new()
+                .name("Million Orders/second")
+                .type_(AxisType::Log),
+        )
+        .series(
+            Line::new().name("EngineV1").data(
+                throughput_rows
+                    .iter()
+                    .filter(|row| row.engine == "EngineV1")
+                    .map(map_row)
+                    .collect(),
+            ),
+        )
+        .series(
+            Line::new().name("EngineV2").data(
+                throughput_rows
+                    .iter()
+                    .filter(|row| row.engine == "EngineV2")
+                    .map(map_row)
+                    .collect(),
+            ),
+        )
+        .series(
+            Line::new().name("EngineV3").data(
+                throughput_rows
+                    .iter()
+                    .filter(|row| row.engine == "EngineV3")
+                    .map(map_row)
+                    .collect(),
+            ),
+        )
+        .series(
+            Line::new().name("EngineV4").data(
                 throughput_rows
                     .iter()
                     .filter(|row| row.engine == "EngineV4")

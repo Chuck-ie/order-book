@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bench Order Throughput Persistent Scaling</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+    <style> .container { display: flex; justify-content: center; align-items: center; } .item { margin: auto; } </style>
+  </head>
+  <body>
+      <div class="container">
+        <div class="item" id="chart" style="width: 1000px; height: 600px"></div>
+      </div>
+      
+      <script type="text/javascript">
+          var chart = echarts.init(document.getElementById('chart'));
+          var option = {
+  "title": [
+    {
+      "text": "Bench Order Throughput Persistent Scaling"
+    }
+  ],
+  "tooltip": {},
+  "legend": {},
+  "xAxis": {
+    "type": "category",
+    "name": "Batches of 100k orders",
+    "data": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10"
+    ]
+  },
+  "yAxis": {
+    "type": "log",
+    "name": "Million Orders/second"
+  },
+  "series": [
+    {
+      "type": "line",
+      "name": "EngineV1",
+      "data": [
+        2.3811,
+        0.77051,
+        0.47988,
+        0.338,
+        0.26828,
+        0.21944,
+        0.18303,
+        0.15819,
+        0.14852,
+        0.13104
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV2",
+      "data": [
+        2.3549,
+        0.84272,
+        0.51211,
+        0.34511,
+        0.27286,
+        0.23734,
+        0.19281,
+        0.15615,
+        0.14148,
+        0.13028
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV3",
+      "data": [
+        26.851,
+        28.692,
+        26.219,
+        27.252,
+        28.873,
+        30.158,
+        30.265,
+        26.759,
+        8.807,
+        23.911
+      ]
+    },
+    {
+      "type": "line",
+      "name": "EngineV4",
+      "data": [
+        39.558,
+        46.588,
+        47.119,
+        46.486,
+        46.96,
+        46.884,
+        46.836,
+        47.279,
+        47.481,
+        47.281
+      ]
+    }
+  ]
+};
+          chart.setOption(option);
+      </script>
+  </body>
+</html>

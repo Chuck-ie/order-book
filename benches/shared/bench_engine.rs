@@ -12,7 +12,7 @@ use crate::shared::SyntheticOrder;
 pub trait BenchEngine: Default {
     type Order: Clone;
     type OrderId: Clone;
-    type Command: From<SyntheticOrder>;
+    type Command: Clone + From<SyntheticOrder>;
 
     fn process(&mut self, cmd: Self::Command) -> Option<Self::OrderId>;
     fn new_cancel_order(order_id: Self::OrderId) -> Self::Command;
