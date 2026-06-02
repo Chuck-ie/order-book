@@ -8,7 +8,9 @@ use csv::Reader;
 use serde::Deserialize;
 
 use crate::shared::{
-    LEVEL_SCALINGS, MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH, smem_prof::SMemProfRow,
+    LEVEL_SCALINGS, MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH, PersistentScalingOrderThroughputRow,
+    THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH,
+    THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH, smem_prof::SMemProfRow,
 };
 
 mod shared;
@@ -28,16 +30,10 @@ const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CSV_PATH: &str =
 const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CHART_PATH: &str =
     "benches/results/throughput_cancel_orders_level_scaling.html";
 
-const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.csv";
-
-const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH: &str =
+const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH: &str =
     "benches/results/throughput_place_orders_persistent_scaling_all_narrow.html";
 
-const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_wide.csv";
-
-const THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH: &str =
+const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH: &str =
     "benches/results/throughput_place_orders_persistent_scaling_all_wide.html";
 
 #[derive(Clone, Copy)]
@@ -51,13 +47,6 @@ struct LevelScalingOrderThroughputRow {
     pub engine: String,
     pub total_levels: usize,
     pub orders_per_level: usize,
-    pub m_orders_per_second: f64,
-}
-
-#[derive(Deserialize)]
-struct PersistentScalingOrderThroughputRow {
-    pub engine: String,
-    pub batch: usize,
     pub m_orders_per_second: f64,
 }
 
@@ -116,7 +105,7 @@ fn main() {
     );
 
     let mut reader =
-        Reader::from_path(THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH).unwrap();
+        Reader::from_path(THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH).unwrap();
     let throughput_rows = reader
         .deserialize()
         .map(|row| row.unwrap())
@@ -124,11 +113,11 @@ fn main() {
 
     create_chart_persistent_scaling_throughput(
         &throughput_rows,
-        THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH,
+        THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH,
     );
 
     let mut reader =
-        Reader::from_path(THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH).unwrap();
+        Reader::from_path(THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH).unwrap();
     let throughput_rows = reader
         .deserialize()
         .map(|row| row.unwrap())
@@ -136,7 +125,7 @@ fn main() {
 
     create_chart_persistent_scaling_throughput(
         &throughput_rows,
-        THROUGHPUT_CANCEL_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH,
+        THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH,
     );
 }
 
@@ -171,13 +160,13 @@ fn create_chart_memory_profiles(
         .title(Title::new().text(chart_title))
         .tooltip(Tooltip::new())
         .legend(Legend::new())
-        .x_axis(Axis::new().name(x_axis_name).type_(AxisType::Value))
-        .y_axis(
+        .x_axis(
             Axis::new()
                 .name("Engines")
                 .type_(AxisType::Category)
                 .data(level_scaling_labels),
         )
+        .y_axis(Axis::new().name(x_axis_name).type_(AxisType::Value))
         .series(
             Bar::new().name("EngineV1").data(
                 smem_prof_rows
@@ -215,7 +204,7 @@ fn create_chart_memory_profiles(
             ),
         );
 
-    HtmlRenderer::new(chart_title, 1000, 600)
+    HtmlRenderer::new(chart_title, 1400, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
 }
@@ -243,14 +232,14 @@ fn create_chart_level_scaling_throughput(
         .legend(Legend::new())
         .x_axis(
             Axis::new()
-                .name("Million Orders/second")
-                .type_(AxisType::Value),
-        )
-        .y_axis(
-            Axis::new()
                 .name("Engines")
                 .type_(AxisType::Category)
                 .data(level_scaling_labels),
+        )
+        .y_axis(
+            Axis::new()
+                .name("Million Orders/second")
+                .type_(AxisType::Value),
         )
         .series(
             Bar::new().name("EngineV1").data(
@@ -289,7 +278,7 @@ fn create_chart_level_scaling_throughput(
             ),
         );
 
-    HtmlRenderer::new(chart_title, 1000, 600)
+    HtmlRenderer::new(chart_title, 1400, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
 }
@@ -320,7 +309,7 @@ fn create_chart_persistent_scaling_throughput(
         .legend(Legend::new())
         .x_axis(
             Axis::new()
-                .name("Batches of 100k orders")
+                .name("Batches of 1000 orders")
                 .type_(AxisType::Category)
                 .data(unique_labels),
         )
@@ -366,7 +355,7 @@ fn create_chart_persistent_scaling_throughput(
             ),
         );
 
-    HtmlRenderer::new(chart_title, 1000, 600)
+    HtmlRenderer::new(chart_title, 1500, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
 }

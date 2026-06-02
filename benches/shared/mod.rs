@@ -10,6 +10,7 @@ use order_book::{
         v4_slot_map_arena::{self, LimitOrder},
     },
 };
+use serde::{Deserialize, Serialize};
 
 pub mod bench_engine;
 pub mod bench_helpers;
@@ -26,6 +27,12 @@ pub const MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH: &str =
 
 pub const MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH: &str =
     "benches/results/memory_footprint_cancel_orders_level_scaling.csv";
+
+pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.csv";
+
+pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH: &str =
+    "benches/results/throughput_place_orders_persistent_scaling_all_wide.csv";
 
 pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (1, 100_000),
@@ -84,4 +91,11 @@ impl From<SyntheticOrder> for MatcherCommand<LimitOrder, ArenaId> {
             amount: value.amount as u32,
         })
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PersistentScalingOrderThroughputRow {
+    pub engine: String,
+    pub batch: usize,
+    pub m_orders_per_second: f64,
 }
