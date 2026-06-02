@@ -27,50 +27,59 @@ throughput over time. The following engines have been implemented:
 ![Memory growth with M orders per N price levels](images/memory_growth.png)
 
 ### Engine evolution over time
-EngineV1 is the simplest implementation with price levels stored in a sorted Vec, each holding its orders in arrival order. EngineV2 is nearly
-identical, only swapping the Vec for a BTreeMap with the expectation that random access 
+V1 is the simplest implementation with price levels stored in a sorted Vec, each holding its orders in arrival order. V2 is nearly
+identical, only swapping the Vec for a BTreeMap with the expectation that random access e.g. matching all orders starting at price level N onward
+would be faster. Early benchmarks pointed in that direction, but the final results show both engines performing nearly identically, except that 
+the memory allocation overhead is almost 2x that of V1. This makes a lot of sense. V1's Vec uses binary search for price level lookups, which is 
+O(log n), the same time complexity as V2's BTreeMap access. In addition to that, a BTreeMap has to manage more internal state compared to a simple 
+Vec, which the result of benchmark 4. shows. Both engines also maintain a separate HashMap for O(1) order lookups by id, which becomes relevant
+when comparing against V3 and V4.
 
+V3 has significant gains in performance in almost every benchmark. Instead of using a HashMap for order lookup, it uses a customly built SlotMap 
+for that, as well as using a SlotMap for each price level. This completely eliminates hash computation, tree rebalancing or vec resizing
+overhead and replaces it with much faster index based O(1) access. V4 takes this further, but overhauling how orders are stored 
+entirely. V1 through V3 all separate order ids from the actual data of an order, which wastes cpu cycles on a second lookup. In addition to that, 
+V4 also introduces a custom arena allocator that reduces heap allocation pressure, by allocating a massive Vec of chunks of slots to be used
+by its slotmaps. Additionally the arena uses memmap2 to try request hugepages of up to 1GB per hugepage, which reduces dTLB misses by something
+like 4x-5x. However this does not help with l1 cache misses, which is because the SlotMap generally trades O(1) inserts and removals for worse
+cache locality. This makes V4 the fastest engine in terms of memory allocations, memory growth, pure order throughput and also completely 
+eliminates the jitter that even V3 was suffering from.
 
-At first I started with the simplest engine of them all, EngineV1, just a version where all pricelevels are stored inside a sorted
-Vector and each price level holding all orders for that price in the order they arrived. EngineV2 is almost identical, with the 
-sole exception that price levels are stored inside a BTreeMap instead. Early on I expected this to help with random access e.g.
-matching all orders starting at price level N, and early versions of my benchmarks would even point in that direction, but ultimately,
-as the final benchmarks result show, V1 and V2 perform almost identical. Thinking about it, this makes a lot of sense. The V1 version
-uses a binary search for price levels after all which is O(log n), which is the same as BTreeMap access, with the overhead that a BTreemap
-uses much more heap allocationed memory, since every tree entry is essentially a Boxed type, that needs to be resolved by the cpu first,
-causing random memory access.
+### What I learned
+1. How bad heap allocated pointer jumps can impact performance
+In the initial arena implementation, [which can be found here](archive/old_v4_slot_map_arena.rs), I just stored a preallocated list of SlotMaps to be
+used inside a Vec, so that when a pricelevel gets created, I can just get one already existing SlotMap and skip Slot memory allocation completely. Turns 
+out, compared to V3, this basically halved the performance and made it worse compared to even V1 and V2 in some aspects. This was because heap lookups
+introduced massive L1 cache misses.
 
+2. low level rust and how godbolt helped me write better unsafe rust
+When I tried optimizing for the V4 version, I wanted to try out some more unsafe rust for things that are logically safe e.g. unchecked index lookup
+or casting a Slot, which is an enum, to either the Free or Occupied version without additional if branching overhead. I was pasting different unsafe
+code into [Godbolt](https://godbolt.org/) to see what the compiled assembly might look like and to my surprise, rust provides a very cool feature
+that helped make some of my unsafe code, much safer, which was std::hint::unreachable_unchecked(). For that here is an example:
 
-### 1. EngineV1 (Vectors only)
+```code
+/// Popping the last element in a Vec
 
+#[unsafe(no_mangle)]
+pub fn pop_unchecked(data: &mut Vec<usize>) -> usize {
+    let new_len = data.len() - 1;
+    unsafe {
+        data.set_len(new_len);
+    }
 
-### 2. EngineV2 (BTreeMap)
+    unsafe { *data.as_ptr().add(new_len) }
+}
 
-### 3. EngineV3 (Slotmap)
+#[unsafe(no_mangle)]
+pub fn pop_hint_unreachable(data: &mut Vec<usize>) -> usize {
+    let Some(index) = data.pop() else {
+        unsafe { std::hint::unreachable_unchecked() }
+    };
 
-### 4. EngineV4 (Slotmap + Arena allocator)
+    index
+}
+```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-## Performance 
-### Results
-### Benchmarking methodology
-## Implementations
-### 1. Naive
-### 2. Standard
-### 3. Slot map standard
-### 4. Slot map optimized
-## Key findings
-
-// TODO: KEEP THAT I TRIED TO OPTIMIZED THE REMOVE FUNCTION TO JUST NOT CLEAN EMPTY LEVELS BECAUSE
-// IT SEEMED LIKE IT WAS CAUSING SLOW DOWN BECAUSE DEALLOC AND ALLOC WAS TAKING QUITE SOME SPACE
-// BUT KEEPING EMPTY PRICE LEVELS ACTUALLY DEGRADES PERFORMANCE BECAUSE I HAVE TO ITERATE EMPTY
-// LEVELS INSIDE A BTREEMAP WHICH IS VERY SLOW (ALSO MENTION IT WAS BECAUSE OF REAL DATA BENCHES)
-
-// MENTION THAT REVERSE KEY IS ACTUALLY FASTER BY ~7NS
-
-// MENTION THAT prealloc for slot vecs doesnt help with performance
-
-// MENTION THAT AoS was actually faster than SoA in my case because data is accessed randomly per
-// slot, so fetching all data at ones was obviously better in hindsight
-
-// https://data.lobsterdata.com/info/DataSamples.php
+Both versions compile to the exact same assembly, but the version using the hint is much simpler to reason about and avoid simple index calculation errors, similar
+to index based for loops.
