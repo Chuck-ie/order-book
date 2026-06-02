@@ -23,11 +23,6 @@ codegen-units = 1
 lto = true
 
 [[bench]]
-name = "bench_naive"
-path = "benches/bench_naive.rs"
-harness = false
-
-[[bench]]
 name = "bench_place_orders"
 path = "benches/bench_place_orders.rs"
 harness = false
