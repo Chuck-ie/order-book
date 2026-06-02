@@ -40,7 +40,8 @@ impl<Engine: Default + OrderMatcherExt> BenchEngine for DefaultBenchEngine<Engin
 }
 
 thread_local! {
-    static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 8192));
+    // static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 8192));
+    static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 16384));
 }
 
 pub struct ArenaBenchEngine<Engine: Default> {
