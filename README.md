@@ -1,6 +1,21 @@
-## Order Book Matching Engine comparisons in Rust
+# Order Book Matching Engine comparisons in Rust
 
 ## Overview
+This project implements a total of four Orderbook engines in rust, each using different underlying data structures and making other optimizations. It then
+benchmarks each engine and compares them in memory allocation, memory growth, plac order throughput, cancel order throughput and finally place order 
+throughput over time. The following engines have been implemented:
+
+1. Vectors only
+2. BTreeMap
+3. Slotmap
+4. Slotmap + Arena allocator
+
+### Results
+
+
+
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 ## Performance 
 ### Results
 ### Benchmarking methodology
