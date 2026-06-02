@@ -1,4 +1,6 @@
 # High Performance Order Book Matching in rust
+[![CI](https://github.com/Chuck-ie/order-book/actions/workflows/rust.yml/badge.svg)](https://github.com/Chuck-ie/order-book/actions/workflows/rust.yml)
+
 ### Overview
 An [order book](https://www.investopedia.com/terms/o/order-book.asp) matching engine is the core of every trading exchange. Even small
 inefficencies can quickly build up at scale, making it a great project for low level optimizations. This project implements 
@@ -86,3 +88,24 @@ pub fn pop_hint_unreachable(data: &mut Vec<usize>) -> usize {
 
 Both versions compile to the exact same assembly, but version 2 using the hint is much simpler to reason about and avoids simple index calculation errors, similar
 to index based for loops, while still achieving the same performance.
+
+### Reproduce benchmark results:
+1. Run the benchmarks and optionally write criterion results to a text file
+```bash
+cargo bench --bench bench_place_orders --bench bench_cancel_orders > benches/results/criterion_results.txt
+```
+
+2. (Optional) Parse criterion results to csv tiles
+```bash
+cd benches/results/ && python parse_criterion_results.py
+```
+
+3. Generate charts based on the benchmark results
+```bash
+cargo bench --bench create_charts
+```
+
+### Testing the implementations:
+```bash
+cargo test
+```
