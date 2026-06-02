@@ -45,6 +45,19 @@ pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
 pub static NARROW: OrderProfile = OrderProfile::place_narrow();
 pub static WIDE: OrderProfile = OrderProfile::place_wide();
 
+#[derive(Clone, Copy)]
+pub enum OrderStrategy {
+    Default,
+    Reverse,
+    Random,
+}
+
+pub const ORDER_STRATEGIES: [(&str, OrderStrategy); 3] = [
+    ("Default", OrderStrategy::Default),
+    ("Reverse", OrderStrategy::Reverse),
+    ("Random", OrderStrategy::Random),
+];
+
 #[must_use]
 pub fn generate_level_scaled_orders(
     mid_price: usize,

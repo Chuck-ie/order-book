@@ -2,7 +2,7 @@ use std::{fs::File, time::Duration};
 
 use crate::shared::{
     EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS,
-    MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH,
+    MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH, ORDER_STRATEGIES, OrderStrategy,
     bench_engine::BenchEngine,
     generate_level_scaled_orders,
     smem_prof::{SMEM_PROF, SMemProfGuard},
@@ -12,7 +12,6 @@ use criterion::{
 };
 use csv::Writer;
 use rand::seq::SliceRandom;
-
 mod shared;
 
 fn main() {
@@ -21,25 +20,12 @@ fn main() {
     bench_cancel_orders_level_scaling_memory_footprint();
 }
 
-#[derive(Clone, Copy)]
-enum CancelStrategy {
-    Default,
-    Reverse,
-    Random,
-}
-
-const CANCEL_STRATEGIES: [(&str, CancelStrategy); 1] = [
-    // ("Default", CancelStrategy::Default),
-    // ("Reverse", CancelStrategy::Reverse),
-    ("Random", CancelStrategy::Random),
-];
-
 #[rustfmt::skip]
 fn bench_cancel_orders_level_scaling(c: &mut Criterion) {
     fn bench_fn<Engine: BenchEngine>(
         group: &mut BenchmarkGroup<'_, WallTime>,
         engine_name: &str,
-        strategy: CancelStrategy,
+        strategy: OrderStrategy,
         total_levels: usize,
         orders_per_level: usize,
     )
@@ -66,7 +52,7 @@ fn bench_cancel_orders_level_scaling(c: &mut Criterion) {
         });
     }
 
-    for (strategy_name, strategy) in CANCEL_STRATEGIES {
+    for (strategy_name, strategy) in ORDER_STRATEGIES {
         let mut group = c.benchmark_group(format!("Level Scaling/Cancel Orders/{strategy_name}"));
         group.sample_size(10);
         group.noise_threshold(0.05);
@@ -86,7 +72,7 @@ fn bench_cancel_orders_level_scaling(c: &mut Criterion) {
 }
 
 fn setup_cancel_orders_level_scaling<Engine: BenchEngine>(
-    strategy: CancelStrategy,
+    strategy: OrderStrategy,
     mid_price: usize,
     total_levels: usize,
     orders_per_level: usize,
@@ -109,9 +95,9 @@ fn setup_cancel_orders_level_scaling<Engine: BenchEngine>(
     }
 
     match strategy {
-        CancelStrategy::Default => {}
-        CancelStrategy::Reverse => cancel_commands.reverse(),
-        CancelStrategy::Random => cancel_commands.shuffle(&mut rand::rng()),
+        OrderStrategy::Default => {}
+        OrderStrategy::Reverse => cancel_commands.reverse(),
+        OrderStrategy::Random => cancel_commands.shuffle(&mut rand::rng()),
     }
 
     (engine, cancel_commands)
@@ -131,12 +117,11 @@ fn bench_cancel_orders_level_scaling_memory_footprint() {
     fn run_and_record<Engine: BenchEngine>(
         writer: &mut Writer<File>,
         engine_name: &str,
-        strategy: CancelStrategy,
         total_levels: usize,
         orders_per_level: usize,
     ) {
         let (engine, commands) = setup_cancel_orders_level_scaling::<Engine>(
-            strategy,
+            OrderStrategy::Default,
             10_000,
             total_levels,
             orders_per_level,
@@ -158,12 +143,10 @@ fn bench_cancel_orders_level_scaling_memory_footprint() {
 
     let mut writer = Writer::from_writer(file);
 
-    for (_, strategy) in CANCEL_STRATEGIES {
-        for (total_levels, orders_per_level) in LEVEL_SCALINGS {
-            run_and_record::<EngineV1>(&mut writer, "EngineV1", strategy, total_levels, orders_per_level);
-            run_and_record::<EngineV2>(&mut writer, "EngineV2", strategy, total_levels, orders_per_level);
-            run_and_record::<EngineV3>(&mut writer, "EngineV3", strategy, total_levels, orders_per_level);
-            run_and_record::<EngineV4>(&mut writer, "EngineV4", strategy, total_levels, orders_per_level);
-        }
+    for (total_levels, orders_per_level) in LEVEL_SCALINGS {
+        run_and_record::<EngineV1>(&mut writer, "EngineV1", total_levels, orders_per_level);
+        run_and_record::<EngineV2>(&mut writer, "EngineV2", total_levels, orders_per_level);
+        run_and_record::<EngineV3>(&mut writer, "EngineV3", total_levels, orders_per_level);
+        run_and_record::<EngineV4>(&mut writer, "EngineV4", total_levels, orders_per_level);
     }
 }

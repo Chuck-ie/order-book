@@ -6,6 +6,7 @@ use charming::{
 };
 use csv::Reader;
 use serde::Deserialize;
+use std::collections::HashSet;
 
 use crate::shared::{
     LEVEL_SCALINGS, MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH, PersistentScalingOrderThroughputRow,
@@ -35,6 +36,18 @@ const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH: &str =
 
 const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH: &str =
     "benches/results/throughput_place_orders_persistent_scaling_all_wide.html";
+
+const CRITERION_RESULTS_CSV_PATH: &str = "benches/results/criterion_results.csv";
+
+#[derive(Deserialize, Clone)]
+pub struct CriterionResultRow {
+    pub engine: String,
+    pub command_type: String,
+    pub order_strategy: String,
+    pub levels: usize,
+    pub orders_per_level: usize,
+    pub m_orders_per_second: f64,
+}
 
 #[derive(Clone, Copy)]
 enum ChartKind {
@@ -127,6 +140,8 @@ fn main() {
         &throughput_rows,
         THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH,
     );
+
+    create_criterion_result_charts();
 }
 
 #[allow(clippy::cast_precision_loss)]
@@ -358,4 +373,100 @@ fn create_chart_persistent_scaling_throughput(
     HtmlRenderer::new(chart_title, 1500, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
+}
+
+fn create_criterion_result_charts() {
+    let mut reader = Reader::from_path(CRITERION_RESULTS_CSV_PATH).expect("Failed to read file");
+
+    let criterion_result_rows = reader
+        .deserialize()
+        .map(|row| row.unwrap())
+        .collect::<Vec<CriterionResultRow>>();
+
+    let command_types: HashSet<String> = criterion_result_rows
+        .iter()
+        .map(|row| row.command_type.clone())
+        .collect();
+
+    let order_strategies: HashSet<String> = criterion_result_rows
+        .iter()
+        .map(|row| row.order_strategy.clone())
+        .collect();
+
+    for cmd_type in &command_types {
+        for strategy in &order_strategies {
+            let chart_name = format!("{cmd_type} Orders/{strategy} Order");
+            let chart_file_name = format!("{cmd_type}_orders_{strategy}_order");
+
+            let filtered_rows: Vec<CriterionResultRow> = criterion_result_rows
+                .iter()
+                .filter(|row| row.command_type == *cmd_type && row.order_strategy == *strategy)
+                .cloned()
+                .collect();
+
+            let mut x_axis_labels = Vec::new();
+            for row in &filtered_rows {
+                let label = format!("{} Levels/{} Orders", row.levels, row.orders_per_level);
+                if !x_axis_labels.contains(&label) {
+                    x_axis_labels.push(label);
+                }
+            }
+
+            let chart = Chart::new()
+                .title(Title::new().text(&chart_name))
+                .tooltip(Tooltip::new())
+                .legend(Legend::new())
+                .x_axis(
+                    Axis::new()
+                        .name("Levels/Orders per Level")
+                        .type_(AxisType::Category)
+                        .data(x_axis_labels),
+                )
+                .y_axis(
+                    Axis::new()
+                        .name("Million Orders/second")
+                        .type_(AxisType::Value),
+                )
+                .series(
+                    Bar::new().name("EngineV1").data(
+                        filtered_rows
+                            .iter()
+                            .filter(|row| row.engine == "EngineV1")
+                            .map(|row| row.m_orders_per_second)
+                            .collect(),
+                    ),
+                )
+                .series(
+                    Bar::new().name("EngineV2").data(
+                        filtered_rows
+                            .iter()
+                            .filter(|row| row.engine == "EngineV2")
+                            .map(|row| row.m_orders_per_second)
+                            .collect(),
+                    ),
+                )
+                .series(
+                    Bar::new().name("EngineV3").data(
+                        filtered_rows
+                            .iter()
+                            .filter(|row| row.engine == "EngineV3")
+                            .map(|row| row.m_orders_per_second)
+                            .collect(),
+                    ),
+                )
+                .series(
+                    Bar::new().name("EngineV4").data(
+                        filtered_rows
+                            .iter()
+                            .filter(|row| row.engine == "EngineV4")
+                            .map(|row| row.m_orders_per_second)
+                            .collect(),
+                    ),
+                );
+
+            HtmlRenderer::new(chart_name.clone(), 1200, 600)
+                .save(&chart, format!("benches/results/{chart_file_name}.html"))
+                .expect("Failed to save chart");
+        }
+    }
 }
