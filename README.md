@@ -114,7 +114,6 @@ sudo bash -c 'echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 
 # run to see if 8 (or optionally some other number) have been enabled
 cat /sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages
-# 
 ```
 
 1. Run the benchmarks and optionally write criterion results to a text file
