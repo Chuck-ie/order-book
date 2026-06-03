@@ -10,7 +10,9 @@ use order_book::{
     },
 };
 
-use crate::shared::generate_level_scaled_orders;
+use crate::shared::{
+    NARROW, WIDE, bench_helpers::generate_synthetic_orders, generate_level_scaled_orders,
+};
 
 mod shared;
 
@@ -20,15 +22,21 @@ fn main() {
         matcher: v4_sm_arena::matcher::OrderMatcher::new(),
     };
 
-    let place_commands = generate_level_scaled_orders(10_000, 16384, 8192)
-        .into_iter()
-        .map(std::convert::Into::into)
-        .collect::<Vec<MatcherCommand<LimitOrder, ArenaId>>>();
+    let commands: Vec<_> = generate_synthetic_orders(&WIDE, 100_000_000)
+        .iter()
+        .map(|order| {
+            MatcherCommand::PlaceOrder(LimitOrder {
+                limit: order.limit as u32,
+                amount: order.amount as u32,
+                side: order.side,
+            })
+        })
+        .collect();
 
-    let total_orders = place_commands.len();
+    let total_orders = commands.len();
     let start = Instant::now();
 
-    for cmd in place_commands {
+    for cmd in commands {
         wrapper.process(std::hint::black_box(cmd));
     }
 

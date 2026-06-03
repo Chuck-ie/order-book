@@ -1,1378 +1,750 @@
 Level Scaling/Cancel Orders/Default/EngineV1/levels_1/orders_100000
-                        time:   [598.01 ms 609.19 ms 620.32 ms]
-                        thrpt:  [161.21 Kelem/s 164.15 Kelem/s 167.22 Kelem/s]
+                        time:   [595.77 ms 602.96 ms 610.28 ms]
+                        thrpt:  [163.86 Kelem/s 165.85 Kelem/s 167.85 Kelem/s]
                  change:
-                        time:   [−1.2082% +1.0326% +3.1427%] (p = 0.40 > 0.05)
-                        thrpt:  [−3.0469% −1.0220% +1.2230%]
-                        No change in performance detected.
+                        time:   [+12106% +13598% +14958%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.336% −99.270% −99.181%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV2/levels_1/orders_100000
-                        time:   [593.84 ms 604.63 ms 615.78 ms]
-                        thrpt:  [162.40 Kelem/s 165.39 Kelem/s 168.40 Kelem/s]
+                        time:   [593.96 ms 602.55 ms 611.15 ms]
+                        thrpt:  [163.62 Kelem/s 165.96 Kelem/s 168.36 Kelem/s]
                  change:
-                        time:   [−1.9554% +0.3464% +2.7256%] (p = 0.78 > 0.05)
-                        thrpt:  [−2.6533% −0.3452% +1.9944%]
-                        No change in performance detected.
+                        time:   [+10606% +11154% +11594%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.145% −99.111% −99.066%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV3/levels_1/orders_100000
-                        time:   [1.3325 ms 1.3498 ms 1.3857 ms]
-                        thrpt:  [72.166 Melem/s 74.085 Melem/s 75.050 Melem/s]
+                        time:   [1.3506 ms 1.3708 ms 1.3868 ms]
+                        thrpt:  [72.109 Melem/s 72.949 Melem/s 74.043 Melem/s]
                  change:
-                        time:   [−1.4336% +0.8370% +3.2450%] (p = 0.52 > 0.05)
-                        thrpt:  [−3.1430% −0.8300% +1.4544%]
-                        No change in performance detected.
+                        time:   [+6.4170% +10.373% +13.630%] (p = 0.00 < 0.05)
+                        thrpt:  [−11.995% −9.3980% −6.0300%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV4/levels_1/orders_100000
-                        time:   [634.53 µs 639.12 µs 646.33 µs]
-                        thrpt:  [154.72 Melem/s 156.47 Melem/s 157.60 Melem/s]
+                        time:   [607.22 µs 611.47 µs 620.70 µs]
+                        thrpt:  [161.11 Melem/s 163.54 Melem/s 164.69 Melem/s]
                  change:
-                        time:   [−2.3488% +3.1261% +8.7527%] (p = 0.30 > 0.05)
-                        thrpt:  [−8.0483% −3.0314% +2.4053%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Default/EngineV5/levels_1/orders_100000
-                        time:   [623.95 µs 629.89 µs 638.74 µs]
-                        thrpt:  [156.56 Melem/s 158.76 Melem/s 160.27 Melem/s]
-                 change:
-                        time:   [−6.0272% −1.4685% +3.2330%] (p = 0.57 > 0.05)
-                        thrpt:  [−3.1318% +1.4904% +6.4138%]
-                        No change in performance detected.
-Found 2 outliers among 10 measurements (20.00%)
+                        time:   [−42.043% −39.353% −36.611%] (p = 0.00 < 0.05)
+                        thrpt:  [+57.755% +64.889% +72.542%]
+                        Performance has improved.
+Found 3 outliers among 10 measurements (30.00%)
   1 (10.00%) low mild
   1 (10.00%) high mild
+  1 (10.00%) high severe
 Level Scaling/Cancel Orders/Default/EngineV1/levels_10/orders_10000
-                        time:   [56.004 ms 56.939 ms 57.729 ms]
-                        thrpt:  [1.7322 Melem/s 1.7563 Melem/s 1.7856 Melem/s]
+                        time:   [58.112 ms 59.592 ms 61.048 ms]
+                        thrpt:  [1.6381 Melem/s 1.6781 Melem/s 1.7208 Melem/s]
                  change:
-                        time:   [−7.8245% −5.3599% −3.0292%] (p = 0.00 < 0.05)
-                        thrpt:  [+3.1238% +5.6634% +8.4887%]
-                        Change within noise threshold.
+                        time:   [+1217.0% +1295.1% +1359.5%] (p = 0.00 < 0.05)
+                        thrpt:  [−93.148% −92.832% −92.407%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV2/levels_10/orders_10000
-                        time:   [54.357 ms 54.706 ms 55.021 ms]
-                        thrpt:  [1.8175 Melem/s 1.8279 Melem/s 1.8397 Melem/s]
+                        time:   [56.981 ms 57.727 ms 58.825 ms]
+                        thrpt:  [1.7000 Melem/s 1.7323 Melem/s 1.7550 Melem/s]
                  change:
-                        time:   [−7.1703% −5.7814% −4.4879%] (p = 0.00 < 0.05)
-                        thrpt:  [+4.6988% +6.1362% +7.7242%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
+                        time:   [+918.70% +977.41% +1023.1%] (p = 0.00 < 0.05)
+                        thrpt:  [−91.096% −90.718% −90.184%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV3/levels_10/orders_10000
-                        time:   [1.4123 ms 1.4346 ms 1.4685 ms]
-                        thrpt:  [68.095 Melem/s 69.704 Melem/s 70.806 Melem/s]
+                        time:   [1.4359 ms 1.4551 ms 1.4714 ms]
+                        thrpt:  [67.964 Melem/s 68.724 Melem/s 69.644 Melem/s]
                  change:
-                        time:   [−1.2662% +0.7937% +2.7053%] (p = 0.44 > 0.05)
-                        thrpt:  [−2.6340% −0.7874% +1.2824%]
+                        time:   [−8.0155% −3.7278% −0.0825%] (p = 0.10 > 0.05)
+                        thrpt:  [+0.0825% +3.8721% +8.7140%]
                         No change in performance detected.
 Level Scaling/Cancel Orders/Default/EngineV4/levels_10/orders_10000
-                        time:   [620.52 µs 631.58 µs 639.14 µs]
-                        thrpt:  [156.46 Melem/s 158.33 Melem/s 161.16 Melem/s]
+                        time:   [623.69 µs 630.60 µs 638.05 µs]
+                        thrpt:  [156.73 Melem/s 158.58 Melem/s 160.34 Melem/s]
                  change:
-                        time:   [−5.5429% −1.3578% +2.7803%] (p = 0.57 > 0.05)
-                        thrpt:  [−2.7051% +1.3765% +5.8682%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Default/EngineV5/levels_10/orders_10000
-                        time:   [625.83 µs 630.55 µs 638.86 µs]
-                        thrpt:  [156.53 Melem/s 158.59 Melem/s 159.79 Melem/s]
-                 change:
-                        time:   [−10.463% −6.6612% −2.7337%] (p = 0.01 < 0.05)
-                        thrpt:  [+2.8106% +7.1366% +11.686%]
-                        Change within noise threshold.
+                        time:   [−50.814% −49.356% −48.146%] (p = 0.00 < 0.05)
+                        thrpt:  [+92.847% +97.455% +103.31%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low mild
 Level Scaling/Cancel Orders/Default/EngineV1/levels_100/orders_1000
-                        time:   [12.110 ms 12.413 ms 12.649 ms]
-                        thrpt:  [7.9055 Melem/s 8.0561 Melem/s 8.2576 Melem/s]
+                        time:   [12.434 ms 12.667 ms 12.912 ms]
+                        thrpt:  [7.7450 Melem/s 7.8947 Melem/s 8.0426 Melem/s]
                  change:
-                        time:   [−5.3754% −2.5648% +0.3169%] (p = 0.12 > 0.05)
-                        thrpt:  [−0.3159% +2.6323% +5.6807%]
-                        No change in performance detected.
+                        time:   [+156.65% +170.35% +180.94%] (p = 0.00 < 0.05)
+                        thrpt:  [−64.405% −63.011% −61.037%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV2/levels_100/orders_1000
-                        time:   [9.9100 ms 10.204 ms 10.500 ms]
-                        thrpt:  [9.5234 Melem/s 9.7998 Melem/s 10.091 Melem/s]
+                        time:   [10.254 ms 10.397 ms 10.497 ms]
+                        thrpt:  [9.5262 Melem/s 9.6184 Melem/s 9.7521 Melem/s]
                  change:
-                        time:   [−7.4072% −3.3186% +1.1867%] (p = 0.18 > 0.05)
-                        thrpt:  [−1.1728% +3.4325% +7.9998%]
-                        No change in performance detected.
-Found 4 outliers among 10 measurements (40.00%)
-  2 (20.00%) low severe
+                        time:   [+67.927% +78.688% +87.605%] (p = 0.00 < 0.05)
+                        thrpt:  [−46.696% −44.037% −40.450%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low severe
+Level Scaling/Cancel Orders/Default/EngineV3/levels_100/orders_1000
+                        time:   [1.1942 ms 1.2677 ms 1.2986 ms]
+                        thrpt:  [77.007 Melem/s 78.882 Melem/s 83.735 Melem/s]
+                 change:
+                        time:   [−48.252% −43.433% −38.963%] (p = 0.00 < 0.05)
+                        thrpt:  [+63.834% +76.782% +93.246%]
+                        Performance has improved.
+Level Scaling/Cancel Orders/Default/EngineV4/levels_100/orders_1000
+                        time:   [544.84 µs 547.89 µs 551.64 µs]
+                        thrpt:  [181.28 Melem/s 182.52 Melem/s 183.54 Melem/s]
+                 change:
+                        time:   [−69.183% −68.712% −68.143%] (p = 0.00 < 0.05)
+                        thrpt:  [+213.90% +219.61% +224.50%]
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
   1 (10.00%) high mild
   1 (10.00%) high severe
-Level Scaling/Cancel Orders/Default/EngineV3/levels_100/orders_1000
-                        time:   [1.3850 ms 1.4184 ms 1.4393 ms]
-                        thrpt:  [69.478 Melem/s 70.502 Melem/s 72.203 Melem/s]
-                 change:
-                        time:   [+3.0331% +15.937% +30.763%] (p = 0.04 < 0.05)
-                        thrpt:  [−23.526% −13.746% −2.9438%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Default/EngineV4/levels_100/orders_1000
-                        time:   [625.86 µs 629.93 µs 632.67 µs]
-                        thrpt:  [158.06 Melem/s 158.75 Melem/s 159.78 Melem/s]
-                 change:
-                        time:   [+9.7587% +12.016% +14.090%] (p = 0.00 < 0.05)
-                        thrpt:  [−12.350% −10.727% −8.8911%]
-                        Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Default/EngineV5/levels_100/orders_1000
-                        time:   [638.01 µs 646.90 µs 656.48 µs]
-                        thrpt:  [152.33 Melem/s 154.58 Melem/s 156.74 Melem/s]
-                 change:
-                        time:   [−8.5185% −2.7377% +3.4682%] (p = 0.42 > 0.05)
-                        thrpt:  [−3.3520% +2.8148% +9.3117%]
-                        No change in performance detected.
-Found 3 outliers among 10 measurements (30.00%)
-  1 (10.00%) low severe
-  1 (10.00%) low mild
-  1 (10.00%) high mild
 Level Scaling/Cancel Orders/Default/EngineV1/levels_1000/orders_100
-                        time:   [10.240 ms 10.449 ms 10.631 ms]
-                        thrpt:  [9.4062 Melem/s 9.5699 Melem/s 9.7660 Melem/s]
+                        time:   [9.8388 ms 9.9997 ms 10.143 ms]
+                        thrpt:  [9.8593 Melem/s 10.000 Melem/s 10.164 Melem/s]
                  change:
-                        time:   [−1.7423% +2.6945% +6.2633%] (p = 0.22 > 0.05)
-                        thrpt:  [−5.8941% −2.6238% +1.7732%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Default/EngineV2/levels_1000/orders_100
-                        time:   [7.7449 ms 7.8043 ms 7.8806 ms]
-                        thrpt:  [12.689 Melem/s 12.813 Melem/s 12.912 Melem/s]
-                 change:
-                        time:   [−3.0953% +2.8786% +6.6316%] (p = 0.31 > 0.05)
-                        thrpt:  [−6.2192% −2.7980% +3.1942%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Default/EngineV3/levels_1000/orders_100
-                        time:   [1.7637 ms 1.8184 ms 1.8550 ms]
-                        thrpt:  [53.909 Melem/s 54.994 Melem/s 56.697 Melem/s]
-                 change:
-                        time:   [+14.827% +24.002% +35.095%] (p = 0.00 < 0.05)
-                        thrpt:  [−25.978% −19.356% −12.912%]
+                        time:   [+60.602% +69.109% +76.813%] (p = 0.00 < 0.05)
+                        thrpt:  [−43.443% −40.867% −37.734%]
                         Performance has regressed.
-Found 3 outliers among 10 measurements (30.00%)
-  1 (10.00%) low severe
-  2 (20.00%) high mild
-Level Scaling/Cancel Orders/Default/EngineV4/levels_1000/orders_100
-                        time:   [704.90 µs 714.00 µs 727.12 µs]
-                        thrpt:  [137.53 Melem/s 140.06 Melem/s 141.86 Melem/s]
+Level Scaling/Cancel Orders/Default/EngineV2/levels_1000/orders_100
+                        time:   [7.2683 ms 7.4065 ms 7.4905 ms]
+                        thrpt:  [13.350 Melem/s 13.502 Melem/s 13.758 Melem/s]
                  change:
-                        time:   [−1.5064% +2.4872% +7.0026%] (p = 0.29 > 0.05)
-                        thrpt:  [−6.5443% −2.4269% +1.5295%]
-                        No change in performance detected.
+                        time:   [+3.2761% +8.3126% +12.831%] (p = 0.00 < 0.05)
+                        thrpt:  [−11.372% −7.6746% −3.1722%]
+                        Change within noise threshold.
+Level Scaling/Cancel Orders/Default/EngineV3/levels_1000/orders_100
+                        time:   [1.4721 ms 1.5512 ms 1.5868 ms]
+                        thrpt:  [63.019 Melem/s 64.467 Melem/s 67.929 Melem/s]
+                 change:
+                        time:   [−60.346% −57.012% −53.847%] (p = 0.00 < 0.05)
+                        thrpt:  [+116.67% +132.62% +152.18%]
+                        Performance has improved.
+Level Scaling/Cancel Orders/Default/EngineV4/levels_1000/orders_100
+                        time:   [697.38 µs 701.01 µs 708.74 µs]
+                        thrpt:  [141.09 Melem/s 142.65 Melem/s 143.39 Melem/s]
+                 change:
+                        time:   [−71.755% −71.108% −70.295%] (p = 0.00 < 0.05)
+                        thrpt:  [+236.65% +246.12% +254.05%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
-Level Scaling/Cancel Orders/Default/EngineV5/levels_1000/orders_100
-                        time:   [722.86 µs 748.36 µs 794.34 µs]
-                        thrpt:  [125.89 Melem/s 133.63 Melem/s 138.34 Melem/s]
-                 change:
-                        time:   [−1.2085% +2.8483% +6.4925%] (p = 0.17 > 0.05)
-                        thrpt:  [−6.0967% −2.7694% +1.2233%]
-                        No change in performance detected.
 Level Scaling/Cancel Orders/Default/EngineV1/levels_10000/orders_10
-                        time:   [25.271 ms 25.555 ms 25.995 ms]
-                        thrpt:  [3.8468 Melem/s 3.9131 Melem/s 3.9570 Melem/s]
+                        time:   [25.258 ms 25.620 ms 25.995 ms]
+                        thrpt:  [3.8470 Melem/s 3.9032 Melem/s 3.9592 Melem/s]
                  change:
-                        time:   [−1.6861% −0.0963% +1.6192%] (p = 0.92 > 0.05)
-                        thrpt:  [−1.5934% +0.0964% +1.7150%]
-                        No change in performance detected.
+                        time:   [+219.51% +232.33% +243.35%] (p = 0.00 < 0.05)
+                        thrpt:  [−70.875% −69.909% −68.702%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Default/EngineV2/levels_10000/orders_10
-                        time:   [8.3871 ms 8.5556 ms 8.6699 ms]
-                        thrpt:  [11.534 Melem/s 11.688 Melem/s 11.923 Melem/s]
+                        time:   [8.3308 ms 8.4110 ms 8.4810 ms]
+                        thrpt:  [11.791 Melem/s 11.889 Melem/s 12.004 Melem/s]
                  change:
-                        time:   [−7.0631% −0.4561% +6.0889%] (p = 0.90 > 0.05)
-                        thrpt:  [−5.7395% +0.4582% +7.5999%]
-                        No change in performance detected.
+                        time:   [−17.659% −12.059% −7.5450%] (p = 0.00 < 0.05)
+                        thrpt:  [+8.1607% +13.712% +21.446%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low severe
 Level Scaling/Cancel Orders/Default/EngineV3/levels_10000/orders_10
-                        time:   [2.7956 ms 2.8720 ms 2.9083 ms]
-                        thrpt:  [34.384 Melem/s 34.820 Melem/s 35.770 Melem/s]
+                        time:   [2.5716 ms 2.6768 ms 2.7511 ms]
+                        thrpt:  [36.349 Melem/s 37.358 Melem/s 38.886 Melem/s]
                  change:
-                        time:   [+0.4224% +8.0169% +15.819%] (p = 0.06 > 0.05)
-                        thrpt:  [−13.659% −7.4219% −0.4206%]
-                        No change in performance detected.
+                        time:   [−59.155% −56.514% −54.086%] (p = 0.00 < 0.05)
+                        thrpt:  [+117.80% +129.96% +144.83%]
+                        Performance has improved.
 Level Scaling/Cancel Orders/Default/EngineV4/levels_10000/orders_10
-                        time:   [1.7222 ms 1.7399 ms 1.7681 ms]
-                        thrpt:  [56.558 Melem/s 57.473 Melem/s 58.064 Melem/s]
+                        time:   [1.6976 ms 1.7122 ms 1.7416 ms]
+                        thrpt:  [57.419 Melem/s 58.403 Melem/s 58.906 Melem/s]
                  change:
-                        time:   [−1.8128% +1.9252% +6.2444%] (p = 0.39 > 0.05)
-                        thrpt:  [−5.8774% −1.8889% +1.8462%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Default/EngineV5/levels_10000/orders_10
-                        time:   [1.7490 ms 1.7685 ms 1.8102 ms]
-                        thrpt:  [55.242 Melem/s 56.545 Melem/s 57.176 Melem/s]
-                 change:
-                        time:   [−5.5642% −3.0600% −0.2666%] (p = 0.05 > 0.05)
-                        thrpt:  [+0.2673% +3.1566% +5.8921%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Default/EngineV1/levels_10000/orders_1000
-                        time:   [2.7808 s 2.8004 s 2.8227 s]
-                        thrpt:  [3.5428 Melem/s 3.5709 Melem/s 3.5961 Melem/s]
-Level Scaling/Cancel Orders/Default/EngineV2/levels_10000/orders_1000
-                        time:   [2.4591 s 2.4710 s 2.4842 s]
-                        thrpt:  [4.0254 Melem/s 4.0470 Melem/s 4.0666 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Default/EngineV3/levels_10000/orders_1000
-                        time:   [185.91 ms 187.24 ms 188.70 ms]
-                        thrpt:  [52.995 Melem/s 53.406 Melem/s 53.790 Melem/s]
-Level Scaling/Cancel Orders/Default/EngineV4/levels_10000/orders_1000
-                        time:   [137.27 ms 139.23 ms 141.32 ms]
-                        thrpt:  [70.764 Melem/s 71.824 Melem/s 72.847 Melem/s]
-Level Scaling/Cancel Orders/Default/EngineV5/levels_10000/orders_1000
-                        time:   [120.39 ms 121.45 ms 122.39 ms]
-                        thrpt:  [81.704 Melem/s 82.338 Melem/s 83.062 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
+                        time:   [−61.782% −60.852% −59.711%] (p = 0.00 < 0.05)
+                        thrpt:  [+148.21% +155.44% +161.65%]
+                        Performance has improved.
 
 Level Scaling/Cancel Orders/Reverse/EngineV1/levels_1/orders_100000
-                        time:   [1.2372 s 1.2553 s 1.2739 s]
-                        thrpt:  [78.497 Kelem/s 79.664 Kelem/s 80.831 Kelem/s]
+                        time:   [1.2118 s 1.2125 s 1.2134 s]
+                        thrpt:  [82.411 Kelem/s 82.474 Kelem/s 82.524 Kelem/s]
                  change:
-                        time:   [+2.1010% +3.5279% +5.2497%] (p = 0.00 < 0.05)
-                        thrpt:  [−4.9879% −3.4077% −2.0578%]
-                        Change within noise threshold.
-Level Scaling/Cancel Orders/Reverse/EngineV2/levels_1/orders_100000
-                        time:   [1.2117 s 1.2212 s 1.2325 s]
-                        thrpt:  [81.136 Kelem/s 81.889 Kelem/s 82.526 Kelem/s]
-                 change:
-                        time:   [−0.2274% +0.5935% +1.4977%] (p = 0.25 > 0.05)
-                        thrpt:  [−1.4756% −0.5900% +0.2279%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Reverse/EngineV3/levels_1/orders_100000
-                        time:   [1.3303 ms 1.3458 ms 1.3618 ms]
-                        thrpt:  [73.433 Melem/s 74.303 Melem/s 75.171 Melem/s]
-                 change:
-                        time:   [+15.903% +26.887% +42.668%] (p = 0.00 < 0.05)
-                        thrpt:  [−29.907% −21.190% −13.721%]
+                        time:   [+28435% +29985% +31107%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.680% −99.668% −99.650%]
                         Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Reverse/EngineV2/levels_1/orders_100000
+                        time:   [1.2113 s 1.2140 s 1.2177 s]
+                        thrpt:  [82.122 Kelem/s 82.375 Kelem/s 82.555 Kelem/s]
+                 change:
+                        time:   [+21000% +22221% +23189%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.571% −99.552% −99.526%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Reverse/EngineV3/levels_1/orders_100000
+                        time:   [1.1009 ms 1.1660 ms 1.1961 ms]
+                        thrpt:  [83.607 Melem/s 85.762 Melem/s 90.837 Melem/s]
+                 change:
+                        time:   [−26.325% −16.159% −7.5568%] (p = 0.00 < 0.05)
+                        thrpt:  [+8.1745% +19.274% +35.730%]
+                        Performance has improved.
 Found 2 outliers among 10 measurements (20.00%)
   2 (20.00%) low mild
 Level Scaling/Cancel Orders/Reverse/EngineV4/levels_1/orders_100000
-                        time:   [595.37 µs 600.01 µs 607.73 µs]
-                        thrpt:  [164.55 Melem/s 166.66 Melem/s 167.96 Melem/s]
+                        time:   [503.70 µs 510.51 µs 515.46 µs]
+                        thrpt:  [194.00 Melem/s 195.88 Melem/s 198.53 Melem/s]
                  change:
-                        time:   [+13.354% +16.407% +19.114%] (p = 0.00 < 0.05)
-                        thrpt:  [−16.047% −14.095% −11.781%]
-                        Performance has regressed.
-Found 4 outliers among 10 measurements (40.00%)
-  2 (20.00%) low severe
-  1 (10.00%) high mild
-  1 (10.00%) high severe
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_1/orders_100000
-                        time:   [621.41 µs 632.32 µs 638.52 µs]
-                        thrpt:  [156.61 Melem/s 158.15 Melem/s 160.92 Melem/s]
-                 change:
-                        time:   [−10.023% −6.3986% −3.3523%] (p = 0.00 < 0.05)
-                        thrpt:  [+3.4686% +6.8360% +11.140%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
+                        time:   [−49.694% −49.313% −48.827%] (p = 0.00 < 0.05)
+                        thrpt:  [+95.417% +97.289% +98.785%]
+                        Performance has improved.
 Level Scaling/Cancel Orders/Reverse/EngineV1/levels_10/orders_10000
-                        time:   [129.99 ms 131.48 ms 133.46 ms]
-                        thrpt:  [749.28 Kelem/s 760.56 Kelem/s 769.27 Kelem/s]
+                        time:   [128.23 ms 128.53 ms 128.91 ms]
+                        thrpt:  [775.75 Kelem/s 778.01 Kelem/s 779.83 Kelem/s]
                  change:
-                        time:   [+0.8450% +1.8443% +2.9056%] (p = 0.00 < 0.05)
-                        thrpt:  [−2.8235% −1.8109% −0.8380%]
-                        Change within noise threshold.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) high mild
-  1 (10.00%) high severe
+                        time:   [+2814.2% +2976.7% +3110.9%] (p = 0.00 < 0.05)
+                        thrpt:  [−96.886% −96.750% −96.569%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Reverse/EngineV2/levels_10/orders_10000
-                        time:   [133.28 ms 137.52 ms 140.31 ms]
-                        thrpt:  [712.73 Kelem/s 727.15 Kelem/s 750.32 Kelem/s]
+                        time:   [127.73 ms 128.30 ms 128.60 ms]
+                        thrpt:  [777.59 Kelem/s 779.42 Kelem/s 782.90 Kelem/s]
                  change:
-                        time:   [+5.1533% +7.3308% +9.5784%] (p = 0.00 < 0.05)
-                        thrpt:  [−8.7412% −6.8301% −4.9008%]
+                        time:   [+2104.7% +2232.1% +2334.3%] (p = 0.00 < 0.05)
+                        thrpt:  [−95.892% −95.712% −95.464%]
                         Performance has regressed.
 Level Scaling/Cancel Orders/Reverse/EngineV3/levels_10/orders_10000
-                        time:   [1.6738 ms 1.6890 ms 1.6959 ms]
-                        thrpt:  [58.965 Melem/s 59.207 Melem/s 59.746 Melem/s]
+                        time:   [1.4107 ms 1.4848 ms 1.5210 ms]
+                        thrpt:  [65.746 Melem/s 67.350 Melem/s 70.887 Melem/s]
                  change:
-                        time:   [+11.691% +22.493% +36.881%] (p = 0.00 < 0.05)
-                        thrpt:  [−26.944% −18.362% −10.467%]
-                        Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) low severe
+                        time:   [−4.1834% +9.0019% +19.132%] (p = 0.15 > 0.05)
+                        thrpt:  [−16.059% −8.2584% +4.3661%]
+                        No change in performance detected.
 Level Scaling/Cancel Orders/Reverse/EngineV4/levels_10/orders_10000
-                        time:   [599.71 µs 609.67 µs 623.96 µs]
-                        thrpt:  [160.27 Melem/s 164.02 Melem/s 166.75 Melem/s]
+                        time:   [520.12 µs 531.71 µs 539.86 µs]
+                        thrpt:  [185.23 Melem/s 188.07 Melem/s 192.26 Melem/s]
                  change:
-                        time:   [+9.2233% +12.758% +16.301%] (p = 0.00 < 0.05)
-                        thrpt:  [−14.016% −11.315% −8.4445%]
-                        Performance has regressed.
-Found 3 outliers among 10 measurements (30.00%)
-  1 (10.00%) low severe
-  2 (20.00%) high mild
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_10/orders_10000
-                        time:   [618.30 µs 623.86 µs 633.64 µs]
-                        thrpt:  [157.82 Melem/s 160.29 Melem/s 161.73 Melem/s]
-                 change:
-                        time:   [−10.036% −6.9098% −4.2610%] (p = 0.00 < 0.05)
-                        thrpt:  [+4.4507% +7.4227% +11.155%]
-                        Change within noise threshold.
+                        time:   [−48.140% −47.226% −46.299%] (p = 0.00 < 0.05)
+                        thrpt:  [+86.215% +89.488% +92.828%]
+                        Performance has improved.
 Level Scaling/Cancel Orders/Reverse/EngineV1/levels_100/orders_1000
-                        time:   [23.476 ms 23.859 ms 24.136 ms]
-                        thrpt:  [4.1432 Melem/s 4.1913 Melem/s 4.2597 Melem/s]
+                        time:   [22.577 ms 23.014 ms 23.759 ms]
+                        thrpt:  [4.2089 Melem/s 4.3452 Melem/s 4.4292 Melem/s]
                  change:
-                        time:   [−1.5813% +1.5857% +4.5241%] (p = 0.36 > 0.05)
-                        thrpt:  [−4.3283% −1.5610% +1.6067%]
-                        No change in performance detected.
+                        time:   [+368.36% +394.77% +417.56%] (p = 0.00 < 0.05)
+                        thrpt:  [−80.679% −79.789% −78.649%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Reverse/EngineV2/levels_100/orders_1000
-                        time:   [22.455 ms 22.605 ms 22.879 ms]
-                        thrpt:  [4.3708 Melem/s 4.4238 Melem/s 4.4534 Melem/s]
+                        time:   [21.820 ms 22.430 ms 22.827 ms]
+                        thrpt:  [4.3807 Melem/s 4.4583 Melem/s 4.5829 Melem/s]
                  change:
-                        time:   [−0.3197% +2.6548% +5.2866%] (p = 0.09 > 0.05)
-                        thrpt:  [−5.0212% −2.5862% +0.3207%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
+                        time:   [+273.25% +295.97% +314.30%] (p = 0.00 < 0.05)
+                        thrpt:  [−75.863% −74.746% −73.208%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Reverse/EngineV3/levels_100/orders_1000
-                        time:   [2.0223 ms 2.0518 ms 2.0905 ms]
-                        thrpt:  [47.835 Melem/s 48.739 Melem/s 49.450 Melem/s]
+                        time:   [1.7988 ms 1.9134 ms 1.9717 ms]
+                        thrpt:  [50.717 Melem/s 52.263 Melem/s 55.591 Melem/s]
                  change:
-                        time:   [+6.2477% +14.081% +23.061%] (p = 0.00 < 0.05)
-                        thrpt:  [−18.739% −12.343% −5.8803%]
+                        time:   [+18.590% +29.144% +38.212%] (p = 0.00 < 0.05)
+                        thrpt:  [−27.648% −22.567% −15.676%]
                         Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
-  1 (10.00%) high mild
 Level Scaling/Cancel Orders/Reverse/EngineV4/levels_100/orders_1000
-                        time:   [656.45 µs 664.56 µs 675.24 µs]
-                        thrpt:  [148.09 Melem/s 150.48 Melem/s 152.33 Melem/s]
+                        time:   [559.55 µs 567.43 µs 580.97 µs]
+                        thrpt:  [172.13 Melem/s 176.23 Melem/s 178.72 Melem/s]
                  change:
-                        time:   [+7.1095% +13.291% +19.006%] (p = 0.00 < 0.05)
-                        thrpt:  [−15.971% −11.731% −6.6376%]
-                        Performance has regressed.
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_100/orders_1000
-                        time:   [642.82 µs 647.39 µs 654.38 µs]
-                        thrpt:  [152.82 Melem/s 154.47 Melem/s 155.57 Melem/s]
-                 change:
-                        time:   [−9.7883% −3.4482% +3.3636%] (p = 0.36 > 0.05)
-                        thrpt:  [−3.2541% +3.5714% +10.850%]
-                        No change in performance detected.
+                        time:   [−51.288% −49.120% −46.648%] (p = 0.00 < 0.05)
+                        thrpt:  [+87.435% +96.539% +105.29%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Reverse/EngineV1/levels_1000/orders_100
-                        time:   [11.680 ms 11.905 ms 12.134 ms]
-                        thrpt:  [8.2414 Melem/s 8.3996 Melem/s 8.5613 Melem/s]
-                 change:
-                        time:   [−1.0376% +3.1165% +6.8868%] (p = 0.17 > 0.05)
-                        thrpt:  [−6.4431% −3.0223% +1.0484%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Reverse/EngineV2/levels_1000/orders_100
-                        time:   [11.075 ms 11.317 ms 11.571 ms]
-                        thrpt:  [8.6421 Melem/s 8.8366 Melem/s 9.0294 Melem/s]
-                 change:
-                        time:   [+2.2779% +5.5979% +9.3344%] (p = 0.01 < 0.05)
-                        thrpt:  [−8.5375% −5.3012% −2.2271%]
-                        Change within noise threshold.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low mild
   1 (10.00%) high mild
-Level Scaling/Cancel Orders/Reverse/EngineV3/levels_1000/orders_100
-                        time:   [2.8016 ms 2.8345 ms 2.8694 ms]
-                        thrpt:  [34.850 Melem/s 35.280 Melem/s 35.694 Melem/s]
+Level Scaling/Cancel Orders/Reverse/EngineV1/levels_1000/orders_100
+                        time:   [11.214 ms 11.497 ms 11.767 ms]
+                        thrpt:  [8.4980 Melem/s 8.6981 Melem/s 8.9174 Melem/s]
                  change:
-                        time:   [+0.4550% +5.1892% +10.640%] (p = 0.06 > 0.05)
-                        thrpt:  [−9.6165% −4.9332% −0.4529%]
-                        No change in performance detected.
+                        time:   [+83.220% +93.279% +101.75%] (p = 0.00 < 0.05)
+                        thrpt:  [−50.433% −48.261% −45.421%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Reverse/EngineV2/levels_1000/orders_100
+                        time:   [10.577 ms 10.842 ms 11.021 ms]
+                        thrpt:  [9.0733 Melem/s 9.2232 Melem/s 9.4541 Melem/s]
+                 change:
+                        time:   [+67.306% +76.986% +85.251%] (p = 0.00 < 0.05)
+                        thrpt:  [−46.019% −43.498% −40.229%]
+                        Performance has regressed.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low mild
-Level Scaling/Cancel Orders/Reverse/EngineV4/levels_1000/orders_100
-                        time:   [741.32 µs 755.15 µs 780.56 µs]
-                        thrpt:  [128.11 Melem/s 132.42 Melem/s 134.89 Melem/s]
+Level Scaling/Cancel Orders/Reverse/EngineV3/levels_1000/orders_100
+                        time:   [2.7102 ms 2.7977 ms 2.8537 ms]
+                        thrpt:  [35.042 Melem/s 35.744 Melem/s 36.898 Melem/s]
                  change:
-                        time:   [−7.3802% +2.5587% +15.346%] (p = 0.70 > 0.05)
-                        thrpt:  [−13.305% −2.4949% +7.9683%]
-                        No change in performance detected.
+                        time:   [+36.384% +43.815% +50.891%] (p = 0.00 < 0.05)
+                        thrpt:  [−33.727% −30.466% −26.678%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Reverse/EngineV4/levels_1000/orders_100
+                        time:   [748.85 µs 761.44 µs 779.88 µs]
+                        thrpt:  [128.23 Melem/s 131.33 Melem/s 133.54 Melem/s]
+                 change:
+                        time:   [−47.622% −44.580% −40.770%] (p = 0.00 < 0.05)
+                        thrpt:  [+68.834% +80.439% +90.919%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_1000/orders_100
-                        time:   [717.43 µs 736.34 µs 775.17 µs]
-                        thrpt:  [129.00 Melem/s 135.81 Melem/s 139.39 Melem/s]
-                 change:
-                        time:   [−9.9717% −5.3064% −0.8783%] (p = 0.04 < 0.05)
-                        thrpt:  [+0.8861% +5.6038% +11.076%]
-                        Change within noise threshold.
 Level Scaling/Cancel Orders/Reverse/EngineV1/levels_10000/orders_10
-                        time:   [9.9756 ms 10.134 ms 10.248 ms]
-                        thrpt:  [9.7576 Melem/s 9.8678 Melem/s 10.024 Melem/s]
+                        time:   [9.6510 ms 9.7792 ms 9.8751 ms]
+                        thrpt:  [10.126 Melem/s 10.226 Melem/s 10.362 Melem/s]
                  change:
-                        time:   [−0.8740% +3.3865% +7.8841%] (p = 0.15 > 0.05)
-                        thrpt:  [−7.3079% −3.2756% +0.8817%]
-                        No change in performance detected.
-Found 2 outliers among 10 measurements (20.00%)
+                        time:   [−57.699% −56.103% −55.094%] (p = 0.00 < 0.05)
+                        thrpt:  [+122.69% +127.80% +136.40%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low severe
-  1 (10.00%) low mild
 Level Scaling/Cancel Orders/Reverse/EngineV2/levels_10000/orders_10
-                        time:   [11.396 ms 11.563 ms 11.691 ms]
-                        thrpt:  [8.5534 Melem/s 8.6480 Melem/s 8.7752 Melem/s]
+                        time:   [11.096 ms 11.328 ms 11.480 ms]
+                        thrpt:  [8.7107 Melem/s 8.8277 Melem/s 9.0121 Melem/s]
                  change:
-                        time:   [+0.3122% +3.8433% +7.9966%] (p = 0.06 > 0.05)
-                        thrpt:  [−7.4045% −3.7010% −0.3112%]
-                        No change in performance detected.
+                        time:   [+59.380% +65.992% +71.450%] (p = 0.00 < 0.05)
+                        thrpt:  [−41.674% −39.756% −37.257%]
+                        Performance has regressed.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low mild
 Level Scaling/Cancel Orders/Reverse/EngineV3/levels_10000/orders_10
-                        time:   [4.4254 ms 4.5735 ms 4.6627 ms]
-                        thrpt:  [21.447 Melem/s 21.865 Melem/s 22.597 Melem/s]
+                        time:   [4.5219 ms 4.6953 ms 4.7880 ms]
+                        thrpt:  [20.886 Melem/s 21.298 Melem/s 22.115 Melem/s]
                  change:
-                        time:   [−5.4145% −1.4038% +3.0388%] (p = 0.55 > 0.05)
-                        thrpt:  [−2.9491% +1.4238% +5.7244%]
-                        No change in performance detected.
+                        time:   [+39.263% +43.769% +48.913%] (p = 0.00 < 0.05)
+                        thrpt:  [−32.847% −30.444% −28.193%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Reverse/EngineV4/levels_10000/orders_10
-                        time:   [1.8787 ms 1.9243 ms 2.0260 ms]
-                        thrpt:  [49.358 Melem/s 51.968 Melem/s 53.228 Melem/s]
+                        time:   [1.9010 ms 1.9296 ms 1.9948 ms]
+                        thrpt:  [50.130 Melem/s 51.823 Melem/s 52.603 Melem/s]
                  change:
-                        time:   [−11.200% +0.9019% +15.484%] (p = 0.90 > 0.05)
-                        thrpt:  [−13.408% −0.8938% +12.613%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
+                        time:   [−31.091% −25.619% −17.894%] (p = 0.00 < 0.05)
+                        thrpt:  [+21.794% +34.444% +45.120%]
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
   1 (10.00%) high mild
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_10000/orders_10
-                        time:   [1.9560 ms 2.0124 ms 2.1216 ms]
-                        thrpt:  [47.135 Melem/s 49.692 Melem/s 51.126 Melem/s]
-                 change:
-                        time:   [−25.581% −12.758% +2.2320%] (p = 0.13 > 0.05)
-                        thrpt:  [−2.1833% +14.624% +34.375%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
-Level Scaling/Cancel Orders/Reverse/EngineV1/levels_10000/orders_1000
-                        time:   [3.9244 s 3.9602 s 3.9924 s]
-                        thrpt:  [2.5047 Melem/s 2.5252 Melem/s 2.5481 Melem/s]
-Level Scaling/Cancel Orders/Reverse/EngineV2/levels_10000/orders_1000
-                        time:   [3.7814 s 3.8247 s 3.8711 s]
-                        thrpt:  [2.5832 Melem/s 2.6146 Melem/s 2.6445 Melem/s]
-Level Scaling/Cancel Orders/Reverse/EngineV3/levels_10000/orders_1000
-                        time:   [325.76 ms 328.71 ms 331.43 ms]
-                        thrpt:  [30.172 Melem/s 30.422 Melem/s 30.697 Melem/s]
-Level Scaling/Cancel Orders/Reverse/EngineV4/levels_10000/orders_1000
-                        time:   [417.54 ms 423.82 ms 429.54 ms]
-                        thrpt:  [23.280 Melem/s 23.595 Melem/s 23.950 Melem/s]
-Level Scaling/Cancel Orders/Reverse/EngineV5/levels_10000/orders_1000
-                        time:   [123.06 ms 124.23 ms 125.23 ms]
-                        thrpt:  [79.850 Melem/s 80.494 Melem/s 81.262 Melem/s]
 
 Level Scaling/Cancel Orders/Random/EngineV1/levels_1/orders_100000
-                        time:   [919.74 ms 933.30 ms 946.17 ms]
-                        thrpt:  [105.69 Kelem/s 107.15 Kelem/s 108.73 Kelem/s]
+                        time:   [911.25 ms 925.19 ms 940.32 ms]
+                        thrpt:  [106.35 Kelem/s 108.09 Kelem/s 109.74 Kelem/s]
                  change:
-                        time:   [−1.2752% +0.8759% +2.9984%] (p = 0.45 > 0.05)
-                        thrpt:  [−2.9111% −0.8683% +1.2917%]
-                        No change in performance detected.
+                        time:   [+24476% +25048% +25647%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.612% −99.602% −99.593%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Random/EngineV2/levels_1/orders_100000
-                        time:   [927.58 ms 936.76 ms 944.83 ms]
-                        thrpt:  [105.84 Kelem/s 106.75 Kelem/s 107.81 Kelem/s]
+                        time:   [910.59 ms 922.38 ms 934.75 ms]
+                        thrpt:  [106.98 Kelem/s 108.41 Kelem/s 109.82 Kelem/s]
                  change:
-                        time:   [−0.0921% +1.5588% +3.2138%] (p = 0.09 > 0.05)
-                        thrpt:  [−3.1138% −1.5349% +0.0922%]
-                        No change in performance detected.
+                        time:   [+17530% +17849% +18164%] (p = 0.00 < 0.05)
+                        thrpt:  [−99.452% −99.443% −99.433%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Random/EngineV3/levels_1/orders_100000
-                        time:   [3.5956 ms 3.7722 ms 3.8677 ms]
-                        thrpt:  [25.855 Melem/s 26.510 Melem/s 27.812 Melem/s]
+                        time:   [3.7714 ms 3.8658 ms 3.9253 ms]
+                        thrpt:  [25.476 Melem/s 25.868 Melem/s 26.516 Melem/s]
                  change:
-                        time:   [−6.2973% −2.0709% +2.8435%] (p = 0.40 > 0.05)
-                        thrpt:  [−2.7649% +2.1146% +6.7205%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV4/levels_1/orders_100000
-                        time:   [666.99 µs 673.89 µs 685.29 µs]
-                        thrpt:  [145.92 Melem/s 148.39 Melem/s 149.93 Melem/s]
-                 change:
-                        time:   [+0.6173% +4.7029% +8.6697%] (p = 0.04 < 0.05)
-                        thrpt:  [−7.9780% −4.4916% −0.6135%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV5/levels_1/orders_100000
-                        time:   [655.03 µs 667.48 µs 692.32 µs]
-                        thrpt:  [144.44 Melem/s 149.82 Melem/s 152.67 Melem/s]
-                 change:
-                        time:   [−20.349% −15.454% −10.532%] (p = 0.00 < 0.05)
-                        thrpt:  [+11.771% +18.279% +25.547%]
-                        Performance has improved.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV1/levels_10/orders_10000
-                        time:   [102.38 ms 103.04 ms 103.62 ms]
-                        thrpt:  [965.08 Kelem/s 970.50 Kelem/s 976.78 Kelem/s]
-                 change:
-                        time:   [−1.7973% +0.2953% +2.3626%] (p = 0.80 > 0.05)
-                        thrpt:  [−2.3081% −0.2944% +1.8302%]
-                        No change in performance detected.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Random/EngineV2/levels_10/orders_10000
-                        time:   [98.881 ms 100.81 ms 101.91 ms]
-                        thrpt:  [981.22 Kelem/s 992.01 Kelem/s 1.0113 Melem/s]
-                 change:
-                        time:   [−4.0591% −2.1225% −0.1137%] (p = 0.07 > 0.05)
-                        thrpt:  [+0.1138% +2.1685% +4.2309%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV3/levels_10/orders_10000
-                        time:   [4.4025 ms 4.4692 ms 4.5047 ms]
-                        thrpt:  [22.199 Melem/s 22.376 Melem/s 22.714 Melem/s]
-                 change:
-                        time:   [−14.091% −7.7895% −0.9650%] (p = 0.06 > 0.05)
-                        thrpt:  [+0.9744% +8.4475% +16.403%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV4/levels_10/orders_10000
-                        time:   [707.31 µs 716.87 µs 738.98 µs]
-                        thrpt:  [135.32 Melem/s 139.49 Melem/s 141.38 Melem/s]
-                 change:
-                        time:   [−10.448% −0.4786% +9.9660%] (p = 0.94 > 0.05)
-                        thrpt:  [−9.0628% +0.4809% +11.667%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV5/levels_10/orders_10000
-                        time:   [674.87 µs 683.66 µs 700.81 µs]
-                        thrpt:  [142.69 Melem/s 146.27 Melem/s 148.18 Melem/s]
-                 change:
-                        time:   [−16.778% −12.572% −7.9525%] (p = 0.00 < 0.05)
-                        thrpt:  [+8.6395% +14.380% +20.161%]
-                        Performance has improved.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV1/levels_100/orders_1000
-                        time:   [20.260 ms 20.448 ms 20.900 ms]
-                        thrpt:  [4.7848 Melem/s 4.8904 Melem/s 4.9359 Melem/s]
-                 change:
-                        time:   [−4.9947% −1.3120% +2.2981%] (p = 0.52 > 0.05)
-                        thrpt:  [−2.2465% +1.3295% +5.2573%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV2/levels_100/orders_1000
-                        time:   [20.789 ms 20.923 ms 20.998 ms]
-                        thrpt:  [4.7625 Melem/s 4.7794 Melem/s 4.8102 Melem/s]
-                 change:
-                        time:   [−8.6684% −5.6899% −2.6677%] (p = 0.00 < 0.05)
-                        thrpt:  [+2.7408% +6.0332% +9.4911%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Random/EngineV3/levels_100/orders_1000
-                        time:   [5.4744 ms 5.5114 ms 5.5544 ms]
-                        thrpt:  [18.004 Melem/s 18.144 Melem/s 18.267 Melem/s]
-                 change:
-                        time:   [−6.4987% −3.7373% −1.2805%] (p = 0.01 < 0.05)
-                        thrpt:  [+1.2971% +3.8824% +6.9504%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
-Level Scaling/Cancel Orders/Random/EngineV4/levels_100/orders_1000
-                        time:   [3.0558 ms 3.0898 ms 3.1778 ms]
-                        thrpt:  [31.469 Melem/s 32.364 Melem/s 32.725 Melem/s]
-                 change:
-                        time:   [+7.0632% +20.297% +35.357%] (p = 0.01 < 0.05)
-                        thrpt:  [−26.121% −16.873% −6.5973%]
+                        time:   [+198.50% +212.44% +227.86%] (p = 0.00 < 0.05)
+                        thrpt:  [−69.499% −67.994% −66.499%]
                         Performance has regressed.
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-Level Scaling/Cancel Orders/Random/EngineV5/levels_100/orders_1000
-                        time:   [2.8567 ms 2.8814 ms 2.9430 ms]
-                        thrpt:  [33.979 Melem/s 34.705 Melem/s 35.006 Melem/s]
+  1 (10.00%) low mild
+Level Scaling/Cancel Orders/Random/EngineV4/levels_1/orders_100000
+                        time:   [644.12 µs 646.88 µs 652.58 µs]
+                        thrpt:  [153.24 Melem/s 154.59 Melem/s 155.25 Melem/s]
                  change:
-                        time:   [−10.440% −3.7699% +3.7318%] (p = 0.36 > 0.05)
-                        thrpt:  [−3.5976% +3.9176% +11.657%]
-                        No change in performance detected.
+                        time:   [−32.633% −30.560% −27.968%] (p = 0.00 < 0.05)
+                        thrpt:  [+38.827% +44.010% +48.440%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV1/levels_1000/orders_100
-                        time:   [12.970 ms 13.134 ms 13.455 ms]
-                        thrpt:  [7.4323 Melem/s 7.6136 Melem/s 7.7104 Melem/s]
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Random/EngineV1/levels_10/orders_10000
+                        time:   [100.60 ms 101.94 ms 102.99 ms]
+                        thrpt:  [970.96 Kelem/s 980.99 Kelem/s 994.00 Kelem/s]
                  change:
-                        time:   [−5.6077% −2.4759% +0.4564%] (p = 0.13 > 0.05)
-                        thrpt:  [−0.4543% +2.5388% +5.9408%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV2/levels_1000/orders_100
-                        time:   [13.973 ms 14.168 ms 14.411 ms]
-                        thrpt:  [6.9392 Melem/s 7.0580 Melem/s 7.1567 Melem/s]
+                        time:   [+2302.0% +2353.2% +2407.1%] (p = 0.00 < 0.05)
+                        thrpt:  [−96.011% −95.924% −95.837%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV2/levels_10/orders_10000
+                        time:   [100.29 ms 102.58 ms 104.06 ms]
+                        thrpt:  [960.95 Kelem/s 974.85 Kelem/s 997.09 Kelem/s]
                  change:
-                        time:   [−3.7687% −0.9292% +2.1311%] (p = 0.56 > 0.05)
-                        thrpt:  [−2.0866% +0.9380% +3.9163%]
-                        No change in performance detected.
-Level Scaling/Cancel Orders/Random/EngineV3/levels_1000/orders_100
-                        time:   [8.1308 ms 8.1906 ms 8.3171 ms]
-                        thrpt:  [12.023 Melem/s 12.209 Melem/s 12.299 Melem/s]
+                        time:   [+1640.9% +1683.3% +1725.2%] (p = 0.00 < 0.05)
+                        thrpt:  [−94.521% −94.392% −94.256%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV3/levels_10/orders_10000
+                        time:   [4.7752 ms 5.1523 ms 5.3341 ms]
+                        thrpt:  [18.747 Melem/s 19.409 Melem/s 20.942 Melem/s]
                  change:
-                        time:   [+3.3597% +6.0861% +8.5015%] (p = 0.00 < 0.05)
-                        thrpt:  [−7.8354% −5.7370% −3.2505%]
+                        time:   [+110.19% +124.48% +141.87%] (p = 0.00 < 0.05)
+                        thrpt:  [−58.655% −55.453% −52.425%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV4/levels_10/orders_10000
+                        time:   [708.13 µs 726.06 µs 756.67 µs]
+                        thrpt:  [132.16 Melem/s 137.73 Melem/s 141.22 Melem/s]
+                 change:
+                        time:   [−62.545% −59.986% −56.395%] (p = 0.00 < 0.05)
+                        thrpt:  [+129.33% +149.91% +166.98%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Random/EngineV1/levels_100/orders_1000
+                        time:   [20.781 ms 21.455 ms 22.360 ms]
+                        thrpt:  [4.4723 Melem/s 4.6610 Melem/s 4.8121 Melem/s]
+                 change:
+                        time:   [+317.33% +331.92% +348.34%] (p = 0.00 < 0.05)
+                        thrpt:  [−77.695% −76.848% −76.038%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV2/levels_100/orders_1000
+                        time:   [21.484 ms 22.079 ms 22.934 ms]
+                        thrpt:  [4.3603 Melem/s 4.5291 Melem/s 4.6546 Melem/s]
+                 change:
+                        time:   [+215.67% +226.04% +236.22%] (p = 0.00 < 0.05)
+                        thrpt:  [−70.257% −69.329% −68.321%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV3/levels_100/orders_1000
+                        time:   [5.6795 ms 5.8345 ms 5.9293 ms]
+                        thrpt:  [16.865 Melem/s 17.140 Melem/s 17.607 Melem/s]
+                 change:
+                        time:   [+72.566% +76.547% +80.600%] (p = 0.00 < 0.05)
+                        thrpt:  [−44.629% −43.358% −42.051%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV4/levels_100/orders_1000
+                        time:   [2.5520 ms 2.5820 ms 2.6556 ms]
+                        thrpt:  [37.656 Melem/s 38.730 Melem/s 39.185 Melem/s]
+                 change:
+                        time:   [−18.199% −12.087% −3.9266%] (p = 0.01 < 0.05)
+                        thrpt:  [+4.0871% +13.749% +22.247%]
                         Change within noise threshold.
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Random/EngineV4/levels_1000/orders_100
-                        time:   [3.6494 ms 3.7789 ms 4.0505 ms]
-                        thrpt:  [24.688 Melem/s 26.463 Melem/s 27.402 Melem/s]
-                 change:
-                        time:   [−10.112% +8.7464% +33.267%] (p = 0.49 > 0.05)
-                        thrpt:  [−24.963% −8.0429% +11.249%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
-Level Scaling/Cancel Orders/Random/EngineV5/levels_1000/orders_100
-                        time:   [3.3823 ms 3.4037 ms 3.4529 ms]
-                        thrpt:  [28.961 Melem/s 29.380 Melem/s 29.566 Melem/s]
+Level Scaling/Cancel Orders/Random/EngineV1/levels_1000/orders_100
+                        time:   [13.412 ms 13.660 ms 13.864 ms]
+                        thrpt:  [7.2127 Melem/s 7.3205 Melem/s 7.4560 Melem/s]
                  change:
-                        time:   [−5.1115% +2.6027% +10.856%] (p = 0.57 > 0.05)
-                        thrpt:  [−9.7925% −2.5367% +5.3868%]
-                        No change in performance detected.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) high mild
+                        time:   [+103.83% +108.57% +112.45%] (p = 0.00 < 0.05)
+                        thrpt:  [−52.930% −52.055% −50.940%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+Level Scaling/Cancel Orders/Random/EngineV2/levels_1000/orders_100
+                        time:   [14.194 ms 14.547 ms 14.911 ms]
+                        thrpt:  [6.7063 Melem/s 6.8744 Melem/s 7.0453 Melem/s]
+                 change:
+                        time:   [+57.286% +61.746% +65.538%] (p = 0.00 < 0.05)
+                        thrpt:  [−39.591% −38.175% −36.421%]
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+Level Scaling/Cancel Orders/Random/EngineV3/levels_1000/orders_100
+                        time:   [7.6946 ms 7.8085 ms 7.8960 ms]
+                        thrpt:  [12.665 Melem/s 12.807 Melem/s 12.996 Melem/s]
+                 change:
+                        time:   [+46.637% +48.736% +50.941%] (p = 0.00 < 0.05)
+                        thrpt:  [−33.749% −32.767% −31.804%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Random/EngineV4/levels_1000/orders_100
+                        time:   [3.5455 ms 3.6344 ms 3.8331 ms]
+                        thrpt:  [26.088 Melem/s 27.515 Melem/s 28.205 Melem/s]
+                 change:
+                        time:   [−45.247% −39.460% −31.934%] (p = 0.00 < 0.05)
+                        thrpt:  [+46.917% +65.181% +82.639%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
 Level Scaling/Cancel Orders/Random/EngineV1/levels_10000/orders_10
-                        time:   [23.719 ms 23.838 ms 23.989 ms]
-                        thrpt:  [4.1686 Melem/s 4.1950 Melem/s 4.2160 Melem/s]
+                        time:   [23.417 ms 23.642 ms 24.048 ms]
+                        thrpt:  [4.1584 Melem/s 4.2298 Melem/s 4.2703 Melem/s]
                  change:
-                        time:   [−3.9089% −1.4550% +0.9047%] (p = 0.31 > 0.05)
-                        thrpt:  [−0.8966% +1.4765% +4.0679%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
+                        time:   [+33.338% +35.724% +38.280%] (p = 0.00 < 0.05)
+                        thrpt:  [−27.683% −26.321% −25.002%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Random/EngineV2/levels_10000/orders_10
-                        time:   [17.387 ms 17.641 ms 17.926 ms]
-                        thrpt:  [5.5786 Melem/s 5.6686 Melem/s 5.7514 Melem/s]
+                        time:   [17.470 ms 17.775 ms 18.010 ms]
+                        thrpt:  [5.5526 Melem/s 5.6259 Melem/s 5.7241 Melem/s]
                  change:
-                        time:   [−5.1951% −2.0571% +0.4048%] (p = 0.18 > 0.05)
-                        thrpt:  [−0.4032% +2.1003% +5.4798%]
-                        No change in performance detected.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
-  1 (10.00%) high mild
+                        time:   [+37.372% +39.784% +42.128%] (p = 0.00 < 0.05)
+                        thrpt:  [−29.641% −28.461% −27.205%]
+                        Performance has regressed.
 Level Scaling/Cancel Orders/Random/EngineV3/levels_10000/orders_10
-                        time:   [12.599 ms 12.783 ms 12.922 ms]
-                        thrpt:  [7.7386 Melem/s 7.8226 Melem/s 7.9369 Melem/s]
+                        time:   [11.730 ms 12.182 ms 12.453 ms]
+                        thrpt:  [8.0302 Melem/s 8.2090 Melem/s 8.5251 Melem/s]
                  change:
-                        time:   [+1.1923% +6.5457% +11.037%] (p = 0.02 < 0.05)
-                        thrpt:  [−9.9398% −6.1436% −1.1782%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low severe
+                        time:   [+23.309% +27.070% +30.287%] (p = 0.00 < 0.05)
+                        thrpt:  [−23.246% −21.303% −18.903%]
+                        Performance has regressed.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) low mild
+  1 (10.00%) high mild
 Level Scaling/Cancel Orders/Random/EngineV4/levels_10000/orders_10
-                        time:   [4.4055 ms 4.6012 ms 5.0695 ms]
-                        thrpt:  [19.726 Melem/s 21.734 Melem/s 22.699 Melem/s]
+                        time:   [4.3480 ms 4.5157 ms 4.8755 ms]
+                        thrpt:  [20.511 Melem/s 22.145 Melem/s 22.999 Melem/s]
                  change:
-                        time:   [−21.189% +4.2535% +34.729%] (p = 0.80 > 0.05)
-                        thrpt:  [−25.777% −4.0800% +26.885%]
-                        No change in performance detected.
+                        time:   [−51.021% −41.653% −29.025%] (p = 0.00 < 0.05)
+                        thrpt:  [+40.894% +71.390% +104.17%]
+                        Performance has improved.
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
-Level Scaling/Cancel Orders/Random/EngineV5/levels_10000/orders_10
-                        time:   [3.8570 ms 3.9406 ms 4.1288 ms]
-                        thrpt:  [24.220 Melem/s 25.377 Melem/s 25.927 Melem/s]
-                 change:
-                        time:   [−12.457% −1.3929% +10.971%] (p = 0.84 > 0.05)
-                        thrpt:  [−9.8862% +1.4125% +14.230%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Cancel Orders/Random/EngineV1/levels_10000/orders_1000
-                        time:   [6.9856 s 7.0123 s 7.0383 s]
-                        thrpt:  [1.4208 Melem/s 1.4261 Melem/s 1.4315 Melem/s]
-Level Scaling/Cancel Orders/Random/EngineV2/levels_10000/orders_1000
-                        time:   [7.1719 s 7.2103 s 7.2473 s]
-                        thrpt:  [1.3798 Melem/s 1.3869 Melem/s 1.3943 Melem/s]
-Level Scaling/Cancel Orders/Random/EngineV3/levels_10000/orders_1000
-                        time:   [2.0969 s 2.1183 s 2.1414 s]
-                        thrpt:  [4.6699 Melem/s 4.7207 Melem/s 4.7690 Melem/s]
-Level Scaling/Cancel Orders/Random/EngineV4/levels_10000/orders_1000
-                        time:   [1.5228 s 1.5373 s 1.5498 s]
-                        thrpt:  [6.4524 Melem/s 6.5050 Melem/s 6.5667 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) low mild
-Level Scaling/Cancel Orders/Random/EngineV5/levels_10000/orders_1000
-                        time:   [718.85 ms 722.54 ms 726.35 ms]
-                        thrpt:  [13.767 Melem/s 13.840 Melem/s 13.911 Melem/s]
 
 Level Scaling/Place Orders/Default/EngineV1/levels_1/orders_100000
-                        time:   [5.2898 ms 5.3813 ms 5.5882 ms]
-                        thrpt:  [17.895 Melem/s 18.583 Melem/s 18.904 Melem/s]
-                 change:
-                        time:   [+9.8049% +24.466% +41.594%] (p = 0.00 < 0.05)
-                        thrpt:  [−29.376% −19.657% −8.9294%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV2/levels_1/orders_100000
-                        time:   [6.2845 ms 6.4313 ms 6.6830 ms]
-                        thrpt:  [14.963 Melem/s 15.549 Melem/s 15.912 Melem/s]
-                 change:
-                        time:   [+6.3290% +17.752% +29.360%] (p = 0.01 < 0.05)
-                        thrpt:  [−22.696% −15.076% −5.9523%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV3/levels_1/orders_100000
-                        time:   [2.0377 ms 2.0688 ms 2.1326 ms]
-                        thrpt:  [46.892 Melem/s 48.337 Melem/s 49.074 Melem/s]
-                 change:
-                        time:   [+58.648% +67.440% +76.829%] (p = 0.00 < 0.05)
-                        thrpt:  [−43.448% −40.277% −36.967%]
-                        Performance has regressed.
+                        time:   [4.1737 ms 4.2935 ms 4.5491 ms]
+                        thrpt:  [21.982 Melem/s 23.291 Melem/s 23.960 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
-Level Scaling/Place Orders/Default/EngineV4/levels_1/orders_100000
-                        time:   [1.5222 ms 1.5496 ms 1.5668 ms]
-                        thrpt:  [63.825 Melem/s 64.533 Melem/s 65.694 Melem/s]
-                 change:
-                        time:   [+41.127% +44.882% +48.338%] (p = 0.00 < 0.05)
-                        thrpt:  [−32.586% −30.978% −29.142%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Default/EngineV5/levels_1/orders_100000
-                        time:   [1.8036 ms 1.8254 ms 1.8418 ms]
-                        thrpt:  [54.295 Melem/s 54.781 Melem/s 55.445 Melem/s]
-                 change:
-                        time:   [+9.9261% +10.941% +11.832%] (p = 0.00 < 0.05)
-                        thrpt:  [−10.580% −9.8617% −9.0298%]
-                        Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
+Level Scaling/Place Orders/Default/EngineV2/levels_1/orders_100000
+                        time:   [5.1970 ms 5.4362 ms 5.7377 ms]
+                        thrpt:  [17.428 Melem/s 18.395 Melem/s 19.242 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Place Orders/Default/EngineV3/levels_1/orders_100000
+                        time:   [1.2454 ms 1.2564 ms 1.2745 ms]
+                        thrpt:  [78.465 Melem/s 79.594 Melem/s 80.296 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
+Level Scaling/Place Orders/Default/EngineV4/levels_1/orders_100000
+                        time:   [1.0396 ms 1.0552 ms 1.0700 ms]
+                        thrpt:  [93.458 Melem/s 94.772 Melem/s 96.195 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Default/EngineV1/levels_10/orders_10000
-                        time:   [5.2698 ms 5.3077 ms 5.3951 ms]
-                        thrpt:  [18.535 Melem/s 18.840 Melem/s 18.976 Melem/s]
-                 change:
-                        time:   [+18.837% +27.664% +37.405%] (p = 0.00 < 0.05)
-                        thrpt:  [−27.222% −21.670% −15.851%]
-                        Performance has regressed.
+                        time:   [4.1619 ms 4.2483 ms 4.3241 ms]
+                        thrpt:  [23.126 Melem/s 23.539 Melem/s 24.028 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
 Level Scaling/Place Orders/Default/EngineV2/levels_10/orders_10000
-                        time:   [6.7423 ms 6.7980 ms 6.9159 ms]
-                        thrpt:  [14.460 Melem/s 14.710 Melem/s 14.832 Melem/s]
-                 change:
-                        time:   [+15.470% +24.090% +31.811%] (p = 0.00 < 0.05)
-                        thrpt:  [−24.134% −19.413% −13.397%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Default/EngineV3/levels_10/orders_10000
-                        time:   [2.0571 ms 2.0714 ms 2.0932 ms]
-                        thrpt:  [47.773 Melem/s 48.278 Melem/s 48.613 Melem/s]
-                 change:
-                        time:   [+33.101% +39.874% +46.066%] (p = 0.00 < 0.05)
-                        thrpt:  [−31.538% −28.507% −24.869%]
-                        Performance has regressed.
+                        time:   [5.4389 ms 5.5376 ms 5.6297 ms]
+                        thrpt:  [17.763 Melem/s 18.058 Melem/s 18.386 Melem/s]
 Found 2 outliers among 10 measurements (20.00%)
   1 (10.00%) high mild
   1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV4/levels_10/orders_10000
-                        time:   [1.7421 ms 1.7574 ms 1.7746 ms]
-                        thrpt:  [56.352 Melem/s 56.901 Melem/s 57.401 Melem/s]
-                 change:
-                        time:   [+35.526% +36.862% +38.101%] (p = 0.00 < 0.05)
-                        thrpt:  [−27.589% −26.934% −26.214%]
-                        Performance has regressed.
+Level Scaling/Place Orders/Default/EngineV3/levels_10/orders_10000
+                        time:   [1.4264 ms 1.4390 ms 1.4709 ms]
+                        thrpt:  [67.988 Melem/s 69.494 Melem/s 70.108 Melem/s]
 Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) low mild
-Level Scaling/Place Orders/Default/EngineV5/levels_10/orders_10000
-                        time:   [1.7704 ms 1.7838 ms 1.8150 ms]
-                        thrpt:  [55.096 Melem/s 56.061 Melem/s 56.484 Melem/s]
-                 change:
-                        time:   [−2.6963% −0.5332% +1.6897%] (p = 0.63 > 0.05)
-                        thrpt:  [−1.6616% +0.5361% +2.7710%]
-                        No change in performance detected.
+  2 (20.00%) high mild
+Level Scaling/Place Orders/Default/EngineV4/levels_10/orders_10000
+                        time:   [1.2859 ms 1.2914 ms 1.2964 ms]
+                        thrpt:  [77.138 Melem/s 77.436 Melem/s 77.766 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
 Level Scaling/Place Orders/Default/EngineV1/levels_100/orders_1000
-                        time:   [6.0571 ms 6.0948 ms 6.1843 ms]
-                        thrpt:  [16.170 Melem/s 16.407 Melem/s 16.509 Melem/s]
-                 change:
-                        time:   [+26.413% +35.053% +43.890%] (p = 0.00 < 0.05)
-                        thrpt:  [−30.502% −25.955% −20.894%]
-                        Performance has regressed.
+                        time:   [4.4957 ms 4.5526 ms 4.6412 ms]
+                        thrpt:  [21.546 Melem/s 21.966 Melem/s 22.243 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
 Level Scaling/Place Orders/Default/EngineV2/levels_100/orders_1000
-                        time:   [7.2225 ms 7.3499 ms 7.5177 ms]
-                        thrpt:  [13.302 Melem/s 13.606 Melem/s 13.846 Melem/s]
-                 change:
-                        time:   [+17.521% +25.888% +33.724%] (p = 0.00 < 0.05)
-                        thrpt:  [−25.219% −20.564% −14.909%]
-                        Performance has regressed.
+                        time:   [5.6605 ms 5.7071 ms 5.7981 ms]
+                        thrpt:  [17.247 Melem/s 17.522 Melem/s 17.666 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Default/EngineV3/levels_100/orders_1000
-                        time:   [2.4582 ms 2.4879 ms 2.5228 ms]
-                        thrpt:  [39.638 Melem/s 40.195 Melem/s 40.681 Melem/s]
-                 change:
-                        time:   [+11.127% +16.093% +21.359%] (p = 0.00 < 0.05)
-                        thrpt:  [−17.600% −13.862% −10.013%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
+                        time:   [2.1141 ms 2.1415 ms 2.1923 ms]
+                        thrpt:  [45.614 Melem/s 46.697 Melem/s 47.302 Melem/s]
 Level Scaling/Place Orders/Default/EngineV4/levels_100/orders_1000
-                        time:   [2.1706 ms 2.1832 ms 2.2015 ms]
-                        thrpt:  [45.423 Melem/s 45.804 Melem/s 46.070 Melem/s]
-                 change:
-                        time:   [+20.412% +21.643% +22.761%] (p = 0.00 < 0.05)
-                        thrpt:  [−18.541% −17.792% −16.952%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Default/EngineV5/levels_100/orders_1000
-                        time:   [1.8321 ms 1.8495 ms 1.8684 ms]
-                        thrpt:  [53.523 Melem/s 54.070 Melem/s 54.581 Melem/s]
-                 change:
-                        time:   [+0.0900% +1.9779% +4.0603%] (p = 0.08 > 0.05)
-                        thrpt:  [−3.9019% −1.9396% −0.0899%]
-                        No change in performance detected.
+                        time:   [1.7823 ms 1.8096 ms 1.8291 ms]
+                        thrpt:  [54.672 Melem/s 55.261 Melem/s 56.108 Melem/s]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
 Level Scaling/Place Orders/Default/EngineV1/levels_1000/orders_100
-                        time:   [6.6550 ms 6.8093 ms 6.9558 ms]
-                        thrpt:  [14.377 Melem/s 14.686 Melem/s 15.026 Melem/s]
-                 change:
-                        time:   [+12.686% +19.107% +25.556%] (p = 0.00 < 0.05)
-                        thrpt:  [−20.354% −16.042% −11.257%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
+                        time:   [5.5838 ms 5.6758 ms 5.8221 ms]
+                        thrpt:  [17.176 Melem/s 17.619 Melem/s 17.909 Melem/s]
 Level Scaling/Place Orders/Default/EngineV2/levels_1000/orders_100
-                        time:   [8.6628 ms 8.8187 ms 9.0743 ms]
-                        thrpt:  [11.020 Melem/s 11.340 Melem/s 11.544 Melem/s]
-                 change:
-                        time:   [+24.552% +32.135% +39.423%] (p = 0.00 < 0.05)
-                        thrpt:  [−28.276% −24.320% −19.712%]
-                        Performance has regressed.
+                        time:   [6.5895 ms 6.7123 ms 6.8241 ms]
+                        thrpt:  [14.654 Melem/s 14.898 Melem/s 15.176 Melem/s]
+Found 3 outliers among 10 measurements (30.00%)
+  1 (10.00%) low mild
+  2 (20.00%) high severe
 Level Scaling/Place Orders/Default/EngineV3/levels_1000/orders_100
-                        time:   [3.5242 ms 3.5628 ms 3.6090 ms]
-                        thrpt:  [27.709 Melem/s 28.068 Melem/s 28.375 Melem/s]
-                 change:
-                        time:   [+5.3472% +8.4987% +12.176%] (p = 0.00 < 0.05)
-                        thrpt:  [−10.855% −7.8330% −5.0758%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
+                        time:   [3.2563 ms 3.3313 ms 3.4289 ms]
+                        thrpt:  [29.164 Melem/s 30.018 Melem/s 30.710 Melem/s]
 Level Scaling/Place Orders/Default/EngineV4/levels_1000/orders_100
-                        time:   [2.8957 ms 2.9227 ms 2.9779 ms]
-                        thrpt:  [33.581 Melem/s 34.215 Melem/s 34.534 Melem/s]
-                 change:
-                        time:   [+11.661% +13.238% +14.876%] (p = 0.00 < 0.05)
-                        thrpt:  [−12.950% −11.691% −10.443%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Default/EngineV5/levels_1000/orders_100
-                        time:   [2.0055 ms 2.0320 ms 2.0605 ms]
-                        thrpt:  [48.531 Melem/s 49.213 Melem/s 49.862 Melem/s]
-                 change:
-                        time:   [−1.8874% −0.1190% +1.6675%] (p = 0.91 > 0.05)
-                        thrpt:  [−1.6401% +0.1192% +1.9237%]
-                        No change in performance detected.
+                        time:   [2.5931 ms 2.6094 ms 2.6272 ms]
+                        thrpt:  [38.064 Melem/s 38.323 Melem/s 38.563 Melem/s]
 Level Scaling/Place Orders/Default/EngineV1/levels_10000/orders_10
-                        time:   [8.2086 ms 8.3583 ms 8.6538 ms]
-                        thrpt:  [11.556 Melem/s 11.964 Melem/s 12.182 Melem/s]
-                 change:
-                        time:   [+6.7035% +12.649% +18.404%] (p = 0.00 < 0.05)
-                        thrpt:  [−15.544% −11.229% −6.2823%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Default/EngineV2/levels_10000/orders_10
-                        time:   [10.455 ms 10.639 ms 11.035 ms]
-                        thrpt:  [9.0619 Melem/s 9.3991 Melem/s 9.5644 Melem/s]
-                 change:
-                        time:   [+11.685% +19.116% +26.540%] (p = 0.00 < 0.05)
-                        thrpt:  [−20.974% −16.048% −10.462%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Default/EngineV3/levels_10000/orders_10
-                        time:   [5.7589 ms 5.8455 ms 5.9818 ms]
-                        thrpt:  [16.717 Melem/s 17.107 Melem/s 17.364 Melem/s]
-                 change:
-                        time:   [−4.2569% −0.8113% +2.7337%] (p = 0.69 > 0.05)
-                        thrpt:  [−2.6609% +0.8179% +4.4462%]
-                        No change in performance detected.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV4/levels_10000/orders_10
-                        time:   [4.9650 ms 5.0123 ms 5.0570 ms]
-                        thrpt:  [19.775 Melem/s 19.951 Melem/s 20.141 Melem/s]
-                 change:
-                        time:   [+10.734% +13.205% +15.540%] (p = 0.00 < 0.05)
-                        thrpt:  [−13.450% −11.665% −9.6936%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Default/EngineV5/levels_10000/orders_10
-                        time:   [5.5452 ms 5.6366 ms 5.6802 ms]
-                        thrpt:  [17.605 Melem/s 17.741 Melem/s 18.034 Melem/s]
-                 change:
-                        time:   [−4.7632% −3.0304% −1.1732%] (p = 0.01 < 0.05)
-                        thrpt:  [+1.1871% +3.1251% +5.0014%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Default/EngineV1/levels_10000/orders_1000
-                        time:   [2.5487 s 2.5659 s 2.5846 s]
-                        thrpt:  [3.8691 Melem/s 3.8973 Melem/s 3.9236 Melem/s]
-Level Scaling/Place Orders/Default/EngineV2/levels_10000/orders_1000
-                        time:   [2.6678 s 2.6866 s 2.7099 s]
-                        thrpt:  [3.6902 Melem/s 3.7221 Melem/s 3.7484 Melem/s]
+                        time:   [7.5673 ms 7.6130 ms 7.6709 ms]
+                        thrpt:  [13.036 Melem/s 13.135 Melem/s 13.215 Melem/s]
 Found 2 outliers among 10 measurements (20.00%)
   1 (10.00%) high mild
   1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV3/levels_10000/orders_1000
-                        time:   [582.24 ms 589.40 ms 597.23 ms]
-                        thrpt:  [16.744 Melem/s 16.966 Melem/s 17.175 Melem/s]
-Level Scaling/Place Orders/Default/EngineV4/levels_10000/orders_1000
-                        time:   [327.72 ms 329.61 ms 332.29 ms]
-                        thrpt:  [30.094 Melem/s 30.339 Melem/s 30.514 Melem/s]
+Level Scaling/Place Orders/Default/EngineV2/levels_10000/orders_10
+                        time:   [8.8847 ms 9.0350 ms 9.3435 ms]
+                        thrpt:  [10.703 Melem/s 11.068 Melem/s 11.255 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-Level Scaling/Place Orders/Default/EngineV5/levels_10000/orders_1000
-                        time:   [184.46 ms 189.30 ms 195.68 ms]
-                        thrpt:  [51.103 Melem/s 52.827 Melem/s 54.212 Melem/s]
+  1 (10.00%) high mild
+Level Scaling/Place Orders/Default/EngineV3/levels_10000/orders_10
+                        time:   [5.8481 ms 5.9786 ms 6.1137 ms]
+                        thrpt:  [16.357 Melem/s 16.726 Melem/s 17.100 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Place Orders/Default/EngineV4/levels_10000/orders_10
+                        time:   [4.4239 ms 4.4926 ms 4.5961 ms]
+                        thrpt:  [21.758 Melem/s 22.259 Melem/s 22.604 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
 
 Level Scaling/Place Orders/Reverse/EngineV1/levels_1/orders_100000
-                        time:   [4.7328 ms 4.8089 ms 4.8992 ms]
-                        thrpt:  [20.411 Melem/s 20.795 Melem/s 21.129 Melem/s]
-                 change:
-                        time:   [+9.3784% +16.893% +23.118%] (p = 0.00 < 0.05)
-                        thrpt:  [−18.777% −14.452% −8.5743%]
-                        Performance has regressed.
+                        time:   [3.8351 ms 3.9047 ms 3.9834 ms]
+                        thrpt:  [25.104 Melem/s 25.610 Melem/s 26.075 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Reverse/EngineV2/levels_1/orders_100000
-                        time:   [5.9146 ms 6.0581 ms 6.2415 ms]
-                        thrpt:  [16.022 Melem/s 16.507 Melem/s 16.907 Melem/s]
-                 change:
-                        time:   [+1.5931% +8.6347% +14.429%] (p = 0.02 < 0.05)
-                        thrpt:  [−12.610% −7.9484% −1.5681%]
-                        Change within noise threshold.
+                        time:   [5.1909 ms 5.2555 ms 5.3202 ms]
+                        thrpt:  [18.796 Melem/s 19.028 Melem/s 19.265 Melem/s]
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+Level Scaling/Place Orders/Reverse/EngineV3/levels_1/orders_100000
+                        time:   [1.2517 ms 1.2746 ms 1.3032 ms]
+                        thrpt:  [76.732 Melem/s 78.453 Melem/s 79.890 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Place Orders/Reverse/EngineV4/levels_1/orders_100000
+                        time:   [1.0165 ms 1.0341 ms 1.0502 ms]
+                        thrpt:  [95.216 Melem/s 96.700 Melem/s 98.372 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV1/levels_10/orders_10000
+                        time:   [4.1879 ms 4.2205 ms 4.2893 ms]
+                        thrpt:  [23.314 Melem/s 23.694 Melem/s 23.879 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Place Orders/Reverse/EngineV2/levels_10/orders_10000
+                        time:   [5.2673 ms 5.3416 ms 5.4952 ms]
+                        thrpt:  [18.198 Melem/s 18.721 Melem/s 18.985 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Place Orders/Reverse/EngineV3/levels_10/orders_10000
+                        time:   [1.2345 ms 1.2553 ms 1.2832 ms]
+                        thrpt:  [77.929 Melem/s 79.659 Melem/s 81.008 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
-Level Scaling/Place Orders/Reverse/EngineV3/levels_1/orders_100000
-                        time:   [1.9574 ms 1.9912 ms 2.0277 ms]
-                        thrpt:  [49.317 Melem/s 50.221 Melem/s 51.088 Melem/s]
-                 change:
-                        time:   [+40.327% +47.891% +54.899%] (p = 0.00 < 0.05)
-                        thrpt:  [−35.442% −32.382% −28.738%]
-                        Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) low severe
-  1 (10.00%) low mild
-Level Scaling/Place Orders/Reverse/EngineV4/levels_1/orders_100000
-                        time:   [1.4556 ms 1.4675 ms 1.4724 ms]
-                        thrpt:  [67.919 Melem/s 68.143 Melem/s 68.700 Melem/s]
-                 change:
-                        time:   [+35.580% +38.941% +42.141%] (p = 0.00 < 0.05)
-                        thrpt:  [−29.647% −28.027% −26.243%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV5/levels_1/orders_100000
-                        time:   [1.6981 ms 1.7208 ms 1.7493 ms]
-                        thrpt:  [57.166 Melem/s 58.111 Melem/s 58.890 Melem/s]
-                 change:
-                        time:   [−6.8140% −4.1440% −1.7712%] (p = 0.01 < 0.05)
-                        thrpt:  [+1.8032% +4.3231% +7.3123%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Reverse/EngineV1/levels_10/orders_10000
-                        time:   [5.0267 ms 5.1025 ms 5.1813 ms]
-                        thrpt:  [19.300 Melem/s 19.598 Melem/s 19.894 Melem/s]
-                 change:
-                        time:   [+10.004% +15.468% +19.817%] (p = 0.00 < 0.05)
-                        thrpt:  [−16.539% −13.396% −9.0941%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV2/levels_10/orders_10000
-                        time:   [5.8505 ms 6.0073 ms 6.1574 ms]
-                        thrpt:  [16.241 Melem/s 16.647 Melem/s 17.093 Melem/s]
-                 change:
-                        time:   [−0.8452% +5.1813% +10.445%] (p = 0.10 > 0.05)
-                        thrpt:  [−9.4571% −4.9261% +0.8524%]
-                        No change in performance detected.
-Level Scaling/Place Orders/Reverse/EngineV3/levels_10/orders_10000
-                        time:   [1.9508 ms 1.9924 ms 2.0267 ms]
-                        thrpt:  [49.342 Melem/s 50.190 Melem/s 51.261 Melem/s]
-                 change:
-                        time:   [+43.557% +50.135% +56.103%] (p = 0.00 < 0.05)
-                        thrpt:  [−35.940% −33.393% −30.341%]
-                        Performance has regressed.
-Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) low severe
 Level Scaling/Place Orders/Reverse/EngineV4/levels_10/orders_10000
-                        time:   [1.4751 ms 1.4910 ms 1.5170 ms]
-                        thrpt:  [65.918 Melem/s 67.071 Melem/s 67.791 Melem/s]
-                 change:
-                        time:   [+41.414% +44.179% +46.669%] (p = 0.00 < 0.05)
-                        thrpt:  [−31.819% −30.642% −29.286%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV5/levels_10/orders_10000
-                        time:   [1.7016 ms 1.7369 ms 1.7746 ms]
-                        thrpt:  [56.349 Melem/s 57.575 Melem/s 58.769 Melem/s]
-                 change:
-                        time:   [−9.5544% −6.2290% −3.1049%] (p = 0.00 < 0.05)
-                        thrpt:  [+3.2044% +6.6427% +10.564%]
-                        Change within noise threshold.
-Found 4 outliers among 10 measurements (40.00%)
-  1 (10.00%) low severe
-  1 (10.00%) low mild
-  2 (20.00%) high severe
+                        time:   [1.0244 ms 1.0408 ms 1.0514 ms]
+                        thrpt:  [95.110 Melem/s 96.079 Melem/s 97.615 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Reverse/EngineV1/levels_100/orders_1000
-                        time:   [5.4389 ms 5.4933 ms 5.5378 ms]
-                        thrpt:  [18.058 Melem/s 18.204 Melem/s 18.386 Melem/s]
-                 change:
-                        time:   [+6.8039% +12.176% +16.649%] (p = 0.00 < 0.05)
-                        thrpt:  [−14.272% −10.855% −6.3705%]
-                        Performance has regressed.
+                        time:   [4.6204 ms 4.6818 ms 4.7837 ms]
+                        thrpt:  [20.904 Melem/s 21.359 Melem/s 21.643 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Reverse/EngineV2/levels_100/orders_1000
-                        time:   [5.9469 ms 6.0048 ms 6.0491 ms]
-                        thrpt:  [16.531 Melem/s 16.653 Melem/s 16.815 Melem/s]
-                 change:
-                        time:   [−1.8422% +3.3170% +7.5226%] (p = 0.21 > 0.05)
-                        thrpt:  [−6.9963% −3.2105% +1.8767%]
-                        No change in performance detected.
+                        time:   [5.4891 ms 5.5384 ms 5.6224 ms]
+                        thrpt:  [17.786 Melem/s 18.056 Melem/s 18.218 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Reverse/EngineV3/levels_100/orders_1000
-                        time:   [1.9463 ms 1.9857 ms 2.0202 ms]
-                        thrpt:  [49.500 Melem/s 50.360 Melem/s 51.379 Melem/s]
-                 change:
-                        time:   [+29.844% +35.499% +40.515%] (p = 0.00 < 0.05)
-                        thrpt:  [−28.833% −26.199% −22.984%]
-                        Performance has regressed.
-Found 3 outliers among 10 measurements (30.00%)
-  2 (20.00%) low severe
+                        time:   [1.3838 ms 1.3970 ms 1.4133 ms]
+                        thrpt:  [70.756 Melem/s 71.583 Melem/s 72.265 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
 Level Scaling/Place Orders/Reverse/EngineV4/levels_100/orders_1000
-                        time:   [1.5405 ms 1.5675 ms 1.6025 ms]
-                        thrpt:  [62.404 Melem/s 63.796 Melem/s 64.913 Melem/s]
-                 change:
-                        time:   [+25.987% +29.755% +33.161%] (p = 0.00 < 0.05)
-                        thrpt:  [−24.903% −22.932% −20.627%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV5/levels_100/orders_1000
-                        time:   [1.7645 ms 1.7926 ms 1.8293 ms]
-                        thrpt:  [54.666 Melem/s 55.785 Melem/s 56.673 Melem/s]
-                 change:
-                        time:   [−6.8602% −4.1159% −1.3906%] (p = 0.02 < 0.05)
-                        thrpt:  [+1.4102% +4.2926% +7.3655%]
-                        Change within noise threshold.
+                        time:   [1.1850 ms 1.1954 ms 1.2055 ms]
+                        thrpt:  [82.956 Melem/s 83.656 Melem/s 84.388 Melem/s]
 Level Scaling/Place Orders/Reverse/EngineV1/levels_1000/orders_100
-                        time:   [6.2569 ms 6.3486 ms 6.3993 ms]
-                        thrpt:  [15.627 Melem/s 15.751 Melem/s 15.982 Melem/s]
-                 change:
-                        time:   [−3.7359% +2.1568% +7.3805%] (p = 0.50 > 0.05)
-                        thrpt:  [−6.8732% −2.1113% +3.8809%]
-                        No change in performance detected.
-Level Scaling/Place Orders/Reverse/EngineV2/levels_1000/orders_100
-                        time:   [6.5516 ms 6.6864 ms 6.8196 ms]
-                        thrpt:  [14.664 Melem/s 14.956 Melem/s 15.263 Melem/s]
-                 change:
-                        time:   [+0.7296% +7.8293% +13.815%] (p = 0.03 < 0.05)
-                        thrpt:  [−12.138% −7.2608% −0.7243%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Reverse/EngineV3/levels_1000/orders_100
-                        time:   [2.3068 ms 2.3335 ms 2.3715 ms]
-                        thrpt:  [42.167 Melem/s 42.855 Melem/s 43.350 Melem/s]
-                 change:
-                        time:   [+22.757% +26.563% +30.635%] (p = 0.00 < 0.05)
-                        thrpt:  [−23.451% −20.988% −18.539%]
-                        Performance has regressed.
-Found 3 outliers among 10 measurements (30.00%)
-  2 (20.00%) low severe
+                        time:   [5.7660 ms 5.8565 ms 5.9756 ms]
+                        thrpt:  [16.735 Melem/s 17.075 Melem/s 17.343 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
-Level Scaling/Place Orders/Reverse/EngineV4/levels_1000/orders_100
-                        time:   [1.8278 ms 1.8804 ms 1.9076 ms]
-                        thrpt:  [52.422 Melem/s 53.181 Melem/s 54.712 Melem/s]
-                 change:
-                        time:   [+26.427% +29.055% +31.497%] (p = 0.00 < 0.05)
-                        thrpt:  [−23.952% −22.514% −20.903%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV5/levels_1000/orders_100
-                        time:   [1.9090 ms 1.9328 ms 1.9746 ms]
-                        thrpt:  [50.644 Melem/s 51.739 Melem/s 52.383 Melem/s]
-                 change:
-                        time:   [−7.5355% −4.5264% −1.3851%] (p = 0.02 < 0.05)
-                        thrpt:  [+1.4046% +4.7410% +8.1496%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Reverse/EngineV1/levels_10000/orders_10
-                        time:   [22.044 ms 22.080 ms 22.131 ms]
-                        thrpt:  [4.5186 Melem/s 4.5290 Melem/s 4.5364 Melem/s]
-                 change:
-                        time:   [−4.7949% −4.5343% −4.2561%] (p = 0.00 < 0.05)
-                        thrpt:  [+4.4453% +4.7497% +5.0364%]
-                        Change within noise threshold.
+Level Scaling/Place Orders/Reverse/EngineV2/levels_1000/orders_100
+                        time:   [5.6585 ms 5.7509 ms 5.9378 ms]
+                        thrpt:  [16.841 Melem/s 17.389 Melem/s 17.673 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high severe
+Level Scaling/Place Orders/Reverse/EngineV3/levels_1000/orders_100
+                        time:   [1.7368 ms 1.7713 ms 1.8393 ms]
+                        thrpt:  [54.367 Melem/s 56.456 Melem/s 57.576 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV4/levels_1000/orders_100
+                        time:   [1.4266 ms 1.4479 ms 1.4675 ms]
+                        thrpt:  [68.145 Melem/s 69.067 Melem/s 70.099 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV1/levels_10000/orders_10
+                        time:   [23.033 ms 23.116 ms 23.221 ms]
+                        thrpt:  [4.3065 Melem/s 4.3260 Melem/s 4.3417 Melem/s]
 Level Scaling/Place Orders/Reverse/EngineV2/levels_10000/orders_10
-                        time:   [7.7560 ms 7.8539 ms 7.9177 ms]
-                        thrpt:  [12.630 Melem/s 12.733 Melem/s 12.893 Melem/s]
-                 change:
-                        time:   [+15.496% +17.347% +19.070%] (p = 0.00 < 0.05)
-                        thrpt:  [−16.016% −14.783% −13.417%]
-                        Performance has regressed.
+                        time:   [6.5824 ms 6.6350 ms 6.6785 ms]
+                        thrpt:  [14.973 Melem/s 15.072 Melem/s 15.192 Melem/s]
 Level Scaling/Place Orders/Reverse/EngineV3/levels_10000/orders_10
-                        time:   [3.4109 ms 3.4715 ms 3.5233 ms]
-                        thrpt:  [28.383 Melem/s 28.806 Melem/s 29.318 Melem/s]
-                 change:
-                        time:   [+3.6279% +6.8816% +10.078%] (p = 0.00 < 0.05)
-                        thrpt:  [−9.1549% −6.4385% −3.5009%]
-                        Change within noise threshold.
+                        time:   [3.1274 ms 3.1559 ms 3.1977 ms]
+                        thrpt:  [31.273 Melem/s 31.687 Melem/s 31.976 Melem/s]
 Level Scaling/Place Orders/Reverse/EngineV4/levels_10000/orders_10
-                        time:   [3.2039 ms 3.2386 ms 3.2563 ms]
-                        thrpt:  [30.710 Melem/s 30.878 Melem/s 31.212 Melem/s]
-                 change:
-                        time:   [+5.9040% +7.3413% +8.6901%] (p = 0.00 < 0.05)
-                        thrpt:  [−7.9953% −6.8392% −5.5749%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Reverse/EngineV5/levels_10000/orders_10
-                        time:   [3.2564 ms 3.2948 ms 3.3117 ms]
-                        thrpt:  [30.196 Melem/s 30.351 Melem/s 30.709 Melem/s]
-                 change:
-                        time:   [−8.3981% −6.1562% −4.1376%] (p = 0.00 < 0.05)
-                        thrpt:  [+4.3162% +6.5600% +9.1681%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Reverse/EngineV1/levels_10000/orders_1000
-                        time:   [2.4727 s 2.4903 s 2.5095 s]
-                        thrpt:  [3.9849 Melem/s 4.0157 Melem/s 4.0442 Melem/s]
-Level Scaling/Place Orders/Reverse/EngineV2/levels_10000/orders_1000
-                        time:   [2.4084 s 2.4254 s 2.4493 s]
-                        thrpt:  [4.0828 Melem/s 4.1231 Melem/s 4.1521 Melem/s]
-Found 2 outliers among 10 measurements (20.00%)
-  1 (10.00%) high mild
-  1 (10.00%) high severe
-Level Scaling/Place Orders/Reverse/EngineV3/levels_10000/orders_1000
-                        time:   [359.05 ms 364.43 ms 370.22 ms]
-                        thrpt:  [27.011 Melem/s 27.440 Melem/s 27.852 Melem/s]
-Level Scaling/Place Orders/Reverse/EngineV4/levels_10000/orders_1000
-                        time:   [184.07 ms 186.57 ms 189.24 ms]
-                        thrpt:  [52.842 Melem/s 53.599 Melem/s 54.328 Melem/s]
-Level Scaling/Place Orders/Reverse/EngineV5/levels_10000/orders_1000
-                        time:   [177.14 ms 179.98 ms 183.07 ms]
-                        thrpt:  [54.624 Melem/s 55.560 Melem/s 56.453 Melem/s]
-Found 3 outliers among 10 measurements (30.00%)
-  1 (10.00%) low severe
-  2 (20.00%) high severe
+                        time:   [3.0021 ms 3.0237 ms 3.0402 ms]
+                        thrpt:  [32.893 Melem/s 33.072 Melem/s 33.310 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
 
 Level Scaling/Place Orders/Random/EngineV1/levels_1/orders_100000
-                        time:   [4.4394 ms 4.5770 ms 4.6578 ms]
-                        thrpt:  [21.470 Melem/s 21.848 Melem/s 22.525 Melem/s]
-                 change:
-                        time:   [−0.9945% +5.9421% +11.854%] (p = 0.10 > 0.05)
-                        thrpt:  [−10.598% −5.6088% +1.0045%]
-                        No change in performance detected.
+                        time:   [3.9939 ms 4.0489 ms 4.1334 ms]
+                        thrpt:  [24.193 Melem/s 24.698 Melem/s 25.038 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Random/EngineV2/levels_1/orders_100000
-                        time:   [5.7211 ms 5.8127 ms 5.9343 ms]
-                        thrpt:  [16.851 Melem/s 17.204 Melem/s 17.479 Melem/s]
-                 change:
-                        time:   [−8.7859% −4.2550% +0.9709%] (p = 0.14 > 0.05)
-                        thrpt:  [−0.9616% +4.4441% +9.6322%]
-                        No change in performance detected.
-Found 3 outliers among 10 measurements (30.00%)
-  1 (10.00%) low mild
-  2 (20.00%) high severe
+                        time:   [5.4379 ms 5.7575 ms 6.3034 ms]
+                        thrpt:  [15.865 Melem/s 17.369 Melem/s 18.390 Melem/s]
 Level Scaling/Place Orders/Random/EngineV3/levels_1/orders_100000
-                        time:   [1.7068 ms 1.7526 ms 1.7856 ms]
-                        thrpt:  [56.005 Melem/s 57.058 Melem/s 58.590 Melem/s]
-                 change:
-                        time:   [+23.128% +31.166% +38.063%] (p = 0.00 < 0.05)
-                        thrpt:  [−27.569% −23.761% −18.783%]
-                        Performance has regressed.
+                        time:   [1.2378 ms 1.2519 ms 1.2812 ms]
+                        thrpt:  [78.053 Melem/s 79.877 Melem/s 80.789 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV4/levels_1/orders_100000
-                        time:   [1.3772 ms 1.3785 ms 1.3802 ms]
-                        thrpt:  [72.452 Melem/s 72.544 Melem/s 72.609 Melem/s]
-                 change:
-                        time:   [+31.470% +33.842% +37.622%] (p = 0.00 < 0.05)
-                        thrpt:  [−27.337% −25.285% −23.937%]
-                        Performance has regressed.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Random/EngineV5/levels_1/orders_100000
-                        time:   [1.6079 ms 1.6097 ms 1.6126 ms]
-                        thrpt:  [62.013 Melem/s 62.122 Melem/s 62.194 Melem/s]
-                 change:
-                        time:   [−9.4660% −8.4132% −7.4670%] (p = 0.00 < 0.05)
-                        thrpt:  [+8.0695% +9.1861% +10.456%]
-                        Performance has improved.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Random/EngineV1/levels_10/orders_10000
-                        time:   [5.1944 ms 5.2575 ms 5.3428 ms]
-                        thrpt:  [18.717 Melem/s 19.021 Melem/s 19.251 Melem/s]
-                 change:
-                        time:   [+5.9972% +13.410% +20.154%] (p = 0.00 < 0.05)
-                        thrpt:  [−16.774% −11.824% −5.6579%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Random/EngineV2/levels_10/orders_10000
-                        time:   [6.4633 ms 6.4819 ms 6.4977 ms]
-                        thrpt:  [15.390 Melem/s 15.428 Melem/s 15.472 Melem/s]
-                 change:
-                        time:   [−1.1923% +3.5737% +7.8013%] (p = 0.15 > 0.05)
-                        thrpt:  [−7.2368% −3.4504% +1.2067%]
-                        No change in performance detected.
-Level Scaling/Place Orders/Random/EngineV3/levels_10/orders_10000
-                        time:   [2.3617 ms 2.4066 ms 2.4603 ms]
-                        thrpt:  [40.645 Melem/s 41.553 Melem/s 42.343 Melem/s]
-                 change:
-                        time:   [+2.1052% +5.0912% +8.1505%] (p = 0.00 < 0.05)
-                        thrpt:  [−7.5362% −4.8445% −2.0618%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Random/EngineV4/levels_10/orders_10000
-                        time:   [2.2226 ms 2.2246 ms 2.2263 ms]
-                        thrpt:  [44.918 Melem/s 44.952 Melem/s 44.993 Melem/s]
-                 change:
-                        time:   [+6.5585% +8.1738% +10.284%] (p = 0.00 < 0.05)
-                        thrpt:  [−9.3252% −7.5562% −6.1549%]
-                        Performance has regressed.
+                        time:   [1.0259 ms 1.0346 ms 1.0484 ms]
+                        thrpt:  [95.383 Melem/s 96.656 Melem/s 97.475 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) low severe
-Level Scaling/Place Orders/Random/EngineV5/levels_10/orders_10000
-                        time:   [1.6237 ms 1.6256 ms 1.6307 ms]
-                        thrpt:  [61.325 Melem/s 61.517 Melem/s 61.586 Melem/s]
-                 change:
-                        time:   [−9.8953% −8.3128% −6.4476%] (p = 0.00 < 0.05)
-                        thrpt:  [+6.8919% +9.0665% +10.982%]
-                        Performance has improved.
-Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) high severe
+Level Scaling/Place Orders/Random/EngineV1/levels_10/orders_10000
+                        time:   [4.2997 ms 4.3540 ms 4.4667 ms]
+                        thrpt:  [22.388 Melem/s 22.967 Melem/s 23.257 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Place Orders/Random/EngineV2/levels_10/orders_10000
+                        time:   [5.9136 ms 5.9885 ms 6.1226 ms]
+                        thrpt:  [16.333 Melem/s 16.699 Melem/s 16.910 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Place Orders/Random/EngineV3/levels_10/orders_10000
+                        time:   [2.1947 ms 2.2311 ms 2.2818 ms]
+                        thrpt:  [43.824 Melem/s 44.821 Melem/s 45.564 Melem/s]
+Level Scaling/Place Orders/Random/EngineV4/levels_10/orders_10000
+                        time:   [2.0567 ms 2.0774 ms 2.0959 ms]
+                        thrpt:  [47.711 Melem/s 48.137 Melem/s 48.622 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
 Level Scaling/Place Orders/Random/EngineV1/levels_100/orders_1000
-                        time:   [5.5188 ms 5.5974 ms 5.7114 ms]
-                        thrpt:  [17.509 Melem/s 17.865 Melem/s 18.120 Melem/s]
-                 change:
-                        time:   [−1.0817% +4.5311% +9.3656%] (p = 0.12 > 0.05)
-                        thrpt:  [−8.5636% −4.3347% +1.0935%]
-                        No change in performance detected.
+                        time:   [5.1174 ms 5.1904 ms 5.3074 ms]
+                        thrpt:  [18.842 Melem/s 19.266 Melem/s 19.541 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
 Level Scaling/Place Orders/Random/EngineV2/levels_100/orders_1000
-                        time:   [7.6415 ms 7.8250 ms 7.9351 ms]
-                        thrpt:  [12.602 Melem/s 12.780 Melem/s 13.087 Melem/s]
-                 change:
-                        time:   [−0.3346% +4.1449% +8.6585%] (p = 0.09 > 0.05)
-                        thrpt:  [−7.9685% −3.9800% +0.3357%]
-                        No change in performance detected.
+                        time:   [7.0128 ms 7.1316 ms 7.3053 ms]
+                        thrpt:  [13.689 Melem/s 14.022 Melem/s 14.260 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV3/levels_100/orders_1000
-                        time:   [3.4144 ms 3.4246 ms 3.4415 ms]
-                        thrpt:  [29.057 Melem/s 29.201 Melem/s 29.288 Melem/s]
-                 change:
-                        time:   [−4.1116% −0.4293% +2.4906%] (p = 0.85 > 0.05)
-                        thrpt:  [−2.4301% +0.4311% +4.2879%]
-                        No change in performance detected.
+                        time:   [3.3066 ms 3.3698 ms 3.4619 ms]
+                        thrpt:  [28.886 Melem/s 29.675 Melem/s 30.242 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV4/levels_100/orders_1000
-                        time:   [3.7337 ms 3.8157 ms 3.8866 ms]
-                        thrpt:  [25.729 Melem/s 26.208 Melem/s 26.783 Melem/s]
-                 change:
-                        time:   [+13.348% +16.122% +18.803%] (p = 0.00 < 0.05)
-                        thrpt:  [−15.827% −13.884% −11.776%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Random/EngineV5/levels_100/orders_1000
-                        time:   [2.2582 ms 2.2842 ms 2.3173 ms]
-                        thrpt:  [43.154 Melem/s 43.779 Melem/s 44.284 Melem/s]
-                 change:
-                        time:   [−8.9330% −5.5336% −2.8388%] (p = 0.00 < 0.05)
-                        thrpt:  [+2.9217% +5.8577% +9.8093%]
-                        Change within noise threshold.
+                        time:   [3.2281 ms 3.2878 ms 3.3658 ms]
+                        thrpt:  [29.711 Melem/s 30.416 Melem/s 30.978 Melem/s]
 Level Scaling/Place Orders/Random/EngineV1/levels_1000/orders_100
-                        time:   [6.5374 ms 6.6295 ms 6.7918 ms]
-                        thrpt:  [14.724 Melem/s 15.084 Melem/s 15.297 Melem/s]
-                 change:
-                        time:   [−13.122% −8.7769% −4.6206%] (p = 0.00 < 0.05)
-                        thrpt:  [+4.8444% +9.6213% +15.104%]
-                        Change within noise threshold.
+                        time:   [6.8604 ms 7.0635 ms 7.3070 ms]
+                        thrpt:  [13.685 Melem/s 14.157 Melem/s 14.576 Melem/s]
 Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) high severe
+  2 (20.00%) high mild
 Level Scaling/Place Orders/Random/EngineV2/levels_1000/orders_100
-                        time:   [9.6179 ms 9.7326 ms 9.8774 ms]
-                        thrpt:  [10.124 Melem/s 10.275 Melem/s 10.397 Melem/s]
-                 change:
-                        time:   [+1.5047% +4.0839% +6.7952%] (p = 0.01 < 0.05)
-                        thrpt:  [−6.3629% −3.9237% −1.4824%]
-                        Change within noise threshold.
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
+                        time:   [9.0364 ms 9.2052 ms 9.5168 ms]
+                        thrpt:  [10.508 Melem/s 10.863 Melem/s 11.066 Melem/s]
 Level Scaling/Place Orders/Random/EngineV3/levels_1000/orders_100
-                        time:   [5.6183 ms 5.7015 ms 5.8198 ms]
-                        thrpt:  [17.183 Melem/s 17.539 Melem/s 17.799 Melem/s]
-                 change:
-                        time:   [−1.8184% +1.2693% +4.4811%] (p = 0.46 > 0.05)
-                        thrpt:  [−4.2889% −1.2534% +1.8521%]
-                        No change in performance detected.
+                        time:   [5.4650 ms 5.5662 ms 5.7500 ms]
+                        thrpt:  [17.391 Melem/s 17.965 Melem/s 18.298 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV4/levels_1000/orders_100
-                        time:   [8.8493 ms 8.8599 ms 8.8686 ms]
-                        thrpt:  [11.276 Melem/s 11.287 Melem/s 11.300 Melem/s]
-                 change:
-                        time:   [+24.049% +26.145% +27.909%] (p = 0.00 < 0.05)
-                        thrpt:  [−21.819% −20.726% −19.387%]
-                        Performance has regressed.
-Level Scaling/Place Orders/Random/EngineV5/levels_1000/orders_100
-                        time:   [5.6099 ms 5.6194 ms 5.6294 ms]
-                        thrpt:  [17.764 Melem/s 17.795 Melem/s 17.826 Melem/s]
-                 change:
-                        time:   [−6.9568% −6.0705% −5.2062%] (p = 0.00 < 0.05)
-                        thrpt:  [+5.4921% +6.4628% +7.4770%]
-                        Performance has improved.
+                        time:   [6.9533 ms 7.0071 ms 7.1099 ms]
+                        thrpt:  [14.065 Melem/s 14.271 Melem/s 14.382 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV1/levels_10000/orders_10
-                        time:   [17.933 ms 17.945 ms 17.966 ms]
-                        thrpt:  [5.5661 Melem/s 5.5725 Melem/s 5.5764 Melem/s]
-                 change:
-                        time:   [−12.268% −9.4203% −6.7877%] (p = 0.00 < 0.05)
-                        thrpt:  [+7.2820% +10.400% +13.983%]
-                        Performance has improved.
-Found 2 outliers among 10 measurements (20.00%)
-  2 (20.00%) high mild
+                        time:   [18.807 ms 19.164 ms 19.737 ms]
+                        thrpt:  [5.0665 Melem/s 5.2182 Melem/s 5.3171 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
 Level Scaling/Place Orders/Random/EngineV2/levels_10000/orders_10
-                        time:   [13.634 ms 13.818 ms 14.042 ms]
-                        thrpt:  [7.1214 Melem/s 7.2371 Melem/s 7.3344 Melem/s]
-                 change:
-                        time:   [−1.7736% +0.8663% +3.2915%] (p = 0.53 > 0.05)
-                        thrpt:  [−3.1866% −0.8589% +1.8057%]
-                        No change in performance detected.
-Level Scaling/Place Orders/Random/EngineV3/levels_10000/orders_10
-                        time:   [9.5352 ms 9.8657 ms 10.116 ms]
-                        thrpt:  [9.8858 Melem/s 10.136 Melem/s 10.487 Melem/s]
-                 change:
-                        time:   [−6.5702% −3.6762% −0.7051%] (p = 0.03 < 0.05)
-                        thrpt:  [+0.7101% +3.8165% +7.0322%]
-                        Change within noise threshold.
-Level Scaling/Place Orders/Random/EngineV4/levels_10000/orders_10
-                        time:   [13.015 ms 13.035 ms 13.050 ms]
-                        thrpt:  [7.6631 Melem/s 7.6716 Melem/s 7.6836 Melem/s]
-                 change:
-                        time:   [+30.017% +31.168% +32.246%] (p = 0.00 < 0.05)
-                        thrpt:  [−24.384% −23.762% −23.087%]
-                        Performance has regressed.
+                        time:   [13.269 ms 13.343 ms 13.510 ms]
+                        thrpt:  [7.4021 Melem/s 7.4945 Melem/s 7.5363 Melem/s]
 Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
-Level Scaling/Place Orders/Random/EngineV5/levels_10000/orders_10
-                        time:   [8.5005 ms 8.5956 ms 8.7066 ms]
-                        thrpt:  [11.486 Melem/s 11.634 Melem/s 11.764 Melem/s]
-                 change:
-                        time:   [−1.6362% −0.2688% +1.0977%] (p = 0.72 > 0.05)
-                        thrpt:  [−1.0858% +0.2695% +1.6634%]
-                        No change in performance detected.
-Level Scaling/Place Orders/Random/EngineV1/levels_10000/orders_1000
-                        time:   [2.6027 s 2.6159 s 2.6306 s]
-                        thrpt:  [3.8014 Melem/s 3.8228 Melem/s 3.8422 Melem/s]
+Level Scaling/Place Orders/Random/EngineV3/levels_10000/orders_10
+                        time:   [9.7132 ms 9.8654 ms 10.099 ms]
+                        thrpt:  [9.9017 Melem/s 10.136 Melem/s 10.295 Melem/s]
 Found 2 outliers among 10 measurements (20.00%)
   2 (20.00%) high mild
-Level Scaling/Place Orders/Random/EngineV2/levels_10000/orders_1000
-                        time:   [3.2163 s 3.2453 s 3.2832 s]
-                        thrpt:  [3.0458 Melem/s 3.0814 Melem/s 3.1092 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Random/EngineV3/levels_10000/orders_1000
-                        time:   [1.1305 s 1.1550 s 1.1807 s]
-                        thrpt:  [8.4692 Melem/s 8.6580 Melem/s 8.8457 Melem/s]
-Level Scaling/Place Orders/Random/EngineV4/levels_10000/orders_1000
-                        time:   [1.2390 s 1.2487 s 1.2602 s]
-                        thrpt:  [7.9355 Melem/s 8.0086 Melem/s 8.0707 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high mild
-Level Scaling/Place Orders/Random/EngineV5/levels_10000/orders_1000
-                        time:   [638.66 ms 639.47 ms 640.47 ms]
-                        thrpt:  [15.614 Melem/s 15.638 Melem/s 15.658 Melem/s]
-Found 1 outliers among 10 measurements (10.00%)
-  1 (10.00%) high severe
-
-Benching: EngineV1; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV2; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV3; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV4; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV5; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV1; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV2; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV3; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV4; total_batches: 1000, orders_per_batch: 1000
-Benching: EngineV5; total_batches: 1000, orders_per_batch: 1000
+Level Scaling/Place Orders/Random/EngineV4/levels_10000/orders_10
+                        time:   [9.8573 ms 9.9253 ms 10.015 ms]
+                        thrpt:  [9.9852 Melem/s 10.075 Melem/s 10.145 Melem/s]
