@@ -5,10 +5,7 @@ use crate::shared::{
 use order_book::{
     arena_allocator::ArenaId,
     common::{LimitOrderRequest, MatcherCommand, OrderSide},
-    engine::{
-        v1_vec_only, v2_btree, v3_slot_map,
-        v4_slot_map_arena::{self, LimitOrder},
-    },
+    engine::{LimitOrder, v1_vec_only, v2_btree, v3_slot_map, v4_sm_arena, v5_sm_arena_vec_index},
 };
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +17,8 @@ pub mod smem_prof;
 pub type EngineV1 = DefaultBenchEngine<v1_vec_only::matcher::OrderMatcher>;
 pub type EngineV2 = DefaultBenchEngine<v2_btree::matcher::OrderMatcher>;
 pub type EngineV3 = DefaultBenchEngine<v3_slot_map::matcher::OrderMatcher>;
-pub type EngineV4 = ArenaBenchEngine<v4_slot_map_arena::matcher::OrderMatcher>;
+pub type EngineV4 = ArenaBenchEngine<v4_sm_arena::matcher::OrderMatcher>;
+pub type EngineV5 = ArenaBenchEngine<v5_sm_arena_vec_index::matcher::OrderMatcher>;
 
 pub const MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH: &str =
     "benches/results/memory_footprint_place_orders_level_scaling.csv";

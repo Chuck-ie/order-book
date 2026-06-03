@@ -4,8 +4,9 @@ use std::{
 };
 
 use crate::shared::{
-    EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS, MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH,
-    NARROW, ORDER_STRATEGIES, OrderStrategy, PersistentScalingOrderThroughputRow,
+    EngineV1, EngineV2, EngineV3, EngineV4, EngineV5, LEVEL_SCALINGS,
+    MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH, NARROW, ORDER_STRATEGIES, OrderStrategy,
+    PersistentScalingOrderThroughputRow,
     THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH,
     THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH, WIDE,
     bench_engine::BenchEngine,
@@ -69,6 +70,7 @@ fn bench_place_orders_level_scaling(c: &mut Criterion) {
             bench_fn::<EngineV2>(&mut group, "EngineV2", strategy, total_levels, orders_per_level);
             bench_fn::<EngineV3>(&mut group, "EngineV3", strategy, total_levels, orders_per_level);
             bench_fn::<EngineV4>(&mut group, "EngineV4", strategy, total_levels, orders_per_level);
+            bench_fn::<EngineV5>(&mut group, "EngineV5", strategy, total_levels, orders_per_level);
         }
     }
 }
@@ -135,6 +137,7 @@ fn bench_place_orders_level_scaling_memory_footprint() {
         run_and_record::<EngineV2>(&mut writer, "EngineV2", total_levels, orders_per_level);
         run_and_record::<EngineV3>(&mut writer, "EngineV3", total_levels, orders_per_level);
         run_and_record::<EngineV4>(&mut writer, "EngineV4", total_levels, orders_per_level);
+        run_and_record::<EngineV5>(&mut writer, "EngineV5", total_levels, orders_per_level);
     }
 
     writer.flush().expect("failed to write file");
@@ -191,6 +194,7 @@ fn bench_place_orders_persistent_scaling() {
     bench_fn::<EngineV2>(&mut writer, "EngineV2", &NARROW, 1000, 1000);
     bench_fn::<EngineV3>(&mut writer, "EngineV3", &NARROW, 1000, 1000);
     bench_fn::<EngineV4>(&mut writer, "EngineV4", &NARROW, 1000, 1000);
+    bench_fn::<EngineV5>(&mut writer, "EngineV5", &NARROW, 1000, 1000);
     writer.flush().expect("failed to write to file");
 
 
@@ -201,5 +205,6 @@ fn bench_place_orders_persistent_scaling() {
     bench_fn::<EngineV2>(&mut writer, "EngineV2", &WIDE, 1000, 1000);
     bench_fn::<EngineV3>(&mut writer, "EngineV3", &WIDE, 1000, 1000);
     bench_fn::<EngineV4>(&mut writer, "EngineV4", &WIDE, 1000, 1000);
+    bench_fn::<EngineV5>(&mut writer, "EngineV5", &WIDE, 1000, 1000);
     writer.flush().expect("failed to write to file");
 }

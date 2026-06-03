@@ -748,4 +748,175 @@ Found 2 outliers among 10 measurements (20.00%)
 Level Scaling/Place Orders/Random/EngineV4/levels_10000/orders_10
                         time:   [9.8573 ms 9.9253 ms 10.015 ms]
                         thrpt:  [9.9852 Melem/s 10.075 Melem/s 10.145 Melem/s]
+Level Scaling/Cancel Orders/Default/EngineV5/levels_1/orders_100000
+                        time:   [588.41 µs 611.38 µs 651.95 µs]
+                        thrpt:  [153.39 Melem/s 163.56 Melem/s 169.95 Melem/s]
+                 change:
+                        time:   [−6.0030% +1.2483% +8.7027%] (p = 0.76 > 0.05)
+                        thrpt:  [−8.0060% −1.2329% +6.3864%]
+                        No change in performance detected.
+Level Scaling/Cancel Orders/Default/EngineV5/levels_10/orders_10000
+                        time:   [643.13 µs 652.43 µs 675.66 µs]
+                        thrpt:  [148.00 Melem/s 153.27 Melem/s 155.49 Melem/s]
+                 change:
+                        time:   [+5.0103% +9.9044% +16.268%] (p = 0.00 < 0.05)
+                        thrpt:  [−13.992% −9.0119% −4.7712%]
+                        Performance has regressed.
+Level Scaling/Cancel Orders/Default/EngineV5/levels_100/orders_1000
+                        time:   [590.98 µs 608.22 µs 644.74 µs]
+                        thrpt:  [155.10 Melem/s 164.41 Melem/s 169.21 Melem/s]
+                 change:
+                        time:   [−13.159% −4.9547% +4.1793%] (p = 0.29 > 0.05)
+                        thrpt:  [−4.0117% +5.2130% +15.153%]
+                        No change in performance detected.
+Level Scaling/Cancel Orders/Default/EngineV5/levels_1000/orders_100
+                        time:   [727.28 µs 733.66 µs 742.78 µs]
+                        thrpt:  [134.63 Melem/s 136.30 Melem/s 137.50 Melem/s]
+                 change:
+                        time:   [−10.776% −5.7919% −1.5960%] (p = 0.03 < 0.05)
+                        thrpt:  [+1.6219% +6.1480% +12.077%]
+                        Change within noise threshold.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Default/EngineV5/levels_10000/orders_10
+                        time:   [1.8064 ms 1.8356 ms 1.8715 ms]
+                        thrpt:  [53.433 Melem/s 54.479 Melem/s 55.358 Melem/s]
+                 change:
+                        time:   [−3.7925% −0.5516% +2.5550%] (p = 0.76 > 0.05)
+                        thrpt:  [−2.4913% +0.5546% +3.9420%]
+                        No change in performance detected.
 
+Level Scaling/Cancel Orders/Reverse/EngineV5/levels_1/orders_100000
+                        time:   [638.86 µs 647.40 µs 662.51 µs]
+                        thrpt:  [150.94 Melem/s 154.46 Melem/s 156.53 Melem/s]
+                 change:
+                        time:   [−3.0540% +0.1001% +3.2896%] (p = 0.95 > 0.05)
+                        thrpt:  [−3.1848% −0.1000% +3.1502%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Cancel Orders/Reverse/EngineV5/levels_10/orders_10000
+                        time:   [649.21 µs 662.07 µs 674.58 µs]
+                        thrpt:  [148.24 Melem/s 151.04 Melem/s 154.03 Melem/s]
+                 change:
+                        time:   [−1.2346% +2.0213% +5.3919%] (p = 0.30 > 0.05)
+                        thrpt:  [−5.1161% −1.9812% +1.2500%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Cancel Orders/Reverse/EngineV5/levels_100/orders_1000
+                        time:   [611.11 µs 628.58 µs 655.59 µs]
+                        thrpt:  [152.54 Melem/s 159.09 Melem/s 163.64 Melem/s]
+                 change:
+                        time:   [−9.2884% −0.4063% +8.9773%] (p = 0.93 > 0.05)
+                        thrpt:  [−8.2378% +0.4080% +10.240%]
+                        No change in performance detected.
+Level Scaling/Cancel Orders/Reverse/EngineV5/levels_1000/orders_100
+                        time:   [778.81 µs 788.84 µs 800.80 µs]
+                        thrpt:  [124.87 Melem/s 126.77 Melem/s 128.40 Melem/s]
+                 change:
+                        time:   [−4.5919% −0.0461% +4.3206%] (p = 0.99 > 0.05)
+                        thrpt:  [−4.1416% +0.0461% +4.8130%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Reverse/EngineV5/levels_10000/orders_10
+                        time:   [2.2242 ms 2.3065 ms 2.3997 ms]
+                        thrpt:  [41.672 Melem/s 43.355 Melem/s 44.959 Melem/s]
+                 change:
+                        time:   [−19.879% −7.0146% +7.9875%] (p = 0.40 > 0.05)
+                        thrpt:  [−7.3967% +7.5438% +24.812%]
+                        No change in performance detected.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+
+Level Scaling/Cancel Orders/Random/EngineV5/levels_1/orders_100000
+                        time:   [778.33 µs 786.45 µs 799.34 µs]
+                        thrpt:  [125.10 Melem/s 127.15 Melem/s 128.48 Melem/s]
+                 change:
+                        time:   [−6.6327% −1.3810% +4.7958%] (p = 0.67 > 0.05)
+                        thrpt:  [−4.5763% +1.4003% +7.1039%]
+                        No change in performance detected.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) high mild
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Random/EngineV5/levels_10/orders_10000
+                        time:   [772.64 µs 780.25 µs 794.37 µs]
+                        thrpt:  [125.89 Melem/s 128.16 Melem/s 129.43 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Cancel Orders/Random/EngineV5/levels_100/orders_1000
+                        time:   [2.9609 ms 2.9998 ms 3.0763 ms]
+                        thrpt:  [32.506 Melem/s 33.335 Melem/s 33.773 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Level Scaling/Cancel Orders/Random/EngineV5/levels_1000/orders_100
+                        time:   [3.2496 ms 3.2869 ms 3.3719 ms]
+                        thrpt:  [29.657 Melem/s 30.424 Melem/s 30.773 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Level Scaling/Cancel Orders/Random/EngineV5/levels_10000/orders_10
+                        time:   [3.9571 ms 4.0214 ms 4.1738 ms]
+                        thrpt:  [23.959 Melem/s 24.867 Melem/s 25.271 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+Level Scaling/Place Orders/Default/EngineV5/levels_1/orders_100000
+                        time:   [1.7672 ms 1.7963 ms 1.8326 ms]
+                        thrpt:  [54.567 Melem/s 55.670 Melem/s 56.588 Melem/s]
+Level Scaling/Place Orders/Default/EngineV5/levels_10/orders_10000
+                        time:   [1.7882 ms 1.8297 ms 1.8526 ms]
+                        thrpt:  [53.979 Melem/s 54.655 Melem/s 55.922 Melem/s]
+Level Scaling/Place Orders/Default/EngineV5/levels_100/orders_1000
+                        time:   [1.7730 ms 1.7965 ms 1.8348 ms]
+                        thrpt:  [54.501 Melem/s 55.665 Melem/s 56.403 Melem/s]
+Level Scaling/Place Orders/Default/EngineV5/levels_1000/orders_100
+                        time:   [2.0229 ms 2.0465 ms 2.0614 ms]
+                        thrpt:  [48.512 Melem/s 48.865 Melem/s 49.433 Melem/s]
+Level Scaling/Place Orders/Default/EngineV5/levels_10000/orders_10
+                        time:   [5.6837 ms 5.7582 ms 5.8187 ms]
+                        thrpt:  [17.186 Melem/s 17.367 Melem/s 17.594 Melem/s]
+
+Level Scaling/Place Orders/Reverse/EngineV5/levels_1/orders_100000
+                        time:   [1.7429 ms 1.7728 ms 1.8025 ms]
+                        thrpt:  [55.477 Melem/s 56.409 Melem/s 57.375 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV5/levels_10/orders_10000
+                        time:   [1.7615 ms 1.7949 ms 1.8325 ms]
+                        thrpt:  [54.572 Melem/s 55.712 Melem/s 56.769 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV5/levels_100/orders_1000
+                        time:   [1.8168 ms 1.8397 ms 1.8532 ms]
+                        thrpt:  [53.960 Melem/s 54.357 Melem/s 55.041 Melem/s]
+Found 4 outliers among 10 measurements (40.00%)
+  2 (20.00%) low mild
+  2 (20.00%) high mild
+Level Scaling/Place Orders/Reverse/EngineV5/levels_1000/orders_100
+                        time:   [1.9529 ms 2.0002 ms 2.0414 ms]
+                        thrpt:  [48.985 Melem/s 49.995 Melem/s 51.207 Melem/s]
+Level Scaling/Place Orders/Reverse/EngineV5/levels_10000/orders_10
+                        time:   [3.3804 ms 3.4122 ms 3.4632 ms]
+                        thrpt:  [28.875 Melem/s 29.307 Melem/s 29.582 Melem/s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+Level Scaling/Place Orders/Random/EngineV5/levels_1/orders_100000
+                        time:   [1.7398 ms 1.7716 ms 1.7964 ms]
+                        thrpt:  [55.667 Melem/s 56.445 Melem/s 57.476 Melem/s]
+Level Scaling/Place Orders/Random/EngineV5/levels_10/orders_10000
+                        time:   [1.7784 ms 1.8017 ms 1.8251 ms]
+                        thrpt:  [54.791 Melem/s 55.502 Melem/s 56.229 Melem/s]
+Level Scaling/Place Orders/Random/EngineV5/levels_100/orders_1000
+                        time:   [2.3666 ms 2.4036 ms 2.4410 ms]
+                        thrpt:  [40.967 Melem/s 41.604 Melem/s 42.254 Melem/s]
+Found 3 outliers among 10 measurements (30.00%)
+  2 (20.00%) low mild
+  1 (10.00%) high severe
+Level Scaling/Place Orders/Random/EngineV5/levels_1000/orders_100
+                        time:   [5.9007 ms 5.9617 ms 6.0444 ms]
+                        thrpt:  [16.544 Melem/s 16.774 Melem/s 16.947 Melem/s]
+Level Scaling/Place Orders/Random/EngineV5/levels_10000/orders_10
+                        time:   [8.6026 ms 8.7236 ms 8.7985 ms]
+                        thrpt:  [11.366 Melem/s 11.463 Melem/s 11.624 Melem/s]
+
+Benching: EngineV5; total_batches: 1000, orders_per_batch: 1000
+Benching: EngineV5; total_batches: 1000, orders_per_batch: 1000

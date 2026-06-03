@@ -81,17 +81,8 @@ fn main() {
         .map(|(levels, orders)| format!("levels_{levels}/orders_{orders}"))
         .collect::<Vec<String>>();
 
-    create_chart_memory_profiles(
-        ChartKind::Alloc,
-        level_scaling_labels.clone(),
-        &smem_prof_rows,
-    );
-
-    create_chart_memory_profiles(
-        ChartKind::Grow,
-        level_scaling_labels.clone(),
-        &smem_prof_rows,
-    );
+    create_chart_memory_profiles(ChartKind::Alloc, &level_scaling_labels, &smem_prof_rows);
+    create_chart_memory_profiles(ChartKind::Grow, &level_scaling_labels, &smem_prof_rows);
 
     let mut reader = Reader::from_path(THROUGHPUT_PLACE_ORDERS_LEVEL_SCALING_CSV_PATH).unwrap();
     let throughput_rows = reader
@@ -101,7 +92,7 @@ fn main() {
 
     create_chart_level_scaling_throughput(
         OrderThroughputKind::PlaceOrders,
-        level_scaling_labels.clone(),
+        &level_scaling_labels,
         &throughput_rows,
     );
 
@@ -113,7 +104,7 @@ fn main() {
 
     create_chart_level_scaling_throughput(
         OrderThroughputKind::CancelOrders,
-        level_scaling_labels.clone(),
+        &level_scaling_labels,
         &throughput_rows,
     );
 
@@ -147,7 +138,7 @@ fn main() {
 #[allow(clippy::cast_precision_loss)]
 fn create_chart_memory_profiles(
     chart_kind: ChartKind,
-    level_scaling_labels: Vec<String>,
+    level_scaling_labels: &[String],
     smem_prof_rows: &[SMemProfRow],
 ) {
     // 1_048_576 is just 1024^2. It therefore converts Bytes to MegaBytes
@@ -171,6 +162,24 @@ fn create_chart_memory_profiles(
         ChartKind::Grow => "Bench Memory Growth",
     };
 
+    let get_engine_data = |engine_name: &str| -> Vec<f64> {
+        level_scaling_labels
+            .iter()
+            .map(|target_label| {
+                smem_prof_rows
+                    .iter()
+                    .find(|row| {
+                        row.engine == engine_name
+                            && format!(
+                                "levels_{}/orders_{}",
+                                row.total_levels, row.orders_per_level
+                            ) == *target_label
+                    })
+                    .map_or(0.0, map_row)
+            })
+            .collect()
+    };
+
     let chart = Chart::new()
         .title(Title::new().text(chart_title))
         .tooltip(Tooltip::new())
@@ -179,58 +188,45 @@ fn create_chart_memory_profiles(
             Axis::new()
                 .name("Engines")
                 .type_(AxisType::Category)
-                .data(level_scaling_labels),
+                .data(level_scaling_labels.to_vec()),
         )
         .y_axis(Axis::new().name(x_axis_name).type_(AxisType::Value))
         .series(
-            Bar::new().name("EngineV1").data(
-                smem_prof_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV1")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV1")
+                .data(get_engine_data("EngineV1")),
         )
         .series(
-            Bar::new().name("EngineV2").data(
-                smem_prof_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV2")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV2")
+                .data(get_engine_data("EngineV2")),
         )
         .series(
-            Bar::new().name("EngineV3").data(
-                smem_prof_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV3")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV3")
+                .data(get_engine_data("EngineV3")),
         )
         .series(
-            Bar::new().name("EngineV4").data(
-                smem_prof_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV4")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV4")
+                .data(get_engine_data("EngineV4")),
+        )
+        .series(
+            Bar::new()
+                .name("EngineV5")
+                .data(get_engine_data("EngineV5")),
         );
 
-    HtmlRenderer::new(chart_title, 1400, 600)
+    HtmlRenderer::new(chart_title, 1500, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
 }
 
 fn create_chart_level_scaling_throughput(
     throughput_kind: OrderThroughputKind,
-    level_scaling_labels: Vec<String>,
+    level_scaling_labels: &[String],
     throughput_rows: &[LevelScalingOrderThroughputRow],
 ) {
-    let map_row = |row: &LevelScalingOrderThroughputRow| row.m_orders_per_second;
-
     let chart_file_name = match throughput_kind {
         OrderThroughputKind::PlaceOrders => THROUGHPUT_PLACE_ORDERS_LEVEL_SCALING_CHART_PATH,
         OrderThroughputKind::CancelOrders => THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CHART_PATH,
@@ -241,6 +237,24 @@ fn create_chart_level_scaling_throughput(
         OrderThroughputKind::CancelOrders => "Bench Cancel Orders Throughput",
     };
 
+    let get_engine_data = |engine_name: &str| -> Vec<f64> {
+        level_scaling_labels
+            .iter()
+            .map(|target_label| {
+                throughput_rows
+                    .iter()
+                    .find(|row| {
+                        row.engine == engine_name
+                            && format!(
+                                "levels_{}/orders_{}",
+                                row.total_levels, row.orders_per_level
+                            ) == *target_label
+                    })
+                    .map_or(0.0, |row| row.m_orders_per_second)
+            })
+            .collect()
+    };
+
     let chart = Chart::new()
         .title(Title::new().text(chart_title))
         .tooltip(Tooltip::new())
@@ -249,7 +263,7 @@ fn create_chart_level_scaling_throughput(
             Axis::new()
                 .name("Engines")
                 .type_(AxisType::Category)
-                .data(level_scaling_labels),
+                .data(level_scaling_labels.to_vec()),
         )
         .y_axis(
             Axis::new()
@@ -257,43 +271,32 @@ fn create_chart_level_scaling_throughput(
                 .type_(AxisType::Value),
         )
         .series(
-            Bar::new().name("EngineV1").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV1")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV1")
+                .data(get_engine_data("EngineV1")),
         )
         .series(
-            Bar::new().name("EngineV2").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV2")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV2")
+                .data(get_engine_data("EngineV2")),
         )
         .series(
-            Bar::new().name("EngineV3").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV3")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV3")
+                .data(get_engine_data("EngineV3")),
         )
         .series(
-            Bar::new().name("EngineV4").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV4")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Bar::new()
+                .name("EngineV4")
+                .data(get_engine_data("EngineV4")),
+        )
+        .series(
+            Bar::new()
+                .name("EngineV5")
+                .data(get_engine_data("EngineV5")),
         );
 
-    HtmlRenderer::new(chart_title, 1400, 600)
+    HtmlRenderer::new(chart_title, 1500, 600)
         .save(&chart, chart_file_name)
         .expect("Failed to save chart");
 }
@@ -318,6 +321,18 @@ fn create_chart_persistent_scaling_throughput(
         .map(|batch_idx| format!("{batch_idx}"))
         .collect::<Vec<String>>();
 
+    let get_engine_data = |engine_name: &str| -> Vec<f64> {
+        unique_labels
+            .iter()
+            .map(|target_label| {
+                throughput_rows
+                    .iter()
+                    .find(|row| row.engine == engine_name && row.batch.to_string() == *target_label)
+                    .map_or(0.0, map_row)
+            })
+            .collect()
+    };
+
     let chart = Chart::new()
         .title(Title::new().text(chart_title))
         .tooltip(Tooltip::new())
@@ -326,7 +341,7 @@ fn create_chart_persistent_scaling_throughput(
             Axis::new()
                 .name("Batches of 1000 orders")
                 .type_(AxisType::Category)
-                .data(unique_labels),
+                .data(unique_labels.clone()),
         )
         .y_axis(
             Axis::new()
@@ -334,40 +349,29 @@ fn create_chart_persistent_scaling_throughput(
                 .type_(AxisType::Log),
         )
         .series(
-            Line::new().name("EngineV1").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV1")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Line::new()
+                .name("EngineV1")
+                .data(get_engine_data("EngineV1")),
         )
         .series(
-            Line::new().name("EngineV2").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV2")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Line::new()
+                .name("EngineV2")
+                .data(get_engine_data("EngineV2")),
         )
         .series(
-            Line::new().name("EngineV3").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV3")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Line::new()
+                .name("EngineV3")
+                .data(get_engine_data("EngineV3")),
         )
         .series(
-            Line::new().name("EngineV4").data(
-                throughput_rows
-                    .iter()
-                    .filter(|row| row.engine == "EngineV4")
-                    .map(map_row)
-                    .collect(),
-            ),
+            Line::new()
+                .name("EngineV4")
+                .data(get_engine_data("EngineV4")),
+        )
+        .series(
+            Line::new()
+                .name("EngineV5")
+                .data(get_engine_data("EngineV5")),
         );
 
     HtmlRenderer::new(chart_title, 1500, 600)
@@ -412,6 +416,24 @@ fn create_criterion_result_charts() {
                 }
             }
 
+            let get_engine_data = |engine_name: &str| -> Vec<f64> {
+                x_axis_labels
+                    .iter()
+                    .map(|target_label| {
+                        filtered_rows
+                            .iter()
+                            .find(|row| {
+                                row.engine == engine_name
+                                    && format!(
+                                        "{} Levels/{} Orders",
+                                        row.levels, row.orders_per_level
+                                    ) == *target_label
+                            })
+                            .map_or(0.0, |row| row.m_orders_per_second)
+                    })
+                    .collect()
+            };
+
             let chart = Chart::new()
                 .title(Title::new().text(&chart_name))
                 .tooltip(Tooltip::new())
@@ -420,7 +442,7 @@ fn create_criterion_result_charts() {
                     Axis::new()
                         .name("Levels/Orders per Level")
                         .type_(AxisType::Category)
-                        .data(x_axis_labels),
+                        .data(x_axis_labels.clone()),
                 )
                 .y_axis(
                     Axis::new()
@@ -428,43 +450,32 @@ fn create_criterion_result_charts() {
                         .type_(AxisType::Value),
                 )
                 .series(
-                    Bar::new().name("EngineV1").data(
-                        filtered_rows
-                            .iter()
-                            .filter(|row| row.engine == "EngineV1")
-                            .map(|row| row.m_orders_per_second)
-                            .collect(),
-                    ),
+                    Bar::new()
+                        .name("EngineV1")
+                        .data(get_engine_data("EngineV1")),
                 )
                 .series(
-                    Bar::new().name("EngineV2").data(
-                        filtered_rows
-                            .iter()
-                            .filter(|row| row.engine == "EngineV2")
-                            .map(|row| row.m_orders_per_second)
-                            .collect(),
-                    ),
+                    Bar::new()
+                        .name("EngineV2")
+                        .data(get_engine_data("EngineV2")),
                 )
                 .series(
-                    Bar::new().name("EngineV3").data(
-                        filtered_rows
-                            .iter()
-                            .filter(|row| row.engine == "EngineV3")
-                            .map(|row| row.m_orders_per_second)
-                            .collect(),
-                    ),
+                    Bar::new()
+                        .name("EngineV3")
+                        .data(get_engine_data("EngineV3")),
                 )
                 .series(
-                    Bar::new().name("EngineV4").data(
-                        filtered_rows
-                            .iter()
-                            .filter(|row| row.engine == "EngineV4")
-                            .map(|row| row.m_orders_per_second)
-                            .collect(),
-                    ),
+                    Bar::new()
+                        .name("EngineV4")
+                        .data(get_engine_data("EngineV4")),
+                )
+                .series(
+                    Bar::new()
+                        .name("EngineV5")
+                        .data(get_engine_data("EngineV5")),
                 );
 
-            HtmlRenderer::new(chart_name.clone(), 1200, 600)
+            HtmlRenderer::new(chart_name.clone(), 1500, 600)
                 .save(&chart, format!("benches/results/{chart_file_name}.html"))
                 .expect("Failed to save chart");
         }

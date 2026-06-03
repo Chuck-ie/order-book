@@ -1,7 +1,7 @@
 use std::{fs::File, time::Duration};
 
 use crate::shared::{
-    EngineV1, EngineV2, EngineV3, EngineV4, LEVEL_SCALINGS,
+    EngineV1, EngineV2, EngineV3, EngineV4, EngineV5, LEVEL_SCALINGS,
     MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH, ORDER_STRATEGIES, OrderStrategy,
     bench_engine::BenchEngine,
     generate_level_scaled_orders,
@@ -65,6 +65,7 @@ fn bench_cancel_orders_level_scaling(c: &mut Criterion) {
             bench_fn::<EngineV2>(&mut group, "EngineV2", strategy, total_levels, orders_per_level);
             bench_fn::<EngineV3>(&mut group, "EngineV3", strategy, total_levels, orders_per_level);
             bench_fn::<EngineV4>(&mut group, "EngineV4", strategy, total_levels, orders_per_level);
+            bench_fn::<EngineV5>(&mut group, "EngineV5", strategy, total_levels, orders_per_level);
         }
 
         group.finish();
@@ -148,5 +149,6 @@ fn bench_cancel_orders_level_scaling_memory_footprint() {
         run_and_record::<EngineV2>(&mut writer, "EngineV2", total_levels, orders_per_level);
         run_and_record::<EngineV3>(&mut writer, "EngineV3", total_levels, orders_per_level);
         run_and_record::<EngineV4>(&mut writer, "EngineV4", total_levels, orders_per_level);
+        run_and_record::<EngineV5>(&mut writer, "EngineV5", total_levels, orders_per_level);
     }
 }
