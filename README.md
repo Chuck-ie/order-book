@@ -15,19 +15,19 @@ and finally, place order throughput over time. The following engines have been i
 
 ### Results
 1. Place order throughput over time (higher is better)
-![Place order throughput over time](images/place_order_throughput_persistent_scaling_narrow.png)
+![Place order throughput over time](benches/results/images/place_order_throughput_persistent_scaling_narrow.png)
 
 2. Place order throughput with M orders per N price levels in random order (higher is better)
-![Place order throughput with M orders per N price levels in random order](images/place_order_throughput_level_scaling_random_order.png)
+![Place order throughput with M orders per N price levels in random order](benches/results/images/place_order_throughput_level_scaling_random_order.png)
 
 3. Cancel order throughput with M orders per N price levels in random order (higher is better)
-![Cancel order throughput with M orders per N price levels in random order](images/cancel_order_throughput_level_scaling_random_order.png)
+![Cancel order throughput with M orders per N price levels in random order](benches/results/images/cancel_order_throughput_level_scaling_random_order.png)
 
 4. Memory allocations with M orders per N price levels (lower is better)
-![Memory allocations with M orders per N price levels](images/memory_allocations.png)
+![Memory allocations with M orders per N price levels](benches/results/images/memory_allocations.png)
 
 5. Memory growth with M orders per N price levels (lower is better)
-![Memory growth with M orders per N price levels](images/memory_growth.png)
+![Memory growth with M orders per N price levels](benches/results/images/memory_growth.png)
 
 ### Engine evolution over time
 V1 is the simplest implementation with price levels stored in a sorted Vec, each holding its orders in arrival order. V2 is nearly
@@ -90,11 +90,15 @@ Both versions compile to the exact same assembly, but version 2 using the hint i
 to index based for loops, while still achieving the same performance.
 
 ### About benchmark results
-First of all, benchmark 1., 4., and 5. are great benchmarks to give an insight to how well 
+First of all, benchmark 1., 4., and 5. are great benchmarks to give an insight to how well each engine performs. 1. showcases jitter and how well each engine
+performs over time, which 2. and 3. do not do. 
 
-Some of the benchmarks have to be taken with a grain of salt. Benchmark 2. and 3. are used to show that each version might scale differently with the number of 
-price levels, however these results can fluctuate greatly. For example, changing the orders to be inserted per level with 10k level to 10k, will make V4 faster
-again. This is mostly because if a level is created and only 10 orders are inserted, then we need to load vastly different 
+Some of the benchmarks have to be taken with a grain of salt. Benchmark 2. and 3. particularly are used to show that each version scales differently with increasing
+numbers of price levels, however these results can fluctuate greatly as they don't take into account how this scales over time, as orders for these benchmarks are
+only inserted on one side and there is no matching happening. However in contrast to those two, benchmarks 1., 2., and 3. genuinely give a great insight into
+each engine, as the show memory behavior as well as performance over time. V1 and V2 clearly do not scale well, as performance continues to degrade, which the other
+benchmarks did not show. V3 has massive jitter and terrible p99 performance. V4 on the other hand solves basically all of these problems, as it has a steady throughput,
+stable memory and only small jitter.
 
 ### Reproduce benchmark results
 1. Run the benchmarks and optionally write criterion results to a text file
