@@ -38,6 +38,7 @@ pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (100, 1_000),
     (1_000, 100),
     (10_000, 10),
+    // (10_000, 1_000),
 ];
 
 pub static NARROW: OrderProfile = OrderProfile::place_narrow();

@@ -19,10 +19,10 @@ and finally, place order throughput over time. The following engines have been i
 ![Place order throughput over time](images/place_order_throughput_persistent_scaling_narrow.png)
 
 2. Place order throughput with M orders per N price levels (higher is better)
-![Place order throughput with M orders per N price levels](images/place_order_throughput_level_scaling.png)
+![Place order throughput with M orders per N price levels in random order](images/place_order_throughput_level_scaling_random_order.png)
 
 3. Cancel order throughput with M orders per N price levels (higher is better)
-![Cancel order throughput with M orders per N price levels](images/cancel_order_throughput_level_scaling.png)
+![Cancel order throughput with M orders per N price levels in random order](images/cancel_order_throughput_level_scaling_random_order.png)
 
 4. Memory allocations with M orders per N price levels (lower is better)
 ![Memory allocations with M orders per N price levels](images/memory_allocations.png)

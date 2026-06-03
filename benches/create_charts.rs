@@ -306,8 +306,6 @@ fn create_chart_persistent_scaling_throughput(
     chart_file_name: &str,
 ) {
     let chart_title = "Bench Order Throughput Persistent Scaling";
-    let map_row = |row: &PersistentScalingOrderThroughputRow| row.m_orders_per_second;
-
     let mut persistent_scaling_labels = throughput_rows
         .iter()
         .map(|row| row.batch)
@@ -328,7 +326,7 @@ fn create_chart_persistent_scaling_throughput(
                 throughput_rows
                     .iter()
                     .find(|row| row.engine == engine_name && row.batch.to_string() == *target_label)
-                    .map_or(0.0, map_row)
+                    .map_or(0.0, |row| row.m_orders_per_second)
             })
             .collect()
     };
@@ -475,7 +473,7 @@ fn create_criterion_result_charts() {
                         .data(get_engine_data("EngineV5")),
                 );
 
-            HtmlRenderer::new(chart_name.clone(), 1500, 600)
+            HtmlRenderer::new(chart_name.clone(), 2000, 800)
                 .save(&chart, format!("benches/results/{chart_file_name}.html"))
                 .expect("Failed to save chart");
         }
