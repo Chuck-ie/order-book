@@ -5,7 +5,7 @@ use crate::shared::{
 use order_book::{
     arena_allocator::ArenaId,
     common::{LimitOrderRequest, MatcherCommand, OrderSide},
-    engine::{LimitOrder, v1_vec_only, v2_btree, v3_slot_map, v4_sm_arena, v5_sm_arena_vec_index},
+    engine::{LimitOrder, v1_vec_only, v2_btree, v3_slot_map, v4_sm_arena},
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,19 +18,24 @@ pub type EngineV1 = DefaultBenchEngine<v1_vec_only::matcher::OrderMatcher>;
 pub type EngineV2 = DefaultBenchEngine<v2_btree::matcher::OrderMatcher>;
 pub type EngineV3 = DefaultBenchEngine<v3_slot_map::matcher::OrderMatcher>;
 pub type EngineV4 = ArenaBenchEngine<v4_sm_arena::matcher::OrderMatcher>;
-// pub type EngineV5 = ArenaBenchEngine<v5_sm_arena_vec_index::matcher::OrderMatcher>;
 
 pub const MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH: &str =
-    "benches/results/memory_footprint_place_orders_level_scaling.csv";
+    "benches/results/csv/memory_footprint_place_orders_level_scaling.csv";
 
 pub const MEMORY_FOOTPRINT_CANCEL_ORDERS_CSV_PATH: &str =
-    "benches/results/memory_footprint_cancel_orders_level_scaling.csv";
+    "benches/results/csv/memory_footprint_cancel_orders_level_scaling.csv";
 
 pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CSV_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.csv";
+    "benches/results/csv/throughput_place_orders_persistent_scaling_all_narrow.csv";
 
 pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CSV_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_wide.csv";
+    "benches/results/csv/throughput_place_orders_persistent_scaling_all_wide.csv";
+
+pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_SINGLE_ORDER_CSV_PATH: &str =
+    "benches/results/csv/throughput_place_orders_persistent_scaling_all_narrow_single_order.csv";
+
+pub const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_SINGLE_ORDER_CSV_PATH: &str =
+    "benches/results/csv/throughput_place_orders_persistent_scaling_all_wide_single_order.csv";
 
 pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (1, 100_000),
@@ -38,11 +43,6 @@ pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (100, 1_000),
     (1_000, 100),
     (10_000, 10),
-    // (1, 1_000_000),
-    // (10, 100_000),
-    // (100, 10_000),
-    // (1_000, 1_000),
-    // (10_000, 100),
 ];
 
 pub static NARROW: OrderProfile = OrderProfile::place_narrow();

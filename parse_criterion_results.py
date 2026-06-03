@@ -93,4 +93,4 @@ def parse_criterion_log(input_file_path, output_csv_path):
     )
 
 if __name__ == "__main__":
-    parse_criterion_log("benches/results/criterion_results.txt", "benches/results/criterion_results.csv")
+    parse_criterion_log("benches/results/criterion_results.txt", "benches/results/csv/criterion_results.csv")
