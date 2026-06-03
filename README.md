@@ -101,6 +101,22 @@ benchmarks did not show. V3 has massive jitter and terrible p99 performance. V4 
 stable memory and only small jitter.
 
 ### Reproduce benchmark results
+0. (Optional) to enable huge pages for the arena allocator to have a measurable impact
+```code
+# enable huge pages 
+sudo sh -c 'echo always > /sys/kernel/mm/transparent_hugepage/enabled'
+
+# set the number of huge pages to 8 
+sudo sysctl -w vm.nr_hugepages=8
+
+# set the number of 1GB huge pages to 8 for a total of 8GB of memory that the arena uses per default
+sudo bash -c 'echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages'
+
+# run to see if 8 (or optionally some other number) have been enabled
+cat /sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages
+# 
+```
+
 1. Run the benchmarks and optionally write criterion results to a text file
 ```bash
 cargo bench --bench bench_place_orders --bench bench_cancel_orders > benches/results/criterion_results.txt
