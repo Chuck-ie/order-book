@@ -16,28 +16,30 @@ use crate::shared::{
 
 mod shared;
 
-const MEMORY_FOOTPRINT_ALLOC_CHART_PATH: &str = "benches/results/memory_footprint_alloc.html";
-const MEMORY_FOOTPRINT_GROW_CHART_PATH: &str = "benches/results/memory_footprint_grow.html";
+const MEMORY_FOOTPRINT_ALLOC_CHART_PATH: &str =
+    "benches/results/charts/memory_footprint_alloc.html";
+
+const MEMORY_FOOTPRINT_GROW_CHART_PATH: &str = "benches/results/charts/memory_footprint_grow.html";
 
 const THROUGHPUT_PLACE_ORDERS_LEVEL_SCALING_CSV_PATH: &str =
-    "benches/results/throughput_place_orders_level_scaling.csv";
+    "benches/results/csv/throughput_place_orders_level_scaling.csv";
 
 const THROUGHPUT_PLACE_ORDERS_LEVEL_SCALING_CHART_PATH: &str =
-    "benches/results/throughput_place_orders_level_scaling.html";
+    "benches/results/charts/throughput_place_orders_level_scaling.html";
 
 const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CSV_PATH: &str =
-    "benches/results/throughput_cancel_orders_level_scaling.csv";
+    "benches/results/csv/throughput_cancel_orders_level_scaling.csv";
 
 const THROUGHPUT_CANCEL_ORDERS_LEVEL_SCALING_CHART_PATH: &str =
-    "benches/results/throughput_cancel_orders_level_scaling.html";
+    "benches/results/charts/throughput_cancel_orders_level_scaling.html";
 
 const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_NARROW_CHART_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_narrow.html";
+    "benches/results/charts/throughput_place_orders_persistent_scaling_all_narrow.html";
 
 const THROUGHPUT_PLACE_ORDERS_PERSISTENT_SCALING_ALL_WIDE_CHART_PATH: &str =
-    "benches/results/throughput_place_orders_persistent_scaling_all_wide.html";
+    "benches/results/charts/throughput_place_orders_persistent_scaling_all_wide.html";
 
-const CRITERION_RESULTS_CSV_PATH: &str = "benches/results/criterion_results.csv";
+const CRITERION_RESULTS_CSV_PATH: &str = "benches/results/csv/criterion_results.csv";
 
 #[derive(Deserialize, Clone)]
 pub struct CriterionResultRow {
@@ -454,7 +456,10 @@ fn create_criterion_result_charts() {
                 );
 
             HtmlRenderer::new(chart_name.clone(), 2000, 800)
-                .save(&chart, format!("benches/results/{chart_file_name}.html"))
+                .save(
+                    &chart,
+                    format!("benches/results/charts/{chart_file_name}.html"),
+                )
                 .expect("Failed to save chart");
         }
     }
