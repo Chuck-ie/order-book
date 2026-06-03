@@ -29,6 +29,25 @@ and finally, place order throughput over time. The following engines have been i
 5. Memory growth with M orders per N price levels (lower is better)
 ![Memory growth with M orders per N price levels](benches/results/images/memory_growth.png)
 
+<details closed>
+<summary>V3 and V4 perf stat comparisons</summary>
+<br>
+
+| Metric | EngineV3 | EngineV4 | Factor |
+|--------|----------|----------|--------|
+| Throughput | 16.8 M/s | 21.8 M/s | **1.3×** |
+| dTLB loads | 143,758,991 | 901,819 | **160×** |
+| Page faults | 292,452 | 2,718 | **107×** |
+| L1-dcache miss rate | 3.5% | 3.2% | – |
+| Stalled frontend cycles | 7.2B | 6.1B | 1.2× |
+| Branch misses | 4.4% | 4.5% | - |
+
+dTLB and page fault reduction comes from the arena allocator using memmap2 mapped
+hugepages (8 x 1GB huge pages), drastically reducing the number of TLB entries needed
+at scale. The effect varies a lot. With shorter benchmarks (1M orders) the factor
+is ~7×, with longer benchmarks (100M orders) it reaches ~100×.
+</details>
+
 ### Engine evolution over time
 V1 is the simplest implementation with price levels stored in a sorted Vec, each holding its orders in arrival order. V2 is nearly
 identical, only swapping the Vec for a BTreeMap with the expectation that random access e.g. matching all orders starting at price level N onward
@@ -99,6 +118,8 @@ only inserted on one side and there is no matching happening. However in contras
 each engine, as the show memory behavior as well as performance over time. V1 and V2 clearly do not scale well, as performance continues to degrade, which the other
 benchmarks did not show. V3 has massive jitter and terrible p99 performance. V4 on the other hand solves basically all of these problems, as it has a steady throughput,
 stable memory and only small jitter.
+
+
 
 ### Reproduce benchmark results
 0. (Optional) to enable huge pages for the arena allocator to have a measurable impact
