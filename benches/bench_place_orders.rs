@@ -112,7 +112,7 @@ fn bench_place_orders_level_scaling_memory_footprint() {
         orders_per_level: usize,
     ) {
         let setup = setup_place_orders_level_scaling::<Engine>(
-            OrderStrategy::Default,
+            OrderStrategy::Random,
             10_000,
             total_levels,
             orders_per_level,

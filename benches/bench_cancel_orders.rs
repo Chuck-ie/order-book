@@ -122,7 +122,7 @@ fn bench_cancel_orders_level_scaling_memory_footprint() {
         orders_per_level: usize,
     ) {
         let (engine, commands) = setup_cancel_orders_level_scaling::<Engine>(
-            OrderStrategy::Default,
+            OrderStrategy::Random,
             10_000,
             total_levels,
             orders_per_level,
