@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+### IMPORTANT:  THIS SCRIPT IS OUTDATED AND SHOULD NOT BE USED. IT WAS USED TO TEST THINGS RELATED TO CORE PINNING, BUT
+###             FOR THE CURRENT SCOPE THIS DOES NOT PROVIDE ANY PERFORMANCE IMPROVEMENTS AND THEREFORE ONLY ADDS OVERHEAD
 cleanup() {
   echo "Tearing down shield..."
   sudo systemctl set-property --runtime user.slice AllowedCPUs=
