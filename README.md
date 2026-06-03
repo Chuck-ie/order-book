@@ -29,7 +29,7 @@ and finally, place order throughput over time. The following engines have been i
 5. Memory growth with M orders per N price levels (lower is better)
 ![Memory growth with M orders per N price levels](benches/results/images/memory_growth.png)
 
-<details closed>
+<details open>
 <summary>V3 and V4 perf stat comparisons at 100M orders</summary>
 <br>
 
