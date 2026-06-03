@@ -8,10 +8,11 @@ four order book engines in rust, each using different underlying data structures
 layouts. It then benchmarks each engine and compares them in memory allocation, memory growth, place order throughput, cancel order throughput 
 and finally, place order throughput over time. The following engines have been implemented:
 
-1. EngineV1 (Vectors only)
+1. EngineV1 (Vec only)
 2. EngineV2 (BTreeMap)
 3. EngineV3 (Slotmap)
 4. EngineV4 (Slotmap + Arena allocator)
+5. EngineV5 (SlotMap + Arena + Vec level index)
 
 ### Results
 1. Place order throughput over time (higher is better)
@@ -47,6 +48,8 @@ based chunks to be used by its slotmaps. Additionally the arena uses memmap2 to 
 by something like 4x-5x. However this does not help with l1 cache misses, since the SlotMap trades O(1) inserts and removals for worse
 cache locality. These tradeoffs still make V4 the fastest engine in terms of memory allocations, memory growth, pure order throughput and also completely 
 eliminates the jitter that even V3 was suffering from.
+
+// TODO: add V5 changes here
 
 ### What I learned
 1. How bad heap allocated pointer jumps can impact performance

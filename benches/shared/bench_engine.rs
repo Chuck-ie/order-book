@@ -3,7 +3,7 @@ use std::cell::UnsafeCell;
 use order_book::{
     arena_allocator::{ArenaAllocator, ArenaId},
     common::{LimitOrderRequest, MatcherCommand, OrderMatcherExt},
-    engine::v4_slot_map_arena::{self, LimitOrder},
+    engine::{LimitOrder, arena_order_matcher::ArenaOrderMatcherExt},
     slot_map::chunked::ArenaSlot,
 };
 
@@ -44,12 +44,12 @@ thread_local! {
     static ARENA_ALLOCATOR: UnsafeCell<ArenaAllocator<ArenaSlot<LimitOrder>>> = UnsafeCell::new(ArenaAllocator::new(16384, 16384));
 }
 
-pub struct ArenaBenchEngine<Engine: Default> {
+pub struct ArenaBenchEngine<Engine: ArenaOrderMatcherExt> {
     engine: Engine,
     arena: *mut ArenaAllocator<ArenaSlot<LimitOrder>>,
 }
 
-impl<Engine: Default> Default for ArenaBenchEngine<Engine> {
+impl<Engine: Default + ArenaOrderMatcherExt> Default for ArenaBenchEngine<Engine> {
     fn default() -> Self {
         let arena = ARENA_ALLOCATOR.with(UnsafeCell::get);
         unsafe { (&mut *arena).clear() };
@@ -61,7 +61,7 @@ impl<Engine: Default> Default for ArenaBenchEngine<Engine> {
     }
 }
 
-impl BenchEngine for ArenaBenchEngine<v4_slot_map_arena::matcher::OrderMatcher> {
+impl<M: ArenaOrderMatcherExt + Default> BenchEngine for ArenaBenchEngine<M> {
     type Order = LimitOrder;
     type OrderId = ArenaId;
     type Command = MatcherCommand<Self::Order, Self::OrderId>;
