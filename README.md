@@ -12,16 +12,15 @@ and finally, place order throughput over time. The following engines have been i
 2. EngineV2 (BTreeMap)
 3. EngineV3 (Slotmap)
 4. EngineV4 (Slotmap + Arena allocator)
-5. EngineV5 (SlotMap + Arena + Vec level index)
 
 ### Results
 1. Place order throughput over time (higher is better)
 ![Place order throughput over time](images/place_order_throughput_persistent_scaling_narrow.png)
 
-2. Place order throughput with M orders per N price levels (higher is better)
+2. Place order throughput with M orders per N price levels in random order (higher is better)
 ![Place order throughput with M orders per N price levels in random order](images/place_order_throughput_level_scaling_random_order.png)
 
-3. Cancel order throughput with M orders per N price levels (higher is better)
+3. Cancel order throughput with M orders per N price levels in random order (higher is better)
 ![Cancel order throughput with M orders per N price levels in random order](images/cancel_order_throughput_level_scaling_random_order.png)
 
 4. Memory allocations with M orders per N price levels (lower is better)
@@ -48,8 +47,6 @@ based chunks to be used by its slotmaps. Additionally the arena uses memmap2 to 
 by something like 4x-5x. However this does not help with l1 cache misses, since the SlotMap trades O(1) inserts and removals for worse
 cache locality. These tradeoffs still make V4 the fastest engine in terms of memory allocations, memory growth, pure order throughput and also completely 
 eliminates the jitter that even V3 was suffering from.
-
-// TODO: add V5 changes here
 
 ### What I learned
 1. How bad heap allocated pointer jumps can impact performance
@@ -92,7 +89,14 @@ pub fn pop_hint_unreachable(data: &mut Vec<usize>) -> usize {
 Both versions compile to the exact same assembly, but version 2 using the hint is much simpler to reason about and avoids simple index calculation errors, similar
 to index based for loops, while still achieving the same performance.
 
-### Reproduce benchmark results:
+### About benchmark results
+First of all, benchmark 1., 4., and 5. are great benchmarks to give an insight to how well 
+
+Some of the benchmarks have to be taken with a grain of salt. Benchmark 2. and 3. are used to show that each version might scale differently with the number of 
+price levels, however these results can fluctuate greatly. For example, changing the orders to be inserted per level with 10k level to 10k, will make V4 faster
+again. This is mostly because if a level is created and only 10 orders are inserted, then we need to load vastly different 
+
+### Reproduce benchmark results
 1. Run the benchmarks and optionally write criterion results to a text file
 ```bash
 cargo bench --bench bench_place_orders --bench bench_cancel_orders > benches/results/criterion_results.txt
@@ -108,7 +112,7 @@ cd benches/results/ && python parse_criterion_results.py
 cargo bench --bench create_charts
 ```
 
-### Testing the implementations:
+### Testing the implementations
 ```bash
 cargo test
 ```

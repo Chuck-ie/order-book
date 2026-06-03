@@ -18,7 +18,7 @@ pub type EngineV1 = DefaultBenchEngine<v1_vec_only::matcher::OrderMatcher>;
 pub type EngineV2 = DefaultBenchEngine<v2_btree::matcher::OrderMatcher>;
 pub type EngineV3 = DefaultBenchEngine<v3_slot_map::matcher::OrderMatcher>;
 pub type EngineV4 = ArenaBenchEngine<v4_sm_arena::matcher::OrderMatcher>;
-pub type EngineV5 = ArenaBenchEngine<v5_sm_arena_vec_index::matcher::OrderMatcher>;
+// pub type EngineV5 = ArenaBenchEngine<v5_sm_arena_vec_index::matcher::OrderMatcher>;
 
 pub const MEMORY_FOOTPRINT_PLACE_ORDERS_CSV_PATH: &str =
     "benches/results/memory_footprint_place_orders_level_scaling.csv";
@@ -38,7 +38,11 @@ pub const LEVEL_SCALINGS: [(usize, usize); 5] = [
     (100, 1_000),
     (1_000, 100),
     (10_000, 10),
-    // (10_000, 1_000),
+    // (1, 1_000_000),
+    // (10, 100_000),
+    // (100, 10_000),
+    // (1_000, 1_000),
+    // (10_000, 100),
 ];
 
 pub static NARROW: OrderProfile = OrderProfile::place_narrow();

@@ -210,11 +210,6 @@ fn create_chart_memory_profiles(
             Bar::new()
                 .name("EngineV4")
                 .data(get_engine_data("EngineV4")),
-        )
-        .series(
-            Bar::new()
-                .name("EngineV5")
-                .data(get_engine_data("EngineV5")),
         );
 
     HtmlRenderer::new(chart_title, 1500, 600)
@@ -289,11 +284,6 @@ fn create_chart_level_scaling_throughput(
             Bar::new()
                 .name("EngineV4")
                 .data(get_engine_data("EngineV4")),
-        )
-        .series(
-            Bar::new()
-                .name("EngineV5")
-                .data(get_engine_data("EngineV5")),
         );
 
     HtmlRenderer::new(chart_title, 1500, 600)
@@ -365,11 +355,6 @@ fn create_chart_persistent_scaling_throughput(
             Line::new()
                 .name("EngineV4")
                 .data(get_engine_data("EngineV4")),
-        )
-        .series(
-            Line::new()
-                .name("EngineV5")
-                .data(get_engine_data("EngineV5")),
         );
 
     HtmlRenderer::new(chart_title, 1500, 600)
@@ -466,11 +451,6 @@ fn create_criterion_result_charts() {
                     Bar::new()
                         .name("EngineV4")
                         .data(get_engine_data("EngineV4")),
-                )
-                .series(
-                    Bar::new()
-                        .name("EngineV5")
-                        .data(get_engine_data("EngineV5")),
                 );
 
             HtmlRenderer::new(chart_name.clone(), 2000, 800)
