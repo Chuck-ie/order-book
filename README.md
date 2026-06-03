@@ -62,10 +62,10 @@ for that, as well as using a SlotMap for each price level. This completely elimi
 overhead and replaces it with much faster index based O(1) access for inserts and deletes. V4 takes this further, by overhauling how orders are stored 
 entirely. V1 through V3 all separate order ids from the actual data of an order, which wastes cpu cycles on a second lookup. In addition to that, 
 V4 also introduces a custom arena allocator that reduces heap allocation pressure, by allocating a massive Vec of slots and splitting them into index
-based chunks to be used by its slotmaps. Additionally the arena uses memmap2 to try request hugepages of up to 1GB per hugepage, which reduces dTLB misses 
-by something like 4x-5x. However this does not help with l1 cache misses, since the SlotMap trades O(1) inserts and removals for worse
-cache locality. These tradeoffs still make V4 the fastest engine in terms of memory allocations, memory growth, pure order throughput and also completely 
-eliminates the jitter that even V3 was suffering from.
+based chunks to be used by its slotmaps. Additionally the arena uses memmap2 to try request hugepages of up to 1GB per hugepage, which reduces dTLB loads. 
+However this does not help with l1 cache misses, since the SlotMap trades O(1) inserts and removals for worse cache locality. These tradeoffs 
+still make V4 the fastest engine in terms of memory allocations, memory growth, pure order throughput and also completely eliminates the jitter that 
+even V3 was suffering from.
 
 ### What I learned
 1. How bad heap allocated pointer jumps can impact performance
