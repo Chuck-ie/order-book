@@ -30,7 +30,7 @@ and finally, place order throughput over time. The following engines have been i
 ![Memory growth with M orders per N price levels](benches/results/images/memory_growth.png)
 
 <details closed>
-<summary>V3 and V4 perf stat comparisons</summary>
+<summary>V3 and V4 perf stat comparisons at 100M orders</summary>
 <br>
 
 | Metric | EngineV3 | EngineV4 | Factor |
@@ -45,7 +45,7 @@ and finally, place order throughput over time. The following engines have been i
 dTLB and page fault reduction comes from the arena allocator using memmap2 mapped
 hugepages (8 x 1GB huge pages), drastically reducing the number of TLB entries needed
 at scale. The effect varies a lot. With shorter benchmarks (1M orders) the factor
-is ~7×, with longer benchmarks (100M orders) it reaches ~100×.
+is ~7×, with longer benchmarks (100M orders) it can even reach >100×.
 </details>
 
 ### Engine evolution over time
