@@ -68,13 +68,13 @@ still make V4 the fastest engine in terms of memory allocations, memory growth, 
 even V3 was suffering from.
 
 ### What I learned
-1. How bad heap allocated pointer jumps can impact performance
+1. How bad heap allocated pointer jumps can impact performance<br>
 In the initial arena implementation, [which can be found here](archive/old_v4_slot_map_arena.rs), I just stored a preallocated list of SlotMaps to be
 used inside a Vec, so that when a price level gets created, I can just get one already existing SlotMap and skip slot memory allocation completely. Turns 
 out, compared to V3, this basically halved the performance and made it worse compared to even V1 and V2 in some aspects. This was because heap lookups
 introduced massive L1 cache misses.
 
-2. Low level rust and how godbolt helped me write better unsafe rust
+2. Low level rust and how godbolt helped me write better unsafe rust<br>
 When I tried optimizing for the V4 version, I wanted to try out some more unsafe rust for things that are logically safe e.g. unchecked index lookup
 or casting a Slot, which is an enum, to either the Free or Occupied version without additional if branching overhead. I was pasting different unsafe
 code into [Godbolt](https://godbolt.org/) to see what the compiled assembly might look like and to my surprise, rust provides a very cool feature
