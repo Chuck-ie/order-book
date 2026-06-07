@@ -13,21 +13,13 @@ impl Spinlock {
     /// returns true if the lock is still able to continue to spin
     /// returns false if the ``spin_count`` has reached it limit, signalling that it should be stopped
     pub fn spin(&mut self) -> bool {
-        // spin just initialized, so we dont need to wait yet
-        if self.spin_count == 0 {
-            self.spin_count += 1;
-            true
-        }
-        // wait for the current spinlock
-        else {
-            let spins = 1 << self.spin_count.min(MAX_SPINS);
+        let spins = 1 << self.spin_count.min(MAX_SPINS);
 
-            for _ in 0..spins {
-                std::hint::spin_loop();
-            }
-
-            self.spin_count += 1;
-            self.spin_count <= MAX_SPINS
+        for _ in 0..spins {
+            std::hint::spin_loop();
         }
+
+        self.spin_count += 1;
+        self.spin_count <= MAX_SPINS
     }
 }
