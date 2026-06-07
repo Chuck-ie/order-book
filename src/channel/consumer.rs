@@ -1,0 +1,76 @@
+use std::sync::atomic::Ordering;
+
+use crate::channel::{
+    buffer_handle::{BufferHandle, MC, SC},
+    spinlock::Spinlock,
+};
+
+pub trait Consumer {
+    type Item;
+
+    fn try_read(&self) -> Option<Self::Item>;
+}
+
+impl<T> Consumer for BufferHandle<T, SC> {
+    type Item = T;
+
+    fn try_read(&self) -> Option<Self::Item> {
+        let curr_read_index = self.tail.load(Ordering::Relaxed);
+        let curr_write_index = self.head.load(Ordering::Relaxed);
+
+        if curr_read_index == curr_write_index {
+            return None;
+        }
+
+        let next_read_index = (curr_read_index + 1) & self.capacity;
+        self.tail.store(next_read_index, Ordering::Relaxed);
+
+        let value = unsafe {
+            let read_ptr = self.buffer.get_unchecked(curr_read_index).get();
+            read_ptr.read().assume_init_read()
+        };
+
+        Some(value)
+    }
+}
+
+impl<T> Consumer for BufferHandle<T, MC> {
+    type Item = T;
+
+    fn try_read(&self) -> Option<Self::Item> {
+        let mut spinlock = Spinlock::new();
+        let mut curr_read_index = self.tail.load(Ordering::Relaxed);
+
+        loop {
+            let curr_write_index = self.head.load(Ordering::Relaxed);
+
+            if curr_read_index == curr_write_index {
+                return None;
+            }
+
+            let next_read_index = (curr_read_index + 1) & self.capacity;
+
+            match self.tail.compare_exchange_weak(
+                curr_read_index,
+                next_read_index,
+                Ordering::SeqCst,
+                Ordering::Relaxed,
+            ) {
+                // Safety
+                // we check that curr_read_index is allowed to read and always update it to be a valid
+                // index inside our buffer, so we can always get the read_ptr and read from it
+                Ok(_) => unsafe {
+                    let read_ptr = self.buffer.get_unchecked(curr_read_index).get();
+                    return Some(read_ptr.read().assume_init_read());
+                },
+                Err(updated_read_index) => {
+                    curr_read_index = updated_read_index;
+
+                    if !spinlock.spin() {
+                        return None;
+                    }
+                }
+            }
+        }
+    }
+}
