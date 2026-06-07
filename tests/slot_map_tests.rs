@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod slot_map {
     use order_book::{
         common::OrderIdU32,
         slot_map::{

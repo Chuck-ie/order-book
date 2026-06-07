@@ -43,6 +43,8 @@ impl ArenaOrderMatcherExt for OrderMatcher {
                     OrderSide::Ask => self.process_ask(&mut order, arena),
                 }
 
+                // TODO: could be duplicated and moved up into the match to skip the place_order
+                // side branch by directly calling place_bid/place_ask
                 if order.amount > 0 {
                     Some(self.order_book.place_order(order, arena))
                 } else {

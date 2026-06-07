@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod final_ob_tests {
+mod arena_matcher {
     use order_book::{
         arena_allocator::{ArenaAllocator, ArenaId},
         common::{MatcherCommand, OrderSide},

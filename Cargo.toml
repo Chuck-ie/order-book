@@ -9,7 +9,6 @@ readme = "README.md"
 criterion = { version = "0.8", features = ["html_reports"] }
 rand = "0.10.0"
 rand_distr = "0.6.0"
-mimalloc = "0.1.52"
 memmap2 = "0.9.10"
 csv = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -31,6 +30,11 @@ harness = false
 [[bench]]
 name = "bench_cancel_orders"
 path = "benches/bench_cancel_orders.rs"
+harness = false
+
+[[bench]]
+name = "bench_lobster_data"
+path = "benches/bench_lobster_data.rs"
 harness = false
 
 [[bench]]
