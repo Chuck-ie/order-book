@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod order_matcher {
     use order_book::{
         common::{LimitOrderRequest, MatcherCommand, OrderBookExt, OrderMatcherExt, OrderSide},
         engine::{v1_vec_only, v2_btree, v3_slot_map},

@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod arena_slot_map {
     use order_book::{
         arena_allocator::{ArenaAllocator, ArenaId},
         slot_map::{

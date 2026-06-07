@@ -52,6 +52,7 @@ impl<T> ChunkedSlotMap<T> {
     }
 
     #[allow(clippy::cast_possible_truncation)]
+    #[inline(never)]
     pub fn insert(&mut self, data: T, arena: &mut ArenaAllocator<ArenaSlot<T>>) -> ArenaId {
         let free_index = self.free_head;
         // we have a slot to recycle
