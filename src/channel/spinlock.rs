@@ -1,4 +1,4 @@
-const MAX_SPINS: usize = 5;
+const MAX_SPINS: usize = 10;
 
 pub struct Spinlock {
     spin_count: usize,

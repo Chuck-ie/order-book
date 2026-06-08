@@ -1,11 +1,9 @@
-use std::{marker::PhantomData, ops::Deref, sync::Arc};
+use std::{marker::PhantomData, sync::Arc};
 
 use crate::channel::ring_buffer::RingBuffer;
 
-pub trait FromBuffer {
-    type Item;
-
-    fn new(buffer: &Arc<RingBuffer<Self::Item>>) -> Self;
+pub trait FromBuffer<T> {
+    fn new(buffer: &Arc<RingBuffer<T>>) -> Self;
 }
 
 pub struct BufferHandle<T, M: Mode> {
@@ -13,22 +11,19 @@ pub struct BufferHandle<T, M: Mode> {
     _mode: PhantomData<M>,
 }
 
-impl<T, M: Mode> FromBuffer for BufferHandle<T, M> {
-    type Item = T;
+impl<T, M: Mode> BufferHandle<T, M> {
+    #[inline]
+    pub(crate) const fn inner(&self) -> &Arc<RingBuffer<T>> {
+        &self.state
+    }
+}
 
-    fn new(buffer: &Arc<RingBuffer<Self::Item>>) -> Self {
+impl<T, M: Mode> FromBuffer<T> for BufferHandle<T, M> {
+    fn new(buffer: &Arc<RingBuffer<T>>) -> Self {
         Self {
             state: buffer.clone(),
             _mode: PhantomData,
         }
-    }
-}
-
-impl<T, M: Mode> Deref for BufferHandle<T, M> {
-    type Target = Arc<RingBuffer<T>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.state
     }
 }
 
