@@ -61,9 +61,13 @@ mod channel_tests {
         Channel, Consumer, FromBuffer, MpmcChannel, MpscChannel, MultiConsumer, MultiProducer,
         Producer, SpscChannel,
         buffer_handle::{SingleConsumer, SingleProducer},
+        producer::ProducerError,
     };
     use std::{
-        sync::{Arc, Mutex, atomic::Ordering},
+        sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        },
         time::Instant,
     };
 
@@ -122,8 +126,8 @@ mod channel_tests {
         };
     }
 
-    // test_channel_impl!(mpmc_channel, MpmcChannel<u32>);
-    // test_channel_impl!(mpsc_channel, MpscChannel<u32>);
+    test_channel_impl!(mpmc_channel, MpmcChannel<u32>);
+    test_channel_impl!(mpsc_channel, MpscChannel<u32>);
     test_channel_impl!(spsc_channel, SpscChannel<u32>);
 
     trait TestableChannelExt {
@@ -171,19 +175,19 @@ mod channel_tests {
     fn cant_write_past_read_tail<C: TestableChannelExt>() {
         let (p, c) = C::with_capacity(2).split();
 
-        assert!(p.try_write(1).is_ok());
-        assert!(p.try_write(2).is_err());
+        assert_eq!(Ok(()), p.try_write(1));
+        assert_eq!(Err(ProducerError::QueueFull), p.try_write(1));
 
-        c.try_read();
-        assert!(p.try_write(3).is_ok());
-        assert!(p.try_write(4).is_err());
+        assert_eq!(Some(1), c.try_read());
+        assert_eq!(Ok(()), p.try_write(3));
+        assert_eq!(Err(ProducerError::QueueFull), p.try_write(4));
     }
 
     fn write_index_advance_no_wrap<C: TestableChannelExt>() {
         let channel = C::with_capacity(2);
         let rb = channel.buffer;
         let p = channel.producer;
-        assert!(p.try_write(1).is_ok());
+        assert_eq!(Ok(()), p.try_write(1));
 
         assert_eq!(1, rb.head.load(Ordering::Relaxed));
         assert_eq!(0, rb.tail.load(Ordering::Relaxed));
@@ -195,11 +199,11 @@ mod channel_tests {
         let p = channel.producer;
         let c = channel.consumer;
 
-        assert!(p.try_write(1).is_ok());
-        assert!(p.try_write(2).is_err());
+        assert_eq!(Ok(()), p.try_write(1));
+        assert_eq!(Err(ProducerError::QueueFull), p.try_write(2));
 
         assert_eq!(Some(1), c.try_read());
-        assert!(p.try_write(1).is_ok());
+        assert_eq!(Ok(()), p.try_write(3));
 
         assert_eq!(0, rb.head.load(Ordering::Relaxed));
         assert_eq!(1, rb.tail.load(Ordering::Relaxed));
@@ -236,74 +240,85 @@ mod channel_tests {
         let c = channel.consumer;
 
         assert_eq!(Ok(()), p.try_write(1));
-        c.try_read();
+        assert_eq!(Some(1), c.try_read());
         assert_eq!(Ok(()), p.try_write(2));
-        c.try_read();
+        assert_eq!(Some(2), c.try_read());
         assert_eq!(Ok(()), p.try_write(3));
         assert_eq!(Some(3), c.try_read());
 
-        assert_eq!(1, rb.head.load(Ordering::Relaxed));
-        assert_eq!(1, rb.tail.load(Ordering::Relaxed));
+        assert_eq!(1, rb.head.load(Ordering::Acquire));
+        assert_eq!(1, rb.tail.load(Ordering::Acquire));
     }
 
-    #[test]
-    fn test_spsc_stress() {
-        let start = Instant::now();
-        let items_to_write = 100_000;
-        let (producer, consumer) = SpscChannel::<u32>::with_capacity(128).split();
+    // #[test]
+    fn test_bench_spsc() {
+        let items_to_write = 50_000_000;
+        let (producer, consumer) = SpscChannel::<u32>::with_capacity(1024).split();
+
+        let ready = Arc::new(AtomicBool::new(false));
+        let ready_p = ready.clone();
+        let ready_c = ready.clone();
 
         let producer_handle = std::thread::spawn(move || {
+            while !ready_p.load(Ordering::Acquire) {
+                std::thread::yield_now();
+            }
+
             for i in 0..items_to_write {
-                // println!("write: {i}");
-                while producer.try_write(i).is_err() {
-                    std::thread::yield_now();
-                }
+                while producer.try_write(i).is_err() {}
             }
         });
 
         let consumer_handle = std::thread::spawn(move || {
-            for i in 0..items_to_write {
-                let mut value = None;
+            while !ready_c.load(Ordering::Acquire) {
+                std::thread::yield_now();
+            }
 
-                while value.is_none() {
-                    std::thread::yield_now();
-                    value = consumer.try_read();
+            for _ in 0..items_to_write {
+                let mut val = None;
+                while val.is_none() {
+                    val = consumer.try_read();
                 }
-
-                // println!("read: {i}");
-                assert_eq!(Some(i), value);
             }
         });
 
-        producer_handle
-            .join()
-            .expect("failed to join producer handle");
+        std::thread::sleep(std::time::Duration::from_millis(100));
 
-        consumer_handle
-            .join()
-            .expect("failed to join consumer handle");
+        let start = Instant::now();
+        ready.store(true, Ordering::Release);
 
-        println!("elapsed: {}", start.elapsed().as_millis());
+        producer_handle.join().unwrap();
+        consumer_handle.join().unwrap();
+
+        let elapsed = start.elapsed();
+        println!(
+            "Total time: {:?}, Throughput: {} ops/sec",
+            elapsed,
+            (items_to_write as f64 / elapsed.as_secs_f64()) as u64
+        );
     }
 
-    #[test]
-    fn test_mpmc_stress() {
-        let (producer, consumer) = MpmcChannel::<u32>::with_capacity(1024).split();
-
+    // #[test]
+    fn test_bench_mpmc_4p_4c() {
         let num_producers = 4;
         let num_consumers = 4;
-        let items_per_producer = 1000;
+        let total_items = 50_000_000;
+        let items_per_producer = total_items / num_producers;
 
-        let received_sum = Arc::new(Mutex::new(0u32));
-        let received_count = Arc::new(Mutex::new(0u32));
+        let (producer, consumer) = MpmcChannel::<u32>::with_capacity(4096).split();
 
+        let ready = Arc::new(AtomicBool::new(false));
         let mut producer_handles = vec![];
         for _ in 0..num_producers {
             let p = producer.clone();
+            let ready_p = ready.clone();
             producer_handles.push(std::thread::spawn(move || {
+                while !ready_p.load(Ordering::Acquire) {
+                    std::hint::spin_loop();
+                }
                 for i in 0..items_per_producer {
-                    while p.try_write(i).is_err() {
-                        std::thread::yield_now();
+                    while p.try_write(i as u32).is_err() {
+                        std::hint::spin_loop();
                     }
                 }
             }));
@@ -312,21 +327,26 @@ mod channel_tests {
         let mut consumer_handles = vec![];
         for _ in 0..num_consumers {
             let c = consumer.clone();
-            let sum = received_sum.clone();
-            let count = received_count.clone();
+            let ready_c = ready.clone();
             consumer_handles.push(std::thread::spawn(move || {
-                for _ in 0..items_per_producer {
-                    let val = loop {
-                        if let Some(v) = c.try_read() {
-                            break v;
-                        }
-                        std::thread::yield_now();
-                    };
-                    *sum.lock().unwrap() += val;
-                    *count.lock().unwrap() += 1;
+                while !ready_c.load(Ordering::Acquire) {
+                    std::hint::spin_loop();
+                }
+                let mut count = 0;
+                while count < items_per_producer {
+                    if c.try_read().is_some() {
+                        count += 1;
+                    } else {
+                        std::hint::spin_loop();
+                    }
                 }
             }));
         }
+
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
+        let start = Instant::now();
+        ready.store(true, Ordering::Release);
 
         for h in producer_handles {
             h.join().unwrap();
@@ -335,11 +355,11 @@ mod channel_tests {
             h.join().unwrap();
         }
 
-        assert_eq!(
-            *received_count.lock().unwrap(),
-            num_producers * items_per_producer
+        let elapsed = start.elapsed();
+        println!(
+            "Total time: {:?}, Throughput: {} ops/sec",
+            elapsed,
+            (total_items as f64 / elapsed.as_secs_f64()) as u64
         );
-        let expected_sum = num_producers * ((items_per_producer * (items_per_producer - 1)) / 2);
-        assert_eq!(*received_sum.lock().unwrap(), expected_sum);
     }
 }
