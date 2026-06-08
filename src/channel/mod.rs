@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::channel::{
-    buffer_handle::{FromBuffer, MultiConsumer, MultiProducer, SingleConsumer},
+    buffer_handle::{FromBuffer, MultiConsumer, MultiProducer, SingleConsumer, SingleProducer},
     consumer::Consumer,
     producer::Producer,
     ring_buffer::RingBuffer,
@@ -15,6 +15,7 @@ mod spinlock;
 
 pub type MpmcChannel<T> = Channel<T, MultiProducer<T>, MultiConsumer<T>>;
 pub type MpscChannel<T> = Channel<T, MultiProducer<T>, SingleConsumer<T>>;
+pub type SpscChannel<T> = Channel<T, SingleProducer<T>, SingleConsumer<T>>;
 
 pub struct Channel<T, P, C>
 where
@@ -58,67 +59,72 @@ where
 mod channel_tests {
     use crate::channel::{
         Channel, Consumer, FromBuffer, MpmcChannel, MpscChannel, MultiConsumer, MultiProducer,
-        Producer, buffer_handle::SingleConsumer,
+        Producer, SpscChannel,
+        buffer_handle::{SingleConsumer, SingleProducer},
     };
-    use std::sync::{Arc, Mutex, atomic::Ordering};
+    use std::{
+        sync::{Arc, Mutex, atomic::Ordering},
+        time::Instant,
+    };
 
     macro_rules! test_channel_impl {
         ($name:ident, $ty:ty) => {
             mod $name {
                 use super::*;
 
-                // #[test]
-                // fn test_init_valid() {
-                //     super::init_valid::<$ty>();
-                // }
-                //
-                // #[test]
-                // #[should_panic(expected = "capacity must be greater than 1")]
-                // fn test_init_buf_eq_zero() {
-                //     super::init_buf_eq_zero::<$ty>();
-                // }
-                //
-                // #[test]
-                // #[should_panic(expected = "capacity must be greater than 1")]
-                // fn test_init_buf_eq_one() {
-                //     super::init_buf_eq_one::<$ty>();
-                // }
-                //
-                // #[test]
-                // fn test_cant_write_past_read_tail() {
-                //     super::cant_write_past_read_tail::<$ty>();
-                // }
-                //
-                // #[test]
-                // fn test_write_index_advance_no_wrap() {
-                //     super::write_index_advance_no_wrap::<$ty>();
-                // }
-                //
-                // #[test]
-                // fn test_write_index_advance_wrapping() {
-                //     super::write_index_advance_wrapping::<$ty>();
-                // }
-                //
-                // #[test]
-                // fn test_cant_read_past_write_head() {
-                //     super::cant_read_past_write_head::<$ty>();
-                // }
-                //
-                // #[test]
-                // fn test_read_index_advance_no_wrap() {
-                //     super::read_index_advance_no_wrap::<$ty>();
-                // }
+                #[test]
+                fn test_init_valid() {
+                    super::init_valid::<$ty>();
+                }
+
+                #[test]
+                #[should_panic(expected = "capacity must be greater than 1")]
+                fn test_init_buf_eq_zero() {
+                    super::init_buf_eq_zero::<$ty>();
+                }
+
+                #[test]
+                #[should_panic(expected = "capacity must be greater than 1")]
+                fn test_init_buf_eq_one() {
+                    super::init_buf_eq_one::<$ty>();
+                }
+
+                #[test]
+                fn test_cant_write_past_read_tail() {
+                    super::cant_write_past_read_tail::<$ty>();
+                }
+
+                #[test]
+                fn test_write_index_advance_no_wrap() {
+                    super::write_index_advance_no_wrap::<$ty>();
+                }
+
+                #[test]
+                fn test_write_index_advance_wrapping() {
+                    super::write_index_advance_wrapping::<$ty>();
+                }
+
+                #[test]
+                fn test_cant_read_past_write_head() {
+                    super::cant_read_past_write_head::<$ty>();
+                }
+
+                #[test]
+                fn test_read_index_advance_no_wrap() {
+                    super::read_index_advance_no_wrap::<$ty>();
+                }
 
                 #[test]
                 fn test_read_index_advance_wrapping() {
-                    // super::read_index_advance_wrapping::<$ty>();
+                    super::read_index_advance_wrapping::<$ty>();
                 }
             }
         };
     }
 
-    test_channel_impl!(mpmc_channel, MpmcChannel<u32>);
-    test_channel_impl!(mpsc_channel, MpscChannel<u32>);
+    // test_channel_impl!(mpmc_channel, MpmcChannel<u32>);
+    // test_channel_impl!(mpsc_channel, MpscChannel<u32>);
+    test_channel_impl!(spsc_channel, SpscChannel<u32>);
 
     trait TestableChannelExt {
         type P: Producer<Item = u32> + FromBuffer<u32>;
@@ -136,6 +142,11 @@ mod channel_tests {
 
     impl TestableChannelExt for MpscChannel<u32> {
         type P = MultiProducer<u32>;
+        type C = SingleConsumer<u32>;
+    }
+
+    impl TestableChannelExt for SpscChannel<u32> {
+        type P = SingleProducer<u32>;
         type C = SingleConsumer<u32>;
     }
 
@@ -161,11 +172,11 @@ mod channel_tests {
         let (p, c) = C::with_capacity(2).split();
 
         assert!(p.try_write(1).is_ok());
-        assert!(!p.try_write(2).is_ok());
+        assert!(p.try_write(2).is_err());
 
         c.try_read();
         assert!(p.try_write(3).is_ok());
-        assert!(!p.try_write(4).is_ok());
+        assert!(p.try_write(4).is_err());
     }
 
     fn write_index_advance_no_wrap<C: TestableChannelExt>() {
@@ -184,11 +195,11 @@ mod channel_tests {
         let p = channel.producer;
         let c = channel.consumer;
 
-        p.try_write(1);
-        p.try_write(2);
+        assert!(p.try_write(1).is_ok());
+        assert!(p.try_write(2).is_err());
 
-        c.try_read();
-        assert_eq!(Ok(()), p.try_write(1));
+        assert_eq!(Some(1), c.try_read());
+        assert!(p.try_write(1).is_ok());
 
         assert_eq!(0, rb.head.load(Ordering::Relaxed));
         assert_eq!(1, rb.tail.load(Ordering::Relaxed));
@@ -200,7 +211,7 @@ mod channel_tests {
         let c = channel.consumer;
         assert_eq!(None, c.try_read());
 
-        p.try_write(1);
+        assert!(p.try_write(1).is_ok());
         assert_eq!(Some(1), c.try_read());
         assert_eq!(None, c.try_read());
     }
@@ -233,6 +244,46 @@ mod channel_tests {
 
         assert_eq!(1, rb.head.load(Ordering::Relaxed));
         assert_eq!(1, rb.tail.load(Ordering::Relaxed));
+    }
+
+    #[test]
+    fn test_spsc_stress() {
+        let start = Instant::now();
+        let items_to_write = 100_000;
+        let (producer, consumer) = SpscChannel::<u32>::with_capacity(128).split();
+
+        let producer_handle = std::thread::spawn(move || {
+            for i in 0..items_to_write {
+                // println!("write: {i}");
+                while producer.try_write(i).is_err() {
+                    std::thread::yield_now();
+                }
+            }
+        });
+
+        let consumer_handle = std::thread::spawn(move || {
+            for i in 0..items_to_write {
+                let mut value = None;
+
+                while value.is_none() {
+                    std::thread::yield_now();
+                    value = consumer.try_read();
+                }
+
+                // println!("read: {i}");
+                assert_eq!(Some(i), value);
+            }
+        });
+
+        producer_handle
+            .join()
+            .expect("failed to join producer handle");
+
+        consumer_handle
+            .join()
+            .expect("failed to join consumer handle");
+
+        println!("elapsed: {}", start.elapsed().as_millis());
     }
 
     #[test]

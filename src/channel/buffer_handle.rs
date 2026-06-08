@@ -32,6 +32,7 @@ pub trait Mode {}
 /// Single Producer type state
 pub struct SP;
 impl Mode for SP {}
+pub type SingleProducer<T> = BufferHandle<T, SP>;
 
 /// Single Consumer type state
 pub struct SC;

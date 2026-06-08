@@ -16,15 +16,17 @@ impl<T> Consumer for BufferHandle<T, SC> {
 
     fn try_read(&self) -> Option<Self::Item> {
         let inner = self.inner();
-        let curr_read_index = inner.tail.load(Ordering::Acquire);
-        let curr_write_index = inner.head.load(Ordering::Relaxed);
+        let curr_read_index = inner.tail.load(Ordering::Relaxed);
+        let curr_write_index = inner.head.load(Ordering::Acquire);
 
         if curr_read_index == curr_write_index {
             return None;
         }
 
-        let next_read_index = (curr_read_index + 1) & inner.capacity;
         let value = unsafe { inner.buffer.get_unchecked(curr_read_index).read() };
+        let next_read_index = (curr_read_index + 1) & inner.capacity;
+
+        // inner.tail.store(next_read_index, Ordering::Release);
         inner.tail.store(next_read_index, Ordering::Release);
 
         Some(value)
