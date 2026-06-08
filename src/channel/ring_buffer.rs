@@ -1,6 +1,11 @@
-use std::{cell::UnsafeCell, mem::MaybeUninit, ops::Deref, sync::atomic::AtomicUsize};
+use std::{
+    cell::UnsafeCell,
+    mem::MaybeUninit,
+    ops::Deref,
+    sync::atomic::{AtomicBool, AtomicUsize},
+};
 
-#[repr(align(64))]
+// #[repr(align(64))]
 #[derive(Default)]
 pub struct CacheLinePadded<T>(T);
 
@@ -15,15 +20,15 @@ impl<T> Deref for CacheLinePadded<T> {
 #[repr(align(64))]
 pub struct BufferSlot<T> {
     cell: UnsafeCell<MaybeUninit<T>>,
-    pub(crate) ticket: AtomicUsize,
+    pub(crate) written: AtomicBool,
 }
 
 impl<T> BufferSlot<T> {
     #[inline]
-    pub const fn from_ticket(ticket: usize) -> Self {
+    pub const fn new() -> Self {
         Self {
             cell: UnsafeCell::new(MaybeUninit::uninit()),
-            ticket: AtomicUsize::new(ticket),
+            written: AtomicBool::new(false),
         }
     }
 
@@ -70,7 +75,7 @@ impl<T> RingBuffer<T> {
         assert!(capacity > 1, "capacity must be greater than 1");
         assert!(capacity.is_power_of_two(), "capacity must be a power of 2");
 
-        let buffer = (0..capacity).map(|i| BufferSlot::from_ticket(i)).collect();
+        let buffer = (0..capacity).map(|_| BufferSlot::new()).collect();
 
         Self {
             buffer,
