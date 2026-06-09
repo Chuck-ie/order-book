@@ -99,8 +99,6 @@ impl<T> Producer for BufferHandle<T, MP> {
                 }
             } else if !spinlock.spin() {
                 return Err(ProducerError::Timeout);
-            } else {
-                std::thread::yield_now();
             }
         }
     }

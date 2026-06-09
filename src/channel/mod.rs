@@ -163,7 +163,6 @@ mod channel_tests {
         assert_eq!(capacity, rb.buffer.len());
     }
 
-    // we dont need to test < 0, since the size is a const of type usize which gets compile time checked already
     fn init_buf_eq_zero<C: TestableChannelExt>() {
         std::hint::black_box(C::with_capacity(0));
     }
@@ -193,6 +192,9 @@ mod channel_tests {
         assert_eq!(0, rb.tail.load(Ordering::Relaxed));
     }
 
+    /// TODO: running this test with miri causes timeouts for writes, which is more a problem
+    /// with miri rather than the tests or the implementations. should probably still add a
+    /// helper method to write blocking just for testing
     fn write_index_advance_wrapping<C: TestableChannelExt>() {
         let channel = C::with_capacity(2);
         let rb = channel.buffer;
@@ -233,6 +235,9 @@ mod channel_tests {
         assert_eq!(1, rb.tail.load(Ordering::Relaxed));
     }
 
+    /// TODO: running this test with miri causes timeouts for writes, which is more a problem
+    /// with miri rather than the tests or the implementations. should probably still add a
+    /// helper method to write blocking just for testing
     fn read_index_advance_wrapping<C: TestableChannelExt>() {
         let channel = C::with_capacity(2);
         let rb = channel.buffer;
