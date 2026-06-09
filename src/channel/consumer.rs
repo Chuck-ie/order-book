@@ -86,8 +86,6 @@ impl<T> Consumer for BufferHandle<T, MC> {
                 }
             } else if !spinlock.spin() {
                 return None;
-            } else {
-                std::thread::yield_now();
             }
         }
     }
