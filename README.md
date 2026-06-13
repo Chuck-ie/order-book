@@ -59,7 +59,7 @@ Vec, which the result of benchmark 2. shows. Both engines also maintain a separa
 when comparing against V3 and V4.
 
 V3 has significant gains in performance in almost every benchmark. Instead of using a HashMap for order lookup, it uses a custom built SlotMap 
-for that, as well as using a SlotMap for each price level. This completely eliminates hash computation, tree rebalancing or Vec resizing
+for that, as well as using a SlotMap for each price level. This completely eliminates things like hash computation or Vec resizing
 overhead and replaces it with much faster index based O(1) access for inserts and deletes. V4 takes this further, by overhauling how orders are stored 
 entirely. V1 through V3 all separate order ids from the actual data of an order, which wastes cpu cycles on a second lookup. In addition to that, 
 V4 also introduces a custom arena allocator that reduces heap allocation pressure, by allocating a massive Vec of slots and splitting them into index
