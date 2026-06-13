@@ -114,8 +114,8 @@ performs over time, which 2. and 3. do not do.
 
 Some of the benchmarks have to be taken with a grain of salt. Benchmark 2. and 3. particularly are used to show that each version scales differently with increasing
 numbers of price levels, however these results can fluctuate greatly as they don't take into account how this scales over time, as orders for these benchmarks are
-only inserted on one side and there is no matching happening. However in contrast to those two, benchmarks 1., 2., and 3. genuinely give a great insight into
-each engine, as the show memory behavior as well as performance over time. V1 and V2 clearly do not scale well, as performance continues to degrade, which the other
+only inserted on one side and there is no matching happening. However in contrast to those two, benchmarks 1., 4., and 5. genuinely give a great insight into
+each engine, as they show memory behavior as well as performance over time. V1 and V2 clearly do not scale well, as performance continues to degrade, which the other
 benchmarks did not show. V3 has massive jitter and terrible p99 performance. V4 on the other hand solves basically all of these problems, as it has a steady throughput,
 stable memory and only small jitter.
 
