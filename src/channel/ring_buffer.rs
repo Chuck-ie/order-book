@@ -5,7 +5,12 @@ use std::{
     sync::atomic::{AtomicBool, AtomicUsize},
 };
 
-// #[repr(align(64))]
+// 1: no align: Config: 4P/4C | Total time: 8.233921789s, Throughput: 6072440 ops/sec
+// 2: align h+t: Config: 4P/4C | Total time: 10.315543863s, Throughput: 4847054 ops/sec
+// 3: align slot: Config: 4P/4C | Total time: 9.503548084s, Throughput: 5261192 ops/sec
+// 4: align both: Config: 4P/4C | Total time: 7.406188957s, Throughput: 6751110 ops/sec
+
+#[repr(align(64))]
 #[derive(Default)]
 pub struct CacheLinePadded<T>(T);
 
@@ -17,7 +22,7 @@ impl<T> Deref for CacheLinePadded<T> {
     }
 }
 
-#[repr(align(64))]
+// #[repr(align(64))]
 pub struct BufferSlot<T> {
     cell: UnsafeCell<MaybeUninit<T>>,
     pub(crate) written: AtomicBool,
@@ -47,9 +52,6 @@ impl<T> BufferSlot<T> {
     pub const unsafe fn read(&self) -> T {
         unsafe { self.cell.get().read().assume_init_read() }
     }
-
-    // let read_ptr = inner.buffer.get_unchecked(curr_read_index).get();
-    // read_ptr.read().assume_init_read()
 }
 
 // TODO: check if const BUF_SIZE is preferred here. Originally I planned to use it for a fixed size,
@@ -69,7 +71,7 @@ unsafe impl<T: Sync> Sync for RingBuffer<T> {}
 impl<T> RingBuffer<T> {
     /// # Panics
     ///
-    /// panics if the ``BUF_SIZE`` is less than 2 or if its not a power of 2
+    /// panics if the capacity is less than 2 or if its not a power of 2
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         assert!(capacity > 1, "capacity must be greater than 1");

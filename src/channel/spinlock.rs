@@ -1,25 +1,63 @@
-const MAX_SPINS: usize = 10;
+use std::cell::Cell;
+
+const SOFT_LIMIT: usize = 6;
+const HARD_LIMIT: usize = 12;
 
 pub struct Spinlock {
-    spin_count: usize,
+    spin_count: Cell<usize>,
 }
 
 impl Spinlock {
     #[must_use]
     pub const fn new() -> Self {
-        Self { spin_count: 0 }
+        Self {
+            spin_count: Cell::new(0),
+        }
     }
 
     /// returns true if the lock is still able to continue to spin
     /// returns false if the ``spin_count`` has reached it limit, signalling that it should be stopped
+    #[inline]
     pub fn spin(&mut self) -> bool {
-        let spins = 1 << self.spin_count.min(MAX_SPINS);
+        let spins = 1 << self.spin_count.get().min(SOFT_LIMIT);
 
         for _ in 0..spins {
             std::hint::spin_loop();
         }
 
-        self.spin_count += 1;
-        self.spin_count <= MAX_SPINS
+        if self.spin_count.get() <= SOFT_LIMIT {
+            self.spin_count.set(self.spin_count.get() + 1);
+        }
+
+        self.spin_count.get() <= SOFT_LIMIT
+    }
+
+    #[inline]
+    pub fn spin_heavy(&self) -> bool {
+        let spins = 1 << self.spin_count.get().min(SOFT_LIMIT);
+
+        if self.spin_count.get() <= SOFT_LIMIT {
+            for _ in 0..spins {
+                std::hint::spin_loop();
+            }
+        } else {
+            for _ in 0..spins {
+                std::hint::spin_loop();
+            }
+
+            std::thread::yield_now();
+        }
+
+        if self.spin_count.get() <= HARD_LIMIT {
+            self.spin_count.set(self.spin_count.get() + 1);
+        }
+
+        self.spin_count.get() <= HARD_LIMIT
+    }
+}
+
+impl Default for Spinlock {
+    fn default() -> Self {
+        Self::new()
     }
 }

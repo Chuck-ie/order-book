@@ -11,7 +11,7 @@ mod buffer_handle;
 mod consumer;
 mod producer;
 mod ring_buffer;
-mod spinlock;
+pub mod spinlock;
 
 pub type MpmcChannel<T> = Channel<T, MultiProducer<T>, MultiConsumer<T>>;
 pub type MpscChannel<T> = Channel<T, MultiProducer<T>, SingleConsumer<T>>;
@@ -68,7 +68,7 @@ mod channel_tests {
             Arc,
             atomic::{AtomicBool, Ordering},
         },
-        time::Instant,
+        time::{Duration, Instant},
     };
 
     macro_rules! test_channel_impl {
@@ -255,9 +255,41 @@ mod channel_tests {
         assert_eq!(1, rb.tail.load(Ordering::Acquire));
     }
 
+    #[test]
+    fn test_bench_loop() {
+        let items_to_write = 5_000_001;
+        let mut items = Vec::with_capacity(items_to_write);
+
+        let start = Instant::now();
+
+        for i in 0..items_to_write {
+            items.push(i);
+
+            // let end = Instant::now() + Duration::from_nanos(100);
+            // while Instant::now() < end {}
+        }
+
+        for i in (0..items_to_write).rev() {
+            items.remove(i);
+
+            // let end = Instant::now() + Duration::from_nanos(100);
+            // while Instant::now() < end {}
+        }
+
+        let elapsed = start.elapsed();
+
+        assert!(items.is_empty());
+
+        println!(
+            "single thread: Total time: {:?}, Throughput: {} ops/sec",
+            elapsed,
+            (items_to_write as f64 / elapsed.as_secs_f64()) as u64
+        );
+    }
+
     // #[test]
     fn test_bench_spsc() {
-        let items_to_write = 50_000_000;
+        let items_to_write = 5_000_000;
         let (producer, consumer) = SpscChannel::<u32>::with_capacity(1024).split();
 
         let ready = Arc::new(AtomicBool::new(false));
@@ -304,26 +336,36 @@ mod channel_tests {
     }
 
     // #[test]
-    fn test_bench_mpmc_4p_4c() {
+    fn test_bench_mpmc() {
         let num_producers = 4;
         let num_consumers = 4;
-        let total_items = 50_000_000;
-        let items_per_producer = total_items / num_producers;
+        let total_items = 5_000_000;
 
         let (producer, consumer) = MpmcChannel::<u32>::with_capacity(4096).split();
 
         let ready = Arc::new(AtomicBool::new(false));
+        let items_produced = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let items_consumed = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+
         let mut producer_handles = vec![];
         for _ in 0..num_producers {
             let p = producer.clone();
             let ready_p = ready.clone();
+            let items_produced_p = items_produced.clone();
+
             producer_handles.push(std::thread::spawn(move || {
                 while !ready_p.load(Ordering::Acquire) {
                     std::hint::spin_loop();
                 }
-                for i in 0..items_per_producer {
-                    while p.try_write(i as u32).is_err() {
-                        std::hint::spin_loop();
+
+                loop {
+                    let current_item = items_produced_p.fetch_add(1, Ordering::Relaxed);
+                    if current_item >= total_items {
+                        break;
+                    }
+
+                    while p.try_write(current_item as u32).is_err() {
+                        std::thread::yield_now();
                     }
                 }
             }));
@@ -333,23 +375,28 @@ mod channel_tests {
         for _ in 0..num_consumers {
             let c = consumer.clone();
             let ready_c = ready.clone();
+            let items_consumed_c = items_consumed.clone();
+
             consumer_handles.push(std::thread::spawn(move || {
                 while !ready_c.load(Ordering::Acquire) {
                     std::hint::spin_loop();
                 }
-                let mut count = 0;
-                while count < items_per_producer {
+
+                loop {
+                    if items_consumed_c.load(Ordering::Relaxed) >= total_items {
+                        break;
+                    }
+
                     if c.try_read().is_some() {
-                        count += 1;
+                        items_consumed_c.fetch_add(1, Ordering::Relaxed);
                     } else {
-                        std::hint::spin_loop();
+                        std::thread::yield_now();
                     }
                 }
             }));
         }
 
         std::thread::sleep(std::time::Duration::from_millis(100));
-
         let start = Instant::now();
         ready.store(true, Ordering::Release);
 
@@ -362,7 +409,9 @@ mod channel_tests {
 
         let elapsed = start.elapsed();
         println!(
-            "Total time: {:?}, Throughput: {} ops/sec",
+            "Config: {}P/{}C | Total time: {:?}, Throughput: {} ops/sec",
+            num_producers,
+            num_consumers,
             elapsed,
             (total_items as f64 / elapsed.as_secs_f64()) as u64
         );
