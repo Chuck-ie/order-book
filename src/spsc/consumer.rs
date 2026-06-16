@@ -41,25 +41,33 @@ impl<T, const N: usize> Consumer<T, N> {
         let curr_tail = self.inner_tail.get();
         let curr_cl_tail = self.inner_cl_tail.get();
 
+        // If we finished reading from a cache line in the previous recv
         if curr_cl_tail == N {
+            // Calculate the index of the next cache line by wrapping around buffer bounds using
+            // fast modulo since cache_lines is always a power of 2
             let next_tail = (curr_tail + 1) & self.buffer.cache_lines;
+
+            // Sync with the writer's release when advancing its head
             let curr_head = self.buffer.head.load(Ordering::Acquire);
 
             if next_tail == curr_head {
                 return Err(Error::QueueEmpty);
             }
 
-            // Safety: curr_tail is always within bounds and never overlaps with the write head
+            // Safety: next_tail is verified against curr_head and is within bounds
             let cache_line = unsafe { self.buffer.inner.get_unchecked(next_tail) };
             let value = unsafe { cache_line.read(0) };
 
             self.inner_tail.set(next_tail);
             self.inner_cl_tail.set(1);
+
+            // Sync the advancement with the write thread
             self.buffer.tail.store(next_tail, Ordering::Release);
 
             Ok(value)
         } else {
-            // Safety: curr_tail is always within bounds and never overlaps with the write head
+            // Safety: curr_tail is always within bounds and guaranteed not to
+            // reach the write head because we checked for empty state previously.
             let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_tail) };
             let value = unsafe { cache_line.read(curr_cl_tail) };
 
