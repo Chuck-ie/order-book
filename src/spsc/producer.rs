@@ -13,7 +13,7 @@ pub enum Error {
 
 pub struct Producer<T, const N: usize> {
     inner_head: Cell<usize>,
-    pub(crate) inner_cl_head: Cell<usize>,
+    inner_cl_head: Cell<usize>,
     buffer: Arc<Buffer<T, N>>,
 }
 

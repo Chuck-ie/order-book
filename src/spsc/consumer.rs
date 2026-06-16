@@ -13,7 +13,7 @@ pub enum Error {
 
 pub struct Consumer<T, const N: usize> {
     inner_tail: Cell<usize>,
-    pub(crate) inner_cl_tail: Cell<usize>,
+    inner_cl_tail: Cell<usize>,
     buffer: Arc<Buffer<T, N>>,
 }
 
