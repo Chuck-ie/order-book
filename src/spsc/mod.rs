@@ -53,7 +53,7 @@ struct Buffer<T, const N: usize> {
     inner: Box<[CacheLine<T, N>]>,
     head: CachePadded<AtomicUsize>,
     tail: CachePadded<AtomicUsize>,
-    capacity: usize,
+    cache_lines: usize,
     inner_cl_head_ptr: AtomicPtr<Cell<usize>>,
 }
 
@@ -63,7 +63,6 @@ unsafe impl<T: Sync, const N: usize> Sync for Buffer<T, N> {}
 impl<T, const N: usize> Buffer<T, N> {
     // TODO: consider implementing into for spsc -> (prod, cons)
     pub fn with_capacity(capacity: usize) -> (Box<Producer<T, N>>, Consumer<T, N>) {
-        // pub fn with_capacity(capacity: usize) -> (Producer<T, N>, Consumer<T, N>) {
         let actual_capacity = capacity / N;
         let inner = (0..actual_capacity).map(|_| CacheLine::default()).collect();
 
@@ -71,7 +70,7 @@ impl<T, const N: usize> Buffer<T, N> {
             inner,
             head: CachePadded(AtomicUsize::new(0)),
             tail: CachePadded(AtomicUsize::new(0)),
-            capacity: actual_capacity - 1,
+            cache_lines: actual_capacity - 1,
             inner_cl_head_ptr: AtomicPtr::new(ptr::null_mut()),
         });
 
@@ -116,50 +115,15 @@ mod spsc_tests {
         Message([num; LEN])
     }
 
-    fn custom_spsc_bench() {
-        let items_to_write = 5_000_001;
-        let (producer, consumer) = channel!(Message, 1024);
-
-        let ready = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-        let ready_p = ready.clone();
-        let ready_c = ready.clone();
-
-        std::thread::scope(|scope| {
-            let producer_handle = scope.spawn(move || {
-                while !ready_p.load(std::sync::atomic::Ordering::Acquire) {
-                    std::thread::yield_now();
-                }
-
-                for i in 0..items_to_write {
-                    producer.send(new(i));
-                }
-            });
-
-            let consumer_handle = scope.spawn(move || {
-                while !ready_c.load(std::sync::atomic::Ordering::Acquire) {
-                    std::thread::yield_now();
-                }
-
-                for _ in 0..items_to_write {
-                    std::hint::black_box(consumer.recv());
-                }
-            });
-
-            // Small delay to allow threads to hit the yield loop
-            std::thread::sleep(std::time::Duration::from_millis(100));
-            ready.store(true, std::sync::atomic::Ordering::Release);
-
-            producer_handle.join().unwrap();
-            consumer_handle.join().unwrap();
-        });
-    }
-
     const MESSAGES: usize = 5_000_001;
+    // const MESSAGES: usize = 17;
 
+    #[test]
     fn custom_spsc() {
         let (tx, rx) = channel!(Message, 1024);
-
         let mut sum: usize = 0;
+        let start = std::time::Instant::now();
+
         std::thread::scope(|scope| {
             scope.spawn(move || {
                 for i in 0..MESSAGES {
@@ -167,13 +131,24 @@ mod spsc_tests {
                 }
             });
 
-            for _ in 0..MESSAGES {
+            for _ in 0..MESSAGES - 1 {
                 let msg = rx.recv();
                 sum = sum.wrapping_add(std::hint::black_box(unsafe { *msg.0.get_unchecked(0) }));
             }
         });
+
+        let elapsed = start.elapsed();
+
         std::hint::black_box(sum);
         println!("sum custom_spsc: {sum}");
+        println!("Time taken: {elapsed:?}");
+        println!(
+            "Throughput: {:.2} msg/s",
+            MESSAGES as f64 / elapsed.as_secs_f64()
+        );
+
+        let expected_sum = (MESSAGES - 2) * (MESSAGES - 1) / 2;
+        assert_eq!(sum, expected_sum, "Sum does not match the expected value");
     }
 
     fn crossbeam_spsc() {
@@ -189,14 +164,14 @@ mod spsc_tests {
 
             for _ in 0..MESSAGES {
                 let msg = rx.recv().unwrap();
-                sum = sum.wrapping_add(std::hint::black_box(unsafe { *msg.0.get_unchecked(0) }));
+                sum == sum.wrapping_add(std::hint::black_box(unsafe { *msg.0.get_unchecked(0) }));
             }
         });
         std::hint::black_box(sum);
         println!("sum crossbeam_spsc: {sum}");
     }
 
-    #[test]
+    // #[test]
     fn test() {
         macro_rules! run {
             ($name:expr, $f:expr) => {
@@ -217,70 +192,8 @@ mod spsc_tests {
     }
 
     // #[test]
-    // fn test_bench_spsc() {
-    //     let items_to_write = 5_000_000;
-    //     let (producer, mut consumer) = channel!(Message, 1024);
-    //
-    //     let ready = Arc::new(AtomicBool::new(false));
-    //     let ready_p = ready.clone();
-    //     let ready_c = ready.clone();
-    //     let with_delay = false;
-    //
-    //     let producer_handle = std::thread::spawn(move || {
-    //         while !ready_p.load(Ordering::Acquire) {
-    //             std::thread::yield_now();
-    //         }
-    //
-    //         for i in 0..items_to_write {
-    //             producer.send(new(i));
-    //             std::hint::black_box(());
-    //             if with_delay {
-    //                 let end = Instant::now() + Duration::from_nanos(100);
-    //                 while Instant::now() < end {}
-    //             }
-    //         }
-    //     });
-    //
-    //     let consumer_handle = std::thread::spawn(move || {
-    //         while !ready_c.load(Ordering::Acquire) {
-    //             std::thread::yield_now();
-    //         }
-    //
-    //         for i in 0..items_to_write {
-    //             if i > (items_to_write - 16) {
-    //                 for _ in std::hint::black_box(consumer.flush_recv()) {}
-    //             } else {
-    //                 std::hint::black_box(consumer.recv());
-    //             }
-    //
-    //             // std::hint::black_box(consumer.recv());
-    //
-    //             if with_delay {
-    //                 let end = Instant::now() + Duration::from_nanos(100);
-    //                 while Instant::now() < end {}
-    //             }
-    //         }
-    //     });
-    //
-    //     std::thread::sleep(std::time::Duration::from_millis(100));
-    //
-    //     let start = Instant::now();
-    //     ready.store(true, Ordering::Release);
-    //
-    //     producer_handle.join().unwrap();
-    //     consumer_handle.join().unwrap();
-    //
-    //     let elapsed = start.elapsed();
-    //     println!(
-    //         "test_bench_spsc: Total time: {:?}, Throughput: {} ops/sec",
-    //         elapsed,
-    //         (items_to_write as f64 / elapsed.as_secs_f64()) as u64
-    //     );
-    // }
-
-    // #[test]
     fn test_bench_crossbeam() {
-        let items_to_write = 5_000_00;
+        let items_to_write = 5_000_000;
         let (producer, consumer) = bounded(1024);
 
         let ready = Arc::new(AtomicBool::new(false));
@@ -338,7 +251,7 @@ mod spsc_tests {
 
     // #[test]
     fn test_bench_std() {
-        let items_to_write = 5_000_00;
+        let items_to_write = 5_000_000;
         let (producer, consumer) = std::sync::mpsc::sync_channel(1024);
 
         let ready = Arc::new(AtomicBool::new(false));

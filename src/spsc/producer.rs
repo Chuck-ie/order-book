@@ -41,37 +41,31 @@ impl<T, const N: usize> Producer<T, N> {
     }
 
     pub fn try_send(&self, value: T) -> Result<(), (T, Error)> {
-        // since there is only one writer, we don't need to sync reading the outer write head with other threads
-        let mut curr_head = self.inner_head.get();
-        let mut curr_cl_head = self.inner_cl_head.get();
+        let curr_head = self.inner_head.get();
+        let curr_cl_head = self.inner_cl_head.get();
 
-        // if we finished writing to the current cache line
         if curr_cl_head == N {
-            // calculate the index of the next cache line by wrapping around buffer bounds
-            let next_head = (curr_head + 1) & self.buffer.capacity;
-
-            // sync with the reader's release when advancing its tail
+            let next_head = (curr_head + 1) & self.buffer.cache_lines;
             let curr_tail = self.buffer.tail.load(Ordering::Acquire);
 
-            // and check if the next cache line is owned by the read head
             if next_head == curr_tail {
                 return Err((value, Error::QueueFull));
             }
 
-            curr_cl_head = 0;
-            curr_head = next_head;
+            // Safety: curr_head is always within bounds and never overlaps with the read head
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(next_head) };
+            unsafe { cache_line.write(0, value) };
 
-            // sync it with the read thread
-            self.buffer.head.store(next_head, Ordering::Release);
             self.inner_head.set(next_head);
+            self.inner_cl_head.set(1);
+            self.buffer.head.store(next_head, Ordering::Release);
+        } else {
+            // Safety: curr_head is always within bounds and never overlaps with the read head
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
+            unsafe { cache_line.write(curr_cl_head, value) };
+
+            self.inner_cl_head.set(curr_cl_head + 1);
         }
-
-        // Safety: curr_head is always within bounds and never overlaps with the read head
-        let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
-        unsafe { cache_line.write(curr_cl_head, value) };
-
-        let next_cl_head = curr_cl_head + 1;
-        self.inner_cl_head.set(next_cl_head);
 
         Ok(())
     }

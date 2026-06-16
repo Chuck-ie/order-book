@@ -20,8 +20,8 @@ pub struct Consumer<T, const N: usize> {
 impl<T, const N: usize> Consumer<T, N> {
     pub(crate) fn new(buffer: &Arc<Buffer<T, N>>) -> Self {
         Self {
-            inner_tail: Cell::new(0),
-            inner_cl_tail: Cell::new(0),
+            inner_tail: Cell::new(buffer.cache_lines),
+            inner_cl_tail: Cell::new(N),
             buffer: buffer.clone(),
         }
     }
@@ -38,16 +38,35 @@ impl<T, const N: usize> Consumer<T, N> {
     }
 
     pub fn try_recv(&self) -> Result<T, Error> {
-        // since there is only one reader, we don't need to sync reading the outer read head with other threads
-        // let mut curr_tail = self.buffer.tail.load(Ordering::Relaxed);
         let curr_tail = self.inner_tail.get();
-        let curr_head = self.buffer.head.load(Ordering::Acquire);
+        let curr_cl_tail = self.inner_cl_tail.get();
 
-        if curr_tail == curr_head {
-            return Err(Error::QueueEmpty);
+        if curr_cl_tail == N {
+            let next_tail = (curr_tail + 1) & self.buffer.cache_lines;
+            let curr_head = self.buffer.head.load(Ordering::Acquire);
+
+            if next_tail == curr_head {
+                return Err(Error::QueueEmpty);
+            }
+
+            // Safety: curr_tail is always within bounds and never overlaps with the write head
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(next_tail) };
+            let value = unsafe { cache_line.read(0) };
+
+            self.inner_tail.set(next_tail);
+            self.inner_cl_tail.set(1);
+            self.buffer.tail.store(next_tail, Ordering::Release);
+
+            Ok(value)
+        } else {
+            // Safety: curr_tail is always within bounds and never overlaps with the write head
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_tail) };
+            let value = unsafe { cache_line.read(curr_cl_tail) };
+
+            self.inner_cl_tail.set(curr_cl_tail + 1);
+
+            Ok(value)
         }
-
-        Ok(self.recv_one(curr_tail))
     }
 
     #[inline]
@@ -57,7 +76,7 @@ impl<T, const N: usize> Consumer<T, N> {
         // if we finished reading from the current cache line
         if curr_cl_tail == N {
             // calculate the index of the next cache line by wrapping around buffer bounds
-            let next_tail = (curr_tail + 1) & self.buffer.capacity;
+            let next_tail = (curr_tail + 1) & self.buffer.cache_lines;
 
             curr_cl_tail = 0;
             curr_tail = next_tail;
