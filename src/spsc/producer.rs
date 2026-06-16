@@ -12,7 +12,7 @@ pub enum Error {
 }
 
 pub struct Producer<T, const N: usize> {
-    pub(crate) inner_head: Cell<usize>,
+    inner_head: Cell<usize>,
     pub(crate) inner_cl_head: Cell<usize>,
     buffer: Arc<Buffer<T, N>>,
 }
@@ -41,96 +41,39 @@ impl<T, const N: usize> Producer<T, N> {
     }
 
     pub fn try_send(&self, value: T) -> Result<(), (T, Error)> {
-        todo!()
+        let curr_head = self.inner_head.get();
+        let curr_cl_head = self.inner_cl_head.get();
+
+        // if we finished writing to a cache line in the previous send
+        if curr_cl_head == N {
+            // Calculate the index of the next cache line by wrapping around buffer bounds using
+            // fast modulo since cache_lines is always a power of 2
+            let next_head = (curr_head + 1) & self.buffer.cache_lines;
+
+            // Sync with the reader's release when advancing its tail
+            let curr_tail = self.buffer.tail.load(Ordering::Acquire);
+
+            if next_head == curr_tail {
+                return Err((value, Error::QueueFull));
+            }
+
+            // Safety: next_head is verified against curr_tail and is within bounds
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(next_head) };
+            unsafe { cache_line.write(0, value) };
+
+            self.inner_head.set(next_head);
+            self.inner_cl_head.set(1);
+
+            // Sync the advancement with the read thread
+            self.buffer.head.store(next_head, Ordering::Release);
+        } else {
+            // Safety: curr_head is always within bounds and never overlaps with the read head
+            let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
+            unsafe { cache_line.write(curr_cl_head, value) };
+
+            self.inner_cl_head.set(curr_cl_head + 1);
+        }
+
+        Ok(())
     }
 }
-
-// pub struct Producer<T, const N: usize> {
-//     inner_head: Cell<usize>,
-//     pub(crate) inner_cl_head: Cell<usize>,
-//     buffer: Arc<Buffer<T, N>>,
-// }
-//
-// impl<T, const N: usize> Producer<T, N> {
-//     pub(crate) fn new(buffer: &Arc<Buffer<T, N>>) -> Self {
-//         Self {
-//             inner_head: Cell::new(0),
-//             inner_cl_head: Cell::new(0),
-//             buffer: buffer.clone(),
-//         }
-//     }
-//
-//     pub fn send(&self, mut value: T) {
-//         let spinlock = Spinlock::new();
-//
-//         loop {
-//             match self.try_send(value) {
-//                 Ok(()) => break,
-//                 Err((returned_value, _)) => {
-//                     value = returned_value;
-//                     spinlock.spin_heavy()
-//                 }
-//             };
-//         }
-//     }
-//
-//     // pub fn try_send(&self, value: T) -> Result<(), (T, Error)> {
-//     //     let curr_head = self.inner_head.get();
-//     //     let curr_cl_head = self.inner_cl_head.get();
-//     //     let curr_head_idx = (curr_head * N) + curr_cl_head;
-//     //     let mut cached_tail_idx = self.cached_tail_idx.get();
-//     //
-//     //     if curr_head_idx == cached_tail_idx {
-//     //         let curr_tail = self.buffer.tail.load(Ordering::Acquire);
-//     //         let curr_cl_tail = self.buffer.load_inner_cl_tail_ptr();
-//     //         let new_tail_idx = (curr_tail * N) + curr_cl_tail;
-//     //         cached_tail_idx = new_tail_idx;
-//     //
-//     //         self.cached_tail_idx.set(new_tail_idx);
-//     //     }
-//     //
-//     //     // TODO: wrong logic, needs to check NEXT head idx
-//     //     if curr_head_idx == cached_tail_idx {
-//     //         return Err((value, Error::QueueFull));
-//     //     }
-//     //
-//     //     todo!()
-//     // }
-//
-//     pub fn try_send(&self, value: T) -> Result<(), (T, Error)> {
-//         let curr_head = self.inner_head.get();
-//         let curr_cl_head = self.inner_cl_head.get();
-//
-//         // if we finished writing to a cache line in the previous send
-//         if curr_cl_head == N {
-//             // Calculate the index of the next cache line by wrapping around buffer bounds using
-//             // fast modulo since cache_lines is always a power of 2
-//             let next_head = (curr_head + 1) & self.buffer.cache_lines;
-//
-//             // Sync with the reader's release when advancing its tail
-//             let curr_tail = self.buffer.tail.load(Ordering::Acquire);
-//
-//             if next_head == curr_tail {
-//                 return Err((value, Error::QueueFull));
-//             }
-//
-//             // Safety: next_head is verified against curr_tail and is within bounds
-//             let cache_line = unsafe { self.buffer.inner.get_unchecked(next_head) };
-//             unsafe { cache_line.write(0, value) };
-//
-//             self.inner_head.set(next_head);
-//             self.inner_cl_head.set(1);
-//
-//             // Sync the advancement with the read thread
-//             self.buffer.head.store(next_head, Ordering::Release);
-//         } else {
-//             // Safety: curr_head is always within bounds and never overlaps with the read head
-//             let cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
-//             unsafe { cache_line.write(curr_cl_head, value) };
-//
-//             self.inner_cl_head.set(curr_cl_head + 1);
-//         }
-//
-//         Ok(())
-//     }
-// }

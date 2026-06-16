@@ -1,11 +1,4 @@
-use std::{
-    cell::{Cell, UnsafeCell},
-    ptr,
-    sync::{
-        Arc,
-        atomic::{AtomicPtr, AtomicUsize, Ordering},
-    },
-};
+use std::sync::{Arc, atomic::AtomicUsize};
 
 use crate::spsc::{
     consumer::Consumer,
@@ -51,45 +44,28 @@ macro_rules! channel {
  */
 struct Buffer<T, const N: usize> {
     inner: Box<[CacheLine<T, N>]>,
-    // head: CachePadded<AtomicUsize>,
-    // tail: CachePadded<AtomicUsize>,
+    head: CachePadded<AtomicUsize>,
+    tail: CachePadded<AtomicUsize>,
     cache_lines: usize,
-    inner_cl_head_ptr: AtomicPtr<Cell<usize>>,
-    inner_cl_tail_ptr: AtomicPtr<Cell<usize>>,
 }
 
 unsafe impl<T: Send, const N: usize> Send for Buffer<T, N> {}
 unsafe impl<T: Sync, const N: usize> Sync for Buffer<T, N> {}
 
 impl<T, const N: usize> Buffer<T, N> {
-    // TODO: consider implementing into for spsc -> (prod, cons)
-    pub fn with_capacity(capacity: usize) -> (Box<Producer<T, N>>, Box<Consumer<T, N>>) {
+    pub fn with_capacity(capacity: usize) -> (Producer<T, N>, Consumer<T, N>) {
         let actual_capacity = capacity / N;
         let inner = (0..actual_capacity).map(|_| CacheLine::default()).collect();
 
         let buffer = Arc::new(Self {
             inner,
-            // head: CachePadded(AtomicUsize::new(0)),
-            // tail: CachePadded(AtomicUsize::new(0)),
+            head: CachePadded(AtomicUsize::new(0)),
+            tail: CachePadded(AtomicUsize::new(0)),
             cache_lines: actual_capacity - 1,
-            inner_cl_head_ptr: AtomicPtr::new(ptr::null_mut()),
-            inner_cl_tail_ptr: AtomicPtr::new(ptr::null_mut()),
         });
 
-        // box the producer, so that the cl_head_ptr stays stable, even if the producer is moved
-        // between threads or even just into a thread
-        let producer = Box::new(Producer::new(&buffer));
-        let consumer = Box::new(Consumer::new(&buffer));
-
-        buffer.inner_cl_head_ptr.store(
-            ptr::addr_of!(producer.inner_cl_head).cast_mut(),
-            Ordering::Release,
-        );
-
-        buffer.inner_cl_tail_ptr.store(
-            ptr::addr_of!(consumer.inner_cl_tail).cast_mut(),
-            Ordering::Release,
-        );
+        let producer = Producer::new(&buffer);
+        let consumer = Consumer::new(&buffer);
 
         (producer, consumer)
     }
@@ -97,16 +73,6 @@ impl<T, const N: usize> Buffer<T, N> {
     #[inline]
     pub const fn get_pos(pos: usize, cl_pos: usize) -> usize {
         (pos * N) + cl_pos
-    }
-
-    #[inline]
-    pub fn load_inner_cl_head_ptr(&self) -> usize {
-        unsafe { self.inner_cl_head_ptr.load(Ordering::Acquire).read().get() }
-    }
-
-    #[inline]
-    pub fn load_inner_cl_tail_ptr(&self) -> usize {
-        unsafe { self.inner_cl_tail_ptr.load(Ordering::Acquire).read().get() }
     }
 }
 
