@@ -255,7 +255,7 @@ mod channel_tests {
         assert_eq!(1, rb.tail.load(Ordering::Acquire));
     }
 
-    #[test]
+    // #[test]
     fn test_bench_loop() {
         let items_to_write = 5_000_001;
         let mut items = Vec::with_capacity(items_to_write);
@@ -287,7 +287,7 @@ mod channel_tests {
         );
     }
 
-    // #[test]
+    #[test]
     fn test_bench_spsc() {
         let items_to_write = 5_000_000;
         let (producer, consumer) = SpscChannel::<u32>::with_capacity(1024).split();
