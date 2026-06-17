@@ -16,6 +16,7 @@ charming = "0.6.0"
 ahash = "0.8.12"
 crossbeam-channel = "0.5.15"
 ringbuffer-spsc = "0.2.2"
+picoring = "0.6.0"
 
 [profile.release]
 debug = true

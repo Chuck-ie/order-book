@@ -1,4 +1,4 @@
-use std::{cell::UnsafeCell, mem::MaybeUninit, ops::Deref, sync::atomic::AtomicUsize};
+use std::{cell::UnsafeCell, mem::MaybeUninit, ops::Deref};
 
 #[repr(align(64))]
 pub struct CachePadded<T>(pub T);
@@ -13,14 +13,12 @@ impl<T> Deref for CachePadded<T> {
 
 #[repr(C, align(64))]
 pub struct CacheLine<T, const N: usize> {
-    // pub(crate) write_count: AtomicUsize,
     cell: UnsafeCell<[MaybeUninit<T>; N]>,
 }
 
 impl<T, const N: usize> CacheLine<T, N> {
     pub const fn new() -> Self {
         Self {
-            // write_count: AtomicUsize::new(0),
             cell: UnsafeCell::new([const { MaybeUninit::uninit() }; N]),
         }
     }
@@ -47,7 +45,8 @@ impl<T, const N: usize> CacheLine<T, N> {
         unsafe { item_ptr.read().assume_init() }
     }
 
-    const unsafe fn get_item_ptr(&self, index: usize) -> *mut MaybeUninit<T> {
+    #[inline]
+    pub const unsafe fn get_item_ptr(&self, index: usize) -> *mut MaybeUninit<T> {
         let array_ptr = self.cell.get();
         unsafe { array_ptr.cast::<MaybeUninit<T>>().add(index) }
     }
@@ -56,7 +55,6 @@ impl<T, const N: usize> CacheLine<T, N> {
 impl<T, const N: usize> Default for CacheLine<T, N> {
     fn default() -> Self {
         Self {
-            // write_count: AtomicUsize::new(0),
             cell: UnsafeCell::new(std::array::from_fn(|_| MaybeUninit::uninit())),
         }
     }

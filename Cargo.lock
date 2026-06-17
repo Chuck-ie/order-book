@@ -807,6 +807,7 @@ dependencies = [
  "crossbeam-channel",
  "csv",
  "memmap2",
+ "picoring",
  "rand",
  "rand_distr",
  "ringbuffer-spsc",
@@ -864,6 +865,16 @@ checksum = "89815c69d36021a140146f26659a81d6c2afa33d216d736dd4be5381a7362220"
 dependencies = [
  "pest",
  "sha2",
+]
+
+[[package]]
+name = "picoring"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d86a33aa1faca9ed97bee74124cebc1d48ae17f17e985f4a6f6ff9922b2f756"
+dependencies = [
+ "libc",
+ "windows-sys",
 ]
 
 [[package]]
