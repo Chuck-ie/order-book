@@ -59,8 +59,10 @@ impl<T, const N: usize> Producer<T, N> {
             }
 
             // Safety: curr_head is exclusively owned by the writer and is within bounds
-            let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
-            curr_cache_line.write_count.store(N, Ordering::Release);
+            // let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
+            let curr_write_count = unsafe { self.buffer.write_counts.get_unchecked(curr_head) };
+            curr_write_count.store(N, Ordering::Release);
+            // curr_cache_line.write_count.store(N, Ordering::Release);
 
             // Safety: next_head is verified to not overlap with curr_tail and is within bounds
             let next_cache_line = unsafe { self.buffer.inner.get_unchecked(next_head) };
@@ -103,11 +105,14 @@ impl<T, const N: usize> Producer<T, N> {
         // case(curr_cl_head == 1): means 1 has not yet been written
         // case(curr_cl_head == N): means N has not yet been written
         // Safety: curr_head is exclusively owned by the writer and is within bounds
-        let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
+        // let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_head) };
+        //
+        // curr_cache_line
+        //     .write_count
+        //     .store(curr_cl_head, Ordering::Release);
 
-        curr_cache_line
-            .write_count
-            .store(curr_cl_head, Ordering::Release);
+        let curr_write_count = unsafe { self.buffer.write_counts.get_unchecked(curr_head) };
+        curr_write_count.store(curr_cl_head, Ordering::Release);
 
         self.buffer.head.store(next_head, Ordering::Release);
 

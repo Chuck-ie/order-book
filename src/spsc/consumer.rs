@@ -68,15 +68,20 @@ impl<T, const N: usize> Consumer<T, N> {
             }
 
             // Safety: next_tail is verified against curr_head and is within bounds
-            let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_tail) };
-            curr_cache_line.write_count.store(0, Ordering::Release);
+            // let curr_cache_line = unsafe { self.buffer.inner.get_unchecked(curr_tail) };
+            // curr_cache_line.write_count.store(0, Ordering::Release);
+            let curr_write_count = unsafe { self.buffer.write_counts.get_unchecked(curr_tail) };
+            curr_write_count.store(0, Ordering::Release);
 
             // Safety: next_tail is verified against curr_head and is within bounds
             let next_cache_line = unsafe { self.buffer.inner.get_unchecked(next_tail) };
             let value = unsafe { next_cache_line.read(0) };
 
-            let next_cl_write_count = next_cache_line.write_count.load(Ordering::Acquire);
-            self.cl_write_count.set(next_cl_write_count);
+            // let next_cl_write_count = next_cache_line.write_count.load(Ordering::Acquire);
+            // curr_write_count.store(0, Ordering::Release);
+            let next_write_count = unsafe { self.buffer.write_counts.get_unchecked(next_tail) };
+            self.cl_write_count
+                .set(next_write_count.load(Ordering::Acquire));
 
             self.inner_tail.set(next_tail);
             self.inner_cl_tail.set(1);

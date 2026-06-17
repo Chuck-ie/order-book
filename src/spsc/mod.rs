@@ -1,7 +1,4 @@
-use std::sync::{
-    Arc,
-    atomic::{AtomicPtr, AtomicUsize, Ordering},
-};
+use std::sync::{Arc, atomic::AtomicUsize};
 
 use crate::spsc::{
     consumer::Consumer,
@@ -33,7 +30,8 @@ macro_rules! channel {
         };
 
         const ATOMIC_USIZE: usize = std::mem::size_of::<AtomicUsize>();
-        const ELEMENTS_PER_CACHE_LINE: usize = (CACHE_LINE_SIZE - ATOMIC_USIZE) / ELEMENT_SIZE;
+        // const ELEMENTS_PER_CACHE_LINE: usize = (CACHE_LINE_SIZE - ATOMIC_USIZE) / ELEMENT_SIZE;
+        const ELEMENTS_PER_CACHE_LINE: usize = CACHE_LINE_SIZE / ELEMENT_SIZE;
         const TARGET_CAPACITY: usize = $capacity;
 
         // Validate capacity constraints at compile time
@@ -57,6 +55,7 @@ struct Buffer<T, const N: usize> {
     head: CachePadded<AtomicUsize>,
     tail: CachePadded<AtomicUsize>,
     inner: Box<[CacheLine<T, N>]>,
+    write_counts: Box<[AtomicUsize]>,
     cache_line_mask: usize,
     capacity: usize,
 }
@@ -66,16 +65,20 @@ unsafe impl<T: Sync, const N: usize> Sync for Buffer<T, N> {}
 
 impl<T, const N: usize> Buffer<T, N> {
     pub fn with_capacity(capacity: usize) -> (Producer<T, N>, Consumer<T, N>) {
-        let cache_lines = capacity / (N + 1);
+        let cache_lines = capacity / N;
         let inner: Box<[CacheLine<T, N>]> =
             (0..cache_lines).map(|_| CacheLine::default()).collect();
+
+        let write_counts: Box<[AtomicUsize]> =
+            (0..cache_lines).map(|_| AtomicUsize::new(0)).collect();
 
         let cache_line_mask = cache_lines - 1;
 
         let buffer = Arc::new(Self {
-            inner,
             head: CachePadded(AtomicUsize::new(0)),
             tail: CachePadded(AtomicUsize::new(cache_line_mask)),
+            inner,
+            write_counts,
             cache_line_mask,
             capacity: cache_lines * N,
         });

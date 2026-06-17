@@ -13,14 +13,14 @@ impl<T> Deref for CachePadded<T> {
 
 #[repr(C, align(64))]
 pub struct CacheLine<T, const N: usize> {
-    pub(crate) write_count: AtomicUsize,
+    // pub(crate) write_count: AtomicUsize,
     cell: UnsafeCell<[MaybeUninit<T>; N]>,
 }
 
 impl<T, const N: usize> CacheLine<T, N> {
     pub const fn new() -> Self {
         Self {
-            write_count: AtomicUsize::new(0),
+            // write_count: AtomicUsize::new(0),
             cell: UnsafeCell::new([const { MaybeUninit::uninit() }; N]),
         }
     }
@@ -56,7 +56,7 @@ impl<T, const N: usize> CacheLine<T, N> {
 impl<T, const N: usize> Default for CacheLine<T, N> {
     fn default() -> Self {
         Self {
-            write_count: AtomicUsize::new(0),
+            // write_count: AtomicUsize::new(0),
             cell: UnsafeCell::new(std::array::from_fn(|_| MaybeUninit::uninit())),
         }
     }
