@@ -1,4 +1,7 @@
-use std::sync::{Arc, atomic::AtomicUsize};
+use std::sync::{
+    Arc,
+    atomic::{AtomicPtr, AtomicUsize, Ordering},
+};
 
 use crate::spsc::{
     consumer::Consumer,
@@ -13,40 +16,49 @@ mod wrapper;
 #[macro_export]
 macro_rules! channel {
     ($ty:ty, $capacity:expr) => {{
-        // TODO: magic var 64 should be replaced with the size of a cacheline depending on the
-        // system since not all systems have a fixed 64 byte sized cacheline
-        const SIZE_OF_TY: usize = std::mem::size_of::<$ty>();
+        // TODO: This 64-byte magic number should ideally be determined based on the target architecture.
+        const CACHE_LINE_SIZE: usize = 64;
+        const ELEMENT_SIZE: usize = std::mem::size_of::<$ty>();
 
-        const _: () = assert!(
-            SIZE_OF_TY <= 64,
-            "Compile Error: Type size cannot be greater than 64 bytes!"
-        );
-
-        const _: () = assert!(
-            SIZE_OF_TY > 0,
-            "Compile Error: Zero-Sized Types are not allowed!"
-        );
-
+        // Validate type size constraints at compile time
         const _: () = {
-            const CAP: usize = $capacity;
-            assert!(CAP.is_power_of_two(), "capacity must be a power of 2");
+            assert!(
+                ELEMENT_SIZE <= CACHE_LINE_SIZE,
+                "Compile Error: Type size cannot be greater than the cache line size (64 bytes)!"
+            );
+            assert!(
+                ELEMENT_SIZE > 0,
+                "Compile Error: Zero-Sized Types (ZSTs) are not allowed!"
+            );
         };
 
-        $crate::spsc::Buffer::<$ty, { 64 / SIZE_OF_TY }>::with_capacity($capacity)
+        const ATOMIC_USIZE: usize = std::mem::size_of::<AtomicUsize>();
+        const ELEMENTS_PER_CACHE_LINE: usize = (CACHE_LINE_SIZE - ATOMIC_USIZE) / ELEMENT_SIZE;
+        const TARGET_CAPACITY: usize = $capacity;
+
+        // Validate capacity constraints at compile time
+        const _: () = {
+            assert!(
+                TARGET_CAPACITY.is_power_of_two(),
+                "Compile Error: Capacity must be a power of 2!"
+            );
+            assert!(
+                TARGET_CAPACITY >= 4 * ELEMENTS_PER_CACHE_LINE,
+                "Compile Error: Capacity is too small! It must be at least four times the elements per cache line."
+            );
+        };
+
+        $crate::spsc::Buffer::<$ty, ELEMENTS_PER_CACHE_LINE>::with_capacity(TARGET_CAPACITY)
     }};
 }
 
-/*
- * spsc(u32, 1024): 16 u32 fit into 1 cache line, therefore the length of the array is 64
- * [CL(0), ..., CL(63)]: each CL contains up to 16 uninit u32
- * read and write should always be on different CL's with
- * queue is full if head == tail - 1 and CL internal index == N (64 / size_of(u32))
- */
+// #[repr(C, align(64))]
 struct Buffer<T, const N: usize> {
-    inner: Box<[CacheLine<T, N>]>,
     head: CachePadded<AtomicUsize>,
     tail: CachePadded<AtomicUsize>,
-    cache_lines: usize,
+    inner: Box<[CacheLine<T, N>]>,
+    cache_line_mask: usize,
+    capacity: usize,
 }
 
 unsafe impl<T: Send, const N: usize> Send for Buffer<T, N> {}
@@ -54,14 +66,18 @@ unsafe impl<T: Sync, const N: usize> Sync for Buffer<T, N> {}
 
 impl<T, const N: usize> Buffer<T, N> {
     pub fn with_capacity(capacity: usize) -> (Producer<T, N>, Consumer<T, N>) {
-        let actual_capacity = capacity / N;
-        let inner = (0..actual_capacity).map(|_| CacheLine::default()).collect();
+        let cache_lines = capacity / (N + 1);
+        let inner: Box<[CacheLine<T, N>]> =
+            (0..cache_lines).map(|_| CacheLine::default()).collect();
+
+        let cache_line_mask = cache_lines - 1;
 
         let buffer = Arc::new(Self {
             inner,
             head: CachePadded(AtomicUsize::new(0)),
-            tail: CachePadded(AtomicUsize::new(0)),
-            cache_lines: actual_capacity - 1,
+            tail: CachePadded(AtomicUsize::new(cache_line_mask)),
+            cache_line_mask,
+            capacity: cache_lines * N,
         });
 
         let producer = Producer::new(&buffer);
@@ -69,54 +85,37 @@ impl<T, const N: usize> Buffer<T, N> {
 
         (producer, consumer)
     }
-
-    #[inline]
-    pub const fn get_pos(pos: usize, cl_pos: usize) -> usize {
-        (pos * N) + cl_pos
-    }
 }
 
 #[cfg(test)]
 mod spsc_tests {
     use std::{
-        sync::{
-            Arc,
-            atomic::{AtomicBool, Ordering},
-        },
+        sync::atomic::{AtomicUsize, Ordering},
         time::{Duration, Instant},
     };
 
     use crossbeam_channel::bounded;
-
-    const LEN: usize = 1;
-
-    #[derive(Debug, Clone, Copy)]
-    pub struct Message(#[allow(dead_code)] [usize; LEN]);
-
-    #[inline]
-    pub fn new(num: usize) -> Message {
-        Message([num; LEN])
-    }
-
-    const MESSAGES: usize = 5_000_001;
-    // const MESSAGES: usize = 17;
+    use ringbuffer_spsc::ringbuffer;
 
     #[test]
-    fn custom_spsc() {
-        let (tx, rx) = channel!(Message, 1024);
+    fn test_custom_spsc() {
+        const MESSAGES: usize = 5_000_000;
+        let (tx, rx) = channel!(usize, 1024);
         let mut sum: usize = 0;
         let start = std::time::Instant::now();
 
         std::thread::scope(|scope| {
             scope.spawn(move || {
                 for i in 0..MESSAGES {
-                    tx.send(new(i));
+                    tx.send(i);
+
+                    // while tx.flush().is_err() {}
                 }
+                while tx.flush().is_err() {}
             });
 
-            for _ in 0..MESSAGES - 1 {
-                let msg = rx.recv();
-                sum = sum.wrapping_add(std::hint::black_box(unsafe { *msg.0.get_unchecked(0) }));
+            for _ in 0..MESSAGES {
+                sum += rx.recv();
             }
         });
 
@@ -130,151 +129,155 @@ mod spsc_tests {
             MESSAGES as f64 / elapsed.as_secs_f64()
         );
 
-        let expected_sum = (MESSAGES - 2) * (MESSAGES - 1) / 2;
+        let expected_sum = (MESSAGES - 1) * (MESSAGES) / 2;
         assert_eq!(sum, expected_sum, "Sum does not match the expected value");
     }
 
-    fn crossbeam_spsc() {
-        let (tx, rx) = bounded::<Message>(1024);
-
-        let mut sum: usize = 0;
-        std::thread::scope(|scope| {
-            scope.spawn(move || {
-                for i in 0..MESSAGES {
-                    tx.send(new(i)).unwrap();
-                }
-            });
-
-            for _ in 0..MESSAGES {
-                let msg = rx.recv().unwrap();
-                sum == sum.wrapping_add(std::hint::black_box(unsafe { *msg.0.get_unchecked(0) }));
-            }
-        });
-        std::hint::black_box(sum);
-        println!("sum crossbeam_spsc: {sum}");
+    // #[test]
+    fn bench_spsc_impls() {
+        // TODO: benches are not 100% fair right now i guess since i use a spinglook and other spsc
+        // impls just get a yield_now forced onto them
+        custom_spsc_benchmark();
+        // ringbuffer_spsc_benchmark();
+        // crossbeam_bounded_benchmark();
+        // std_mpsc_sync_benchmark();
     }
 
-    // #[test]
-    fn test() {
-        macro_rules! run {
-            ($name:expr, $f:expr) => {
-                let now = ::std::time::Instant::now();
-                $f;
-                let elapsed = now.elapsed();
-                println!(
-                    "{:25} {:15} {:7.3} sec",
-                    $name,
-                    "Rust crossbeam-channel",
-                    elapsed.as_secs() as f64 + elapsed.subsec_nanos() as f64 / 1e9
-                );
-            };
+    fn custom_spsc_benchmark() {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        static STEP: Duration = Duration::from_secs(1);
+        let (tx, rx) = channel!(usize, 1024);
+
+        std::thread::spawn(move || {
+            let mut i: usize = 0;
+            loop {
+                tx.send(1);
+                i = i.wrapping_add(1);
+            }
+        });
+
+        std::thread::spawn(move || {
+            loop {
+                rx.recv();
+                COUNTER.fetch_add(1, Ordering::Relaxed);
+            }
+        });
+
+        let start = Instant::now();
+        for i in 1..=u32::MAX {
+            let target_time = start + i * STEP;
+            let now = Instant::now();
+            if target_time > now {
+                std::thread::sleep(target_time - now);
+            }
+
+            println!("custom_spsc: {} elem/s", COUNTER.swap(0, Ordering::Relaxed));
         }
-
-        run!("custom_spsc", custom_spsc());
-        run!("crossbeam_spsc", crossbeam_spsc());
     }
 
-    // #[test]
-    fn test_bench_crossbeam() {
-        let items_to_write = 5_000_000;
-        let (producer, consumer) = bounded(1024);
+    fn ringbuffer_spsc_benchmark() {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        static STEP: Duration = Duration::from_secs(1);
+        let (mut tx, mut rx) = ringbuffer::<usize>(2_usize.pow(10));
 
-        let ready = Arc::new(AtomicBool::new(false));
-        let ready_p = ready.clone();
-        let ready_c = ready.clone();
-        let with_delay = false;
-
-        let producer_handle = std::thread::spawn(move || {
-            while !ready_p.load(Ordering::Acquire) {
-                std::thread::yield_now();
-            }
-
-            for i in 0..items_to_write {
-                producer.send(i).unwrap();
-                std::hint::black_box(());
-
-                if with_delay {
-                    let end = Instant::now() + Duration::from_nanos(100);
-                    while Instant::now() < end {}
+        std::thread::spawn(move || {
+            loop {
+                if tx.push(1).is_some() {
+                    std::thread::yield_now();
                 }
             }
         });
 
-        let consumer_handle = std::thread::spawn(move || {
-            while !ready_c.load(Ordering::Acquire) {
-                std::thread::yield_now();
-            }
-
-            for _ in 0..items_to_write {
-                consumer.recv().unwrap();
-                std::hint::black_box(());
-
-                if with_delay {
-                    let end = Instant::now() + Duration::from_nanos(100);
-                    while Instant::now() < end {}
+        std::thread::spawn(move || {
+            loop {
+                if rx.pull().is_some() {
+                    COUNTER.fetch_add(1, Ordering::Relaxed);
+                } else {
+                    std::thread::yield_now();
                 }
             }
         });
 
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
         let start = Instant::now();
-        ready.store(true, Ordering::Release);
-
-        producer_handle.join().unwrap();
-        consumer_handle.join().unwrap();
-
-        let elapsed = start.elapsed();
-        println!(
-            "test_bench_crossbeam: Total time: {:?}, Throughput: {} ops/sec",
-            elapsed,
-            (items_to_write as f64 / elapsed.as_secs_f64()) as u64
-        );
+        for i in 1..=u32::MAX {
+            std::thread::sleep(start + i * STEP - Instant::now());
+            println!("{} elem/s", COUNTER.swap(0, Ordering::Relaxed));
+        }
     }
 
-    // #[test]
-    fn test_bench_std() {
-        let items_to_write = 5_000_000;
-        let (producer, consumer) = std::sync::mpsc::sync_channel(1024);
+    fn crossbeam_bounded_benchmark() {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        static STEP: Duration = Duration::from_secs(1);
+        let (producer, consumer) = bounded::<usize>(1024);
 
-        let ready = Arc::new(AtomicBool::new(false));
-        let ready_p = ready.clone();
-        let ready_c = ready.clone();
-
-        let producer_handle = std::thread::spawn(move || {
-            while !ready_p.load(Ordering::Acquire) {
-                std::thread::yield_now();
-            }
-
-            for i in 0..items_to_write {
-                let _ = producer.send(i);
-                std::hint::black_box(());
+        std::thread::spawn(move || {
+            let mut i = 0;
+            loop {
+                if producer.send(i).is_err() {
+                    break;
+                }
+                i = i.wrapping_add(1);
             }
         });
 
-        let consumer_handle = std::thread::spawn(move || {
-            while !ready_c.load(Ordering::Acquire) {
-                std::thread::yield_now();
-            }
-
-            for _ in 0..items_to_write {
-                let _ = std::hint::black_box(consumer.recv());
+        std::thread::spawn(move || {
+            loop {
+                if consumer.recv().is_ok() {
+                    COUNTER.fetch_add(1, Ordering::Relaxed);
+                }
             }
         });
-
-        std::thread::sleep(std::time::Duration::from_millis(100));
 
         let start = Instant::now();
-        ready.store(true, Ordering::Release);
+        for i in 1..=u32::MAX {
+            let target_time = start + i * STEP;
+            let now = Instant::now();
+            if target_time > now {
+                std::thread::sleep(target_time - now);
+            }
 
-        producer_handle.join().unwrap();
-        consumer_handle.join().unwrap();
+            println!(
+                "crossbeam_bounded: {} elem/s",
+                COUNTER.swap(0, Ordering::Relaxed)
+            );
+        }
+    }
 
-        let elapsed = start.elapsed();
-        println!(
-            "test_bench_std: Total time: {:?}, Throughput: {} ops/sec",
-            elapsed,
-            (items_to_write as f64 / elapsed.as_secs_f64()) as u64
-        );
+    fn std_mpsc_sync_benchmark() {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        static STEP: Duration = Duration::from_secs(1);
+        let (producer, consumer) = std::sync::mpsc::sync_channel::<usize>(1024);
+
+        std::thread::spawn(move || {
+            let mut i = 0;
+            loop {
+                if producer.send(i).is_err() {
+                    break;
+                }
+                i = i.wrapping_add(1);
+            }
+        });
+
+        std::thread::spawn(move || {
+            loop {
+                if consumer.recv().is_ok() {
+                    COUNTER.fetch_add(1, Ordering::Relaxed);
+                }
+            }
+        });
+
+        let start = Instant::now();
+        for i in 1..=u32::MAX {
+            let target_time = start + i * STEP;
+            let now = Instant::now();
+            if target_time > now {
+                std::thread::sleep(target_time - now);
+            }
+
+            println!(
+                "std_mpsc_sync: {} elem/s",
+                COUNTER.swap(0, Ordering::Relaxed)
+            );
+        }
     }
 }
