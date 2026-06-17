@@ -10,7 +10,6 @@ use crate::{channel::spinlock::Spinlock, spsc::Buffer};
 pub enum Error {
     QueueFull,
     BatchTooLarge,
-    Timeout,
 }
 
 pub struct Producer<T, const N: usize> {
@@ -91,8 +90,11 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(())
     }
 
-    pub fn try_send_batch(&self, batch: &[T]) -> Result<(), Error> {
-        let batch_size = batch.len();
+    pub fn try_send_batch(&self, buf: &[T]) -> Result<(), Error>
+    where
+        T: Copy,
+    {
+        let batch_size = buf.len();
 
         if batch_size > self.buffer.capacity - N {
             return Err(Error::BatchTooLarge);
@@ -115,15 +117,15 @@ impl<T, const N: usize> Producer<T, N> {
 
         if to_abs_index < last_abs_index {
             let s_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
-            unsafe { ptr::copy_nonoverlapping(batch.as_ptr(), s_ptr, batch_size) };
+            unsafe { ptr::copy_nonoverlapping(buf.as_ptr(), s_ptr, batch_size) };
         } else {
             let s1_len = last_abs_index - from_abs_index;
             let s1_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
-            unsafe { ptr::copy_nonoverlapping(batch.as_ptr(), s1_ptr, s1_len) };
+            unsafe { ptr::copy_nonoverlapping(buf.as_ptr(), s1_ptr, s1_len) };
 
             let s2_len = batch_size - s1_len;
             let s2_ptr = unsafe { self.get_slice_ptr(0, 0) };
-            unsafe { ptr::copy_nonoverlapping(batch.as_ptr().add(s1_len), s2_ptr, s2_len) };
+            unsafe { ptr::copy_nonoverlapping(buf.as_ptr().add(s1_len), s2_ptr, s2_len) };
         }
 
         let final_abs_index = to_abs_index % self.buffer.capacity;
@@ -230,36 +232,6 @@ impl<T, const N: usize> Producer<T, N> {
                 .cast::<T>()
         }
     }
-
-    unsafe fn finalize_reservation(
-        &self,
-        start_cl_index: usize,
-        start_cl_offset: usize,
-        total_written: usize,
-    ) {
-        if total_written == 0 {
-            return;
-        }
-
-        let from_abs_index = (start_cl_index * N) + start_cl_offset;
-        let to_abs_index = from_abs_index + total_written;
-
-        let final_abs_index = to_abs_index % self.buffer.capacity;
-        let next_cl_index = (final_abs_index / N) & self.buffer.cl_mask;
-        let next_cl_offset = final_abs_index % N;
-
-        self.cl_index.set(next_cl_index);
-        self.cl_offset.set(next_cl_offset);
-
-        let mut i = start_cl_index;
-
-        while i != next_cl_index {
-            unsafe { self.buffer.write_counts.get_unchecked(i).get().write(N) }
-            i = (i + 1) & self.buffer.cl_mask;
-        }
-
-        self.buffer.head.store(next_cl_index, Ordering::Release);
-    }
 }
 
 pub struct SendReservation<'a, T, const N: usize> {
@@ -295,21 +267,38 @@ impl<T, const N: usize> SendReservation<'_, T, N> {
             None
         }
     }
+
+    unsafe fn finalize_reservation(&self) {
+        let total_remaining = self.s1_remaining + self.s2_remaining;
+        let total_sent = self.total_reserved - total_remaining;
+
+        if total_sent == 0 {
+            return;
+        }
+
+        let from_abs_index = (self.start_cl_index * N) + self.start_cl_offset;
+        let to_abs_index = from_abs_index + total_sent;
+
+        let final_abs_index = to_abs_index % self.tx.buffer.capacity;
+        let next_cl_index = (final_abs_index / N) & self.tx.buffer.cl_mask;
+        let next_cl_offset = final_abs_index % N;
+
+        self.tx.cl_index.set(next_cl_index);
+        self.tx.cl_offset.set(next_cl_offset);
+
+        let mut i = self.start_cl_index;
+
+        while i != next_cl_index {
+            unsafe { self.tx.buffer.write_counts.get_unchecked(i).get().write(N) }
+            i = (i + 1) & self.tx.buffer.cl_mask;
+        }
+
+        self.tx.buffer.head.store(next_cl_index, Ordering::Release);
+    }
 }
 
 impl<T, const N: usize> Drop for SendReservation<'_, T, N> {
     fn drop(&mut self) {
-        let total_remaining = self.s1_remaining + self.s2_remaining;
-        let total_written = self.total_reserved - total_remaining;
-
-        if total_written > 0 {
-            unsafe {
-                self.tx.finalize_reservation(
-                    self.start_cl_index,
-                    self.start_cl_offset,
-                    total_written,
-                );
-            }
-        }
+        unsafe { self.finalize_reservation() }
     }
 }

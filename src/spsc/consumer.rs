@@ -1,5 +1,6 @@
 use std::{
     cell::Cell,
+    ptr,
     sync::{Arc, atomic::Ordering},
 };
 
@@ -105,5 +106,187 @@ impl<T, const N: usize> Consumer<T, N> {
 
             Ok(value)
         }
+    }
+
+    pub fn try_recv_batch(&self, buf: &mut [T]) -> Result<usize, Error>
+    where
+        T: Copy,
+    {
+        let max_batch_size = self.buffer.capacity - N;
+        let batch_size = buf.len().min(max_batch_size);
+
+        let curr_cl_index = self.cl_index.get();
+        let curr_cl_offset = self.cl_offset.get();
+        let head_cl_index = self.buffer.head.load(Ordering::Acquire);
+
+        let free_cache_lines = head_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
+        let total_items_available = (free_cache_lines * N).saturating_sub(N - curr_cl_offset);
+
+        let final_batch_size = batch_size.min(total_items_available);
+
+        if final_batch_size == 0 {
+            return Err(Error::QueueEmpty);
+        }
+
+        let last_abs_index = self.buffer.capacity;
+        let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
+        let to_abs_index = from_abs_index + final_batch_size;
+
+        if to_abs_index < last_abs_index {
+            let s_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
+            unsafe { ptr::copy_nonoverlapping(s_ptr, buf.as_mut_ptr(), final_batch_size) };
+        } else {
+            let s1_len = last_abs_index - from_abs_index;
+            let s1_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
+            unsafe { ptr::copy_nonoverlapping(s1_ptr, buf.as_mut_ptr(), s1_len) };
+
+            let s2_len = final_batch_size - s1_len;
+            let s2_ptr = unsafe { self.get_slice_ptr(0, 0) };
+            unsafe { ptr::copy_nonoverlapping(s2_ptr, buf.as_mut_ptr().add(s1_len), s2_len) };
+        }
+
+        let final_abs_index = to_abs_index % self.buffer.capacity;
+        let next_cl_index = (final_abs_index / N) & self.buffer.cl_mask;
+        let next_cl_offset = final_abs_index % N;
+
+        self.cl_index.set(next_cl_index);
+        self.cl_offset.set(next_cl_offset);
+
+        let mut i = curr_cl_index;
+
+        while i != next_cl_index {
+            unsafe { self.buffer.write_counts.get_unchecked(i).get().write(0) }
+            i = (i + 1) & self.buffer.cl_mask;
+        }
+
+        self.buffer.tail.store(next_cl_index, Ordering::Release);
+
+        Ok(final_batch_size)
+    }
+
+    pub fn try_reserve_batch(
+        &self,
+        requested_size: usize,
+    ) -> Result<RecvReservation<'_, T, N>, Error>
+    where
+        T: Copy,
+    {
+        let max_batch_size = self.buffer.capacity - N;
+        let batch_size = requested_size.min(max_batch_size);
+
+        let curr_cl_index = self.cl_index.get();
+        let curr_cl_offset = self.cl_offset.get();
+        let head_cl_index = self.buffer.head.load(Ordering::Acquire);
+
+        let free_cache_lines = head_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
+        let total_items_available = (free_cache_lines * N).saturating_sub(N - curr_cl_offset);
+
+        let final_batch_size = batch_size.min(total_items_available);
+
+        if final_batch_size == 0 {
+            return Err(Error::QueueEmpty);
+        }
+
+        let last_abs_index = self.buffer.capacity;
+        let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
+        let to_abs_index = from_abs_index + final_batch_size;
+
+        let (s1, s1_remaining, s2, s2_remaining) = if to_abs_index < last_abs_index {
+            let s_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
+            (s_ptr as *const T, final_batch_size, std::ptr::null(), 0)
+        } else {
+            let s1_len = last_abs_index - from_abs_index;
+            let s1_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
+            let s2_len = final_batch_size - s1_len;
+            let s2_ptr = unsafe { self.get_slice_ptr(0, 0) };
+
+            (s1_ptr as *const T, s1_len, s2_ptr as *const T, s2_len)
+        };
+
+        Ok(RecvReservation {
+            rx: self,
+            s1,
+            s1_remaining,
+            s2,
+            s2_remaining,
+            total_reserved: final_batch_size,
+            start_cl_index: curr_cl_index,
+            start_cl_offset: curr_cl_offset,
+        })
+    }
+
+    // # Safety: the caller has to make sure that the index start_pos = (cl_index * N) + cl_offset
+    // is within the ring buffers bounds
+    unsafe fn get_slice_ptr(&self, cl_index: usize, cl_offset: usize) -> *const T {
+        unsafe {
+            (&*self.buffer.inner.get())
+                .get_unchecked(cl_index)
+                .get_item_ptr(cl_offset)
+                .cast::<T>()
+                .cast_const()
+        }
+    }
+}
+
+pub struct RecvReservation<'a, T: Copy, const N: usize> {
+    rx: &'a Consumer<T, N>,
+    s1: *const T,
+    s1_remaining: usize,
+    s2: *const T,
+    s2_remaining: usize,
+    total_reserved: usize,
+    start_cl_index: usize,
+    start_cl_offset: usize,
+}
+
+impl<T: Copy, const N: usize> RecvReservation<'_, T, N> {
+    pub const fn recv(&mut self) -> Option<T> {
+        if self.s1_remaining > 0 {
+            let value = unsafe { self.s1.read() };
+            unsafe { self.s1 = self.s1.add(1) };
+            self.s1_remaining -= 1;
+            Some(value)
+        } else if self.s2_remaining > 0 {
+            let value = unsafe { self.s2.read() };
+            unsafe { self.s2 = self.s2.add(1) };
+            self.s2_remaining -= 1;
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    unsafe fn finalize_reservation(&self) {
+        let total_remaining = self.s1_remaining + self.s2_remaining;
+        let total_received = self.total_reserved - total_remaining;
+
+        if total_received == 0 {
+            return;
+        }
+
+        let from_abs_index = (self.start_cl_index * N) + self.start_cl_offset;
+        let to_abs_index = from_abs_index + total_received;
+
+        let final_abs_index = to_abs_index % self.rx.buffer.capacity;
+        let next_cl_index = (final_abs_index / N) & self.rx.buffer.cl_mask;
+        let next_cl_offset = final_abs_index % N;
+
+        self.rx.cl_index.set(next_cl_index);
+        self.rx.cl_offset.set(next_cl_offset);
+
+        let mut i = self.start_cl_index;
+
+        while i != next_cl_index {
+            unsafe { self.rx.buffer.write_counts.get_unchecked(i).get().write(0) }
+            i = (i + 1) & self.rx.buffer.cl_mask;
+        }
+
+        self.rx.buffer.tail.store(next_cl_index, Ordering::Release);
+    }
+}
+
+impl<T: Copy, const N: usize> Drop for RecvReservation<'_, T, N> {
+    fn drop(&mut self) {
+        unsafe { self.finalize_reservation() }
     }
 }

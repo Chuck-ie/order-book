@@ -283,15 +283,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crossbeam-channel"
-version = "0.5.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
-dependencies = [
- "crossbeam-utils",
-]
-
-[[package]]
 name = "crossbeam-deque"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,13 +795,10 @@ dependencies = [
  "ahash",
  "charming",
  "criterion",
- "crossbeam-channel",
  "csv",
  "memmap2",
- "picoring",
  "rand",
  "rand_distr",
- "ringbuffer-spsc",
  "serde",
 ]
 
@@ -865,16 +853,6 @@ checksum = "89815c69d36021a140146f26659a81d6c2afa33d216d736dd4be5381a7362220"
 dependencies = [
  "pest",
  "sha2",
-]
-
-[[package]]
-name = "picoring"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d86a33aa1faca9ed97bee74124cebc1d48ae17f17e985f4a6f6ff9922b2f756"
-dependencies = [
- "libc",
- "windows-sys",
 ]
 
 [[package]]
@@ -1052,15 +1030,6 @@ name = "regex-syntax"
 version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
-
-[[package]]
-name = "ringbuffer-spsc"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23463bd9305e6424c22a2e8a41ffd90fc0426964fd0485d731f4320a46aca66a"
-dependencies = [
- "crossbeam-utils",
-]
 
 [[package]]
 name = "rustversion"
