@@ -54,7 +54,7 @@ macro_rules! channel {
 struct Buffer<T, const N: usize> {
     head: CachePadded<AtomicUsize>,
     tail: CachePadded<AtomicUsize>,
-    inner: UnsafeCell<Box<[CacheLine<T, N>]>>,
+    inner: Box<[CacheLine<T, N>]>,
     write_counts: Box<[UnsafeCell<usize>]>,
     cl_mask: usize,
     capacity: usize,
@@ -77,7 +77,7 @@ impl<T, const N: usize> Buffer<T, N> {
         let buffer = Arc::new(Self {
             head: CachePadded(AtomicUsize::new(0)),
             tail: CachePadded(AtomicUsize::new(cache_line_mask)),
-            inner: UnsafeCell::new(inner),
+            inner,
             write_counts,
             cl_mask: cache_line_mask,
             capacity,
@@ -91,7 +91,7 @@ impl<T, const N: usize> Buffer<T, N> {
 
     // # Safety: the caller has to make sure that index is within bounds
     unsafe fn get_cache_line(&self, index: usize) -> &CacheLine<T, N> {
-        unsafe { self.inner.get().as_ref_unchecked().get_unchecked(index) }
+        unsafe { self.inner.get_unchecked(index) }
     }
 }
 
@@ -134,7 +134,7 @@ mod spsc_tests {
         const MESSAGES: usize = 5_000_000;
         const BATCH_SIZE: usize = 512;
 
-        let (tx, rx) = channel!(usize, 1024 * 16);
+        let (mut tx, mut rx) = channel!(usize, 1024 * 16);
         let mut sum: usize = 0;
         let start = std::time::Instant::now();
 
@@ -183,7 +183,7 @@ mod spsc_tests {
         const MESSAGES: usize = 5_000_000;
         const BATCH_SIZE: usize = 512;
 
-        let (tx, rx) = channel!(usize, 1024 * 16);
+        let (mut tx, mut rx) = channel!(usize, 1024 * 16);
         let mut sum: usize = 0;
         let start = std::time::Instant::now();
 
@@ -205,7 +205,7 @@ mod spsc_tests {
                 while tx.flush().is_err() {}
             });
 
-            for i in 0..MESSAGES {
+            for _ in 0..MESSAGES {
                 sum += rx.recv();
             }
         });

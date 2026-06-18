@@ -13,23 +13,23 @@ pub enum Error {
 }
 
 pub struct Consumer<T, const N: usize> {
-    cl_index: Cell<usize>,
-    cl_offset: Cell<usize>,
     buffer: Arc<Buffer<T, N>>,
-    cl_write_count: Cell<usize>,
+    cl_index: usize,
+    cl_offset: usize,
+    cl_write_count: usize,
 }
 
 impl<T, const N: usize> Consumer<T, N> {
     pub(crate) fn new(buffer: &Arc<Buffer<T, N>>) -> Self {
         Self {
-            cl_index: Cell::new(buffer.cl_mask),
-            cl_offset: Cell::new(N),
+            cl_index: buffer.cl_mask,
+            cl_offset: N,
             buffer: buffer.clone(),
-            cl_write_count: Cell::new(N),
+            cl_write_count: N,
         }
     }
 
-    pub fn recv(&self) -> T {
+    pub fn recv(&mut self) -> T {
         let spinlock = Spinlock::new();
 
         loop {
@@ -40,10 +40,10 @@ impl<T, const N: usize> Consumer<T, N> {
         }
     }
 
-    pub fn try_recv(&self) -> Result<T, Error> {
-        let curr_tail = self.cl_index.get();
-        let curr_cl_tail = self.cl_offset.get();
-        let curr_cl_write_count = self.cl_write_count.get();
+    pub fn try_recv(&mut self) -> Result<T, Error> {
+        let curr_tail = self.cl_index;
+        let curr_cl_tail = self.cl_offset;
+        let curr_cl_write_count = self.cl_write_count;
 
         // If we finished reading from a cache line in the previous recv
         if curr_cl_tail == curr_cl_write_count {
@@ -79,9 +79,9 @@ impl<T, const N: usize> Consumer<T, N> {
                     .read()
             };
 
-            self.cl_write_count.set(next_write_count);
-            self.cl_index.set(next_tail);
-            self.cl_offset.set(1);
+            self.cl_write_count = next_write_count;
+            self.cl_index = next_tail;
+            self.cl_offset = 1;
 
             // Sync the advancement with the write thread
             self.buffer.tail.store(next_tail, Ordering::Release);
@@ -92,13 +92,13 @@ impl<T, const N: usize> Consumer<T, N> {
             // reach the write head because we checked for empty state previously.
             let cache_line = unsafe { self.buffer.get_cache_line(curr_tail) };
             let value = unsafe { cache_line.read(curr_cl_tail) };
-            self.cl_offset.set(curr_cl_tail + 1);
+            self.cl_offset = curr_cl_tail + 1;
 
             Ok(value)
         }
     }
 
-    pub fn try_recv_batch(&self, buf: &mut [T]) -> Result<usize, Error>
+    pub fn try_recv_batch(&mut self, buf: &mut [T]) -> Result<usize, Error>
     where
         T: Copy,
     {
@@ -113,7 +113,7 @@ impl<T, const N: usize> Consumer<T, N> {
         Ok(unsafe { self.recv_batch_exact_unchecked(&mut buf[0..final_batch_size]) })
     }
 
-    pub fn try_recv_batch_exact(&self, buf: &mut [T]) -> Result<usize, Error>
+    pub fn try_recv_batch_exact(&mut self, buf: &mut [T]) -> Result<usize, Error>
     where
         T: Copy,
     {
@@ -129,13 +129,13 @@ impl<T, const N: usize> Consumer<T, N> {
 
     // # Safety: The caller has to make sure to validate that there are buf.len()
     // items available to read inside the buffer
-    unsafe fn recv_batch_exact_unchecked(&self, buf: &mut [T]) -> usize
+    unsafe fn recv_batch_exact_unchecked(&mut self, buf: &mut [T]) -> usize
     where
         T: Copy,
     {
         let batch_size = buf.len();
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
         let to_abs_index = from_abs_index + batch_size;
@@ -157,8 +157,8 @@ impl<T, const N: usize> Consumer<T, N> {
         let next_cl_index = (final_abs_index / N) & self.buffer.cl_mask;
         let next_cl_offset = final_abs_index % N;
 
-        self.cl_index.set(next_cl_index);
-        self.cl_offset.set(next_cl_offset);
+        self.cl_index = next_cl_index;
+        self.cl_offset = next_cl_offset;
 
         let mut i = curr_cl_index;
 
@@ -172,7 +172,7 @@ impl<T, const N: usize> Consumer<T, N> {
         batch_size
     }
 
-    pub fn try_reserve(&self, size: usize) -> Result<RecvReservation<'_, T, N>, Error>
+    pub fn try_reserve(&mut self, size: usize) -> Result<RecvReservation<'_, T, N>, Error>
     where
         T: Copy,
     {
@@ -186,7 +186,7 @@ impl<T, const N: usize> Consumer<T, N> {
         Ok(unsafe { self.reserve_exact_unchecked(reservation_size) })
     }
 
-    pub fn try_reserve_exact(&self, size: usize) -> Result<RecvReservation<'_, T, N>, Error>
+    pub fn try_reserve_exact(&mut self, size: usize) -> Result<RecvReservation<'_, T, N>, Error>
     where
         T: Copy,
     {
@@ -199,12 +199,12 @@ impl<T, const N: usize> Consumer<T, N> {
         Ok(unsafe { self.reserve_exact_unchecked(size) })
     }
 
-    unsafe fn reserve_exact_unchecked(&self, size: usize) -> RecvReservation<'_, T, N>
+    unsafe fn reserve_exact_unchecked(&mut self, size: usize) -> RecvReservation<'_, T, N>
     where
         T: Copy,
     {
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
         let to_abs_index = from_abs_index + size;
@@ -235,8 +235,8 @@ impl<T, const N: usize> Consumer<T, N> {
 
     #[inline]
     fn written_items(&self) -> usize {
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let head_cl_index = self.buffer.head.load(Ordering::Acquire);
 
         let free_cache_lines = head_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
@@ -248,7 +248,8 @@ impl<T, const N: usize> Consumer<T, N> {
     #[inline]
     unsafe fn get_slice_ptr(&self, cl_index: usize, cl_offset: usize) -> *const T {
         unsafe {
-            (&*self.buffer.inner.get())
+            self.buffer
+                .inner
                 .get_unchecked(cl_index)
                 .get_item_ptr(cl_offset)
                 .cast::<T>()
@@ -258,7 +259,7 @@ impl<T, const N: usize> Consumer<T, N> {
 }
 
 pub struct RecvReservation<'a, T: Copy, const N: usize> {
-    rx: &'a Consumer<T, N>,
+    rx: &'a mut Consumer<T, N>,
     s1: *const T,
     s1_remaining: usize,
     s2: *const T,
@@ -285,7 +286,7 @@ impl<T: Copy, const N: usize> RecvReservation<'_, T, N> {
         }
     }
 
-    unsafe fn finalize_reservation(&self) {
+    unsafe fn finalize_reservation(&mut self) {
         let total_remaining = self.s1_remaining + self.s2_remaining;
         let total_received = self.total_reserved - total_remaining;
 
@@ -300,8 +301,8 @@ impl<T: Copy, const N: usize> RecvReservation<'_, T, N> {
         let next_cl_index = (final_abs_index / N) & self.rx.buffer.cl_mask;
         let next_cl_offset = final_abs_index % N;
 
-        self.rx.cl_index.set(next_cl_index);
-        self.rx.cl_offset.set(next_cl_offset);
+        self.rx.cl_index = next_cl_index;
+        self.rx.cl_offset = next_cl_offset;
 
         let mut i = self.start_cl_index;
 

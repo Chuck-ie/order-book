@@ -1,5 +1,4 @@
 use std::{
-    cell::Cell,
     ptr,
     sync::{Arc, atomic::Ordering},
 };
@@ -13,21 +12,21 @@ pub enum Error {
 }
 
 pub struct Producer<T, const N: usize> {
-    cl_index: Cell<usize>,
-    cl_offset: Cell<usize>,
     buffer: Arc<Buffer<T, N>>,
+    cl_index: usize,
+    cl_offset: usize,
 }
 
 impl<T, const N: usize> Producer<T, N> {
     pub(crate) fn new(buffer: &Arc<Buffer<T, N>>) -> Self {
         Self {
-            cl_index: Cell::new(0),
-            cl_offset: Cell::new(0),
+            cl_index: 0,
+            cl_offset: 0,
             buffer: buffer.clone(),
         }
     }
 
-    pub fn send(&self, mut value: T) {
+    pub fn send(&mut self, mut value: T) {
         let spinlock = Spinlock::new();
 
         loop {
@@ -41,9 +40,9 @@ impl<T, const N: usize> Producer<T, N> {
         }
     }
 
-    pub fn try_send(&self, value: T) -> Result<(), (T, Error)> {
-        let curr_head = self.cl_index.get();
-        let curr_cl_head = self.cl_offset.get();
+    pub fn try_send(&mut self, value: T) -> Result<(), (T, Error)> {
+        let curr_head = self.cl_index;
+        let curr_cl_head = self.cl_offset;
 
         // slow path when trying to wrap around at a cache line border
         // if we finished writing to a cache line in the previous send
@@ -72,8 +71,8 @@ impl<T, const N: usize> Producer<T, N> {
             let next_cache_line = unsafe { self.buffer.get_cache_line(next_head) };
             unsafe { next_cache_line.write(0, value) };
 
-            self.cl_index.set(next_head);
-            self.cl_offset.set(1);
+            self.cl_index = next_head;
+            self.cl_offset = 1;
 
             // Sync the advancement with the read thread
             self.buffer.head.store(next_head, Ordering::Release);
@@ -84,13 +83,13 @@ impl<T, const N: usize> Producer<T, N> {
             let cache_line = unsafe { self.buffer.get_cache_line(curr_head) };
             unsafe { cache_line.write(curr_cl_head, value) };
 
-            self.cl_offset.set(curr_cl_head + 1);
+            self.cl_offset = curr_cl_head + 1;
         }
 
         Ok(())
     }
 
-    pub fn try_send_batch(&self, buf: &[T]) -> Result<usize, Error>
+    pub fn try_send_batch(&mut self, buf: &[T]) -> Result<usize, Error>
     where
         T: Copy,
     {
@@ -105,7 +104,7 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(unsafe { self.send_batch_exact_unchecked(&buf[0..final_batch_size]) })
     }
 
-    pub fn try_send_batch_exact(&self, buf: &[T]) -> Result<usize, Error>
+    pub fn try_send_batch_exact(&mut self, buf: &[T]) -> Result<usize, Error>
     where
         T: Copy,
     {
@@ -121,13 +120,13 @@ impl<T, const N: usize> Producer<T, N> {
 
     // # Safety: The caller has to make sure to validate that there are buf.len()
     // items free to write to the buffer
-    unsafe fn send_batch_exact_unchecked(&self, buf: &[T]) -> usize
+    unsafe fn send_batch_exact_unchecked(&mut self, buf: &[T]) -> usize
     where
         T: Copy,
     {
         let batch_size = buf.len();
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
         let to_abs_index = from_abs_index + batch_size;
@@ -149,8 +148,8 @@ impl<T, const N: usize> Producer<T, N> {
         let next_cl_index = (final_abs_index / N) & self.buffer.cl_mask;
         let next_cl_offset = final_abs_index % N;
 
-        self.cl_index.set(next_cl_index);
-        self.cl_offset.set(next_cl_offset);
+        self.cl_index = next_cl_index;
+        self.cl_offset = next_cl_offset;
 
         let mut i = curr_cl_index;
 
@@ -164,7 +163,7 @@ impl<T, const N: usize> Producer<T, N> {
         batch_size
     }
 
-    pub fn try_reserve(&self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
+    pub fn try_reserve(&mut self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
     where
         T: Copy,
     {
@@ -178,7 +177,7 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(unsafe { self.reserve_exact_unchecked(reservation_size) })
     }
 
-    pub fn try_reserve_exact(&self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
+    pub fn try_reserve_exact(&mut self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
     where
         T: Copy,
     {
@@ -191,12 +190,12 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(unsafe { self.reserve_exact_unchecked(size) })
     }
 
-    unsafe fn reserve_exact_unchecked(&self, size: usize) -> SendReservation<'_, T, N>
+    unsafe fn reserve_exact_unchecked(&mut self, size: usize) -> SendReservation<'_, T, N>
     where
         T: Copy,
     {
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
         let to_abs_index = from_abs_index + size;
@@ -225,8 +224,8 @@ impl<T, const N: usize> Producer<T, N> {
         }
     }
 
-    pub fn flush(&self) -> Result<(), Error> {
-        let curr_cl_index = self.cl_index.get();
+    pub fn flush(&mut self) -> Result<(), Error> {
+        let curr_cl_index = self.cl_index;
         let next_head = (curr_cl_index + 1) & self.buffer.cl_mask;
 
         // Sync with the reader's release when advancing its tail
@@ -236,8 +235,8 @@ impl<T, const N: usize> Producer<T, N> {
             return Err(Error::QueueFull);
         }
 
-        self.cl_index.set(next_head);
-        self.cl_offset.set(0);
+        self.cl_index = next_head;
+        self.cl_offset = 0;
 
         // case(curr_cl_head == 0): means 0 has not yet been written
         // case(curr_cl_head == 1): means 1 has not yet been written
@@ -258,8 +257,8 @@ impl<T, const N: usize> Producer<T, N> {
 
     #[inline]
     fn free_slots(&self) -> usize {
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
+        let curr_cl_index = self.cl_index;
+        let curr_cl_offset = self.cl_offset;
         let tail_cl_index = self.buffer.tail.load(Ordering::Acquire);
 
         let free_cache_lines = tail_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
@@ -271,7 +270,8 @@ impl<T, const N: usize> Producer<T, N> {
     #[inline]
     unsafe fn get_slice_ptr(&self, cl_index: usize, cl_offset: usize) -> *mut T {
         unsafe {
-            (&*self.buffer.inner.get())
+            self.buffer
+                .inner
                 .get_unchecked(cl_index)
                 .get_item_ptr(cl_offset)
                 .cast::<T>()
@@ -280,7 +280,7 @@ impl<T, const N: usize> Producer<T, N> {
 }
 
 pub struct SendReservation<'a, T, const N: usize> {
-    tx: &'a Producer<T, N>,
+    tx: &'a mut Producer<T, N>,
     s1: *mut T,
     s1_remaining: usize,
     s2: *mut T,
@@ -313,7 +313,7 @@ impl<T, const N: usize> SendReservation<'_, T, N> {
         }
     }
 
-    unsafe fn finalize_reservation(&self) {
+    unsafe fn finalize_reservation(&mut self) {
         let total_remaining = self.s1_remaining + self.s2_remaining;
         let total_sent = self.total_reserved - total_remaining;
 
@@ -328,8 +328,8 @@ impl<T, const N: usize> SendReservation<'_, T, N> {
         let next_cl_index = (final_abs_index / N) & self.tx.buffer.cl_mask;
         let next_cl_offset = final_abs_index % N;
 
-        self.tx.cl_index.set(next_cl_index);
-        self.tx.cl_offset.set(next_cl_offset);
+        self.tx.cl_index = next_cl_index;
+        self.tx.cl_offset = next_cl_offset;
 
         let mut i = self.start_cl_index;
 
