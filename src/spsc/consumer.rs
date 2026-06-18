@@ -19,16 +19,6 @@ pub struct Consumer<T, const N: usize> {
     cl_write_count: Cell<usize>,
 }
 
-/* [CL0(0, 1), CL1(2, 3), CL2(4, 5), CL3(6, 7)],
- * consumer init state: inner_tail = 3, inner_cl_tail = N(2)
- * producer init state: inner_head = 0, inner_cl_tail = 0
- *
- * producer writes until N, then at the N + 1 messages, it does the following:
- * CL(0).write_count = N, write to CL(1)[0], update inner_head = 1, inner_cl_tail = 1
- *
- *
- */
-
 impl<T, const N: usize> Consumer<T, N> {
     pub(crate) fn new(buffer: &Arc<Buffer<T, N>>) -> Self {
         Self {

@@ -2,7 +2,6 @@ use std::{
     cell::Cell,
     ptr,
     sync::{Arc, atomic::Ordering},
-    thread::scope,
 };
 
 use crate::{channel::spinlock::Spinlock, spsc::Buffer};
@@ -165,10 +164,9 @@ impl<T, const N: usize> Producer<T, N> {
         batch_size
     }
 
-    pub fn try_reserve<F>(&self, size: usize, scope: F) -> Result<SendReservation<'_, T, N>, Error>
+    pub fn try_reserve(&self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
     where
         T: Copy,
-        F: FnOnce(SendReservation<'_, T, N>),
     {
         let max_batch_size = self.buffer.capacity - N;
         let reservation_size = size.min(max_batch_size).min(self.free_slots());
@@ -176,10 +174,6 @@ impl<T, const N: usize> Producer<T, N> {
         if reservation_size == 0 {
             return Err(Error::QueueFull);
         }
-
-        let reservation = unsafe { self.reserve_exact_unchecked(reservation_size) };
-
-        scope(reservation);
 
         Ok(unsafe { self.reserve_exact_unchecked(reservation_size) })
     }
