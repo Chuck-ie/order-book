@@ -193,11 +193,20 @@ mod spsc_tests {
                 while i < MESSAGES {
                     let current_batch_size = std::cmp::min(BATCH_SIZE, MESSAGES - i);
 
-                    if let Ok(mut reservation) = tx.try_reserve_batch(current_batch_size) {
-                        for _ in 0..current_batch_size {
-                            let _ = reservation.send(i);
+                    // if let Ok(mut reservation) = tx.try_reserve_exact(current_batch_size) {
+                    //     while reservation.send(i).is_some() {
+                    //         i += 1;
+                    //     }
+                    // } else {
+                    //     std::hint::spin_loop();
+                    // }
+
+                    if let Ok(mut reservation) = tx.try_reserve(current_batch_size, |mut scope| {
+                        while scope.send(i).is_some() {
                             i += 1;
                         }
+                    }) {
+                        todo!()
                     } else {
                         std::hint::spin_loop();
                     }
@@ -206,7 +215,7 @@ mod spsc_tests {
                 while tx.flush().is_err() {}
             });
 
-            for _ in 0..MESSAGES {
+            for i in 0..MESSAGES {
                 sum += rx.recv();
             }
         });

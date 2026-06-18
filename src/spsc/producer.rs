@@ -2,6 +2,7 @@ use std::{
     cell::Cell,
     ptr,
     sync::{Arc, atomic::Ordering},
+    thread::scope,
 };
 
 use crate::{channel::spinlock::Spinlock, spsc::Buffer};
@@ -90,27 +91,44 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(())
     }
 
-    pub fn try_send_batch(&self, buf: &[T]) -> Result<(), Error>
+    pub fn try_send_batch(&self, buf: &[T]) -> Result<usize, Error>
+    where
+        T: Copy,
+    {
+        let max_batch_size = self.buffer.capacity - N;
+        let batch_size = buf.len().min(max_batch_size);
+        let final_batch_size = batch_size.min(self.free_slots());
+
+        if final_batch_size == 0 {
+            return Err(Error::QueueFull);
+        }
+
+        Ok(unsafe { self.send_batch_exact_unchecked(&buf[0..final_batch_size]) })
+    }
+
+    pub fn try_send_batch_exact(&self, buf: &[T]) -> Result<usize, Error>
     where
         T: Copy,
     {
         let batch_size = buf.len();
+        let max_batch_size = self.buffer.capacity - N;
 
-        if batch_size > self.buffer.capacity - N {
+        if batch_size > max_batch_size || batch_size > self.free_slots() {
             return Err(Error::BatchTooLarge);
         }
 
+        Ok(unsafe { self.send_batch_exact_unchecked(buf) })
+    }
+
+    // # Safety: The caller has to make sure to validate that there are buf.len()
+    // items free to write to the buffer
+    unsafe fn send_batch_exact_unchecked(&self, buf: &[T]) -> usize
+    where
+        T: Copy,
+    {
+        let batch_size = buf.len();
         let curr_cl_index = self.cl_index.get();
         let curr_cl_offset = self.cl_offset.get();
-        let tail_cl_index = self.buffer.tail.load(Ordering::Acquire);
-
-        let free_cache_lines = tail_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
-        let total_items_available = (free_cache_lines * N).saturating_sub(N - curr_cl_offset);
-
-        if total_items_available < batch_size {
-            return Err(Error::QueueFull);
-        }
-
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
         let to_abs_index = from_abs_index + batch_size;
@@ -144,51 +162,73 @@ impl<T, const N: usize> Producer<T, N> {
 
         self.buffer.head.store(next_cl_index, Ordering::Release);
 
-        Ok(())
+        batch_size
     }
 
-    pub fn try_reserve_batch(&self, batch_size: usize) -> Result<SendReservation<'_, T, N>, Error> {
-        if batch_size > self.buffer.capacity - N {
-            return Err(Error::BatchTooLarge);
-        }
+    pub fn try_reserve<F>(&self, size: usize, scope: F) -> Result<SendReservation<'_, T, N>, Error>
+    where
+        T: Copy,
+        F: FnOnce(SendReservation<'_, T, N>),
+    {
+        let max_batch_size = self.buffer.capacity - N;
+        let reservation_size = size.min(max_batch_size).min(self.free_slots());
 
-        let curr_cl_index = self.cl_index.get();
-        let curr_cl_offset = self.cl_offset.get();
-        let tail_cl_index = self.buffer.tail.load(Ordering::Acquire);
-
-        let free_cache_lines = tail_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
-        let total_items_available = (free_cache_lines * N).saturating_sub(N - curr_cl_offset);
-
-        if total_items_available < batch_size {
+        if reservation_size == 0 {
             return Err(Error::QueueFull);
         }
 
+        let reservation = unsafe { self.reserve_exact_unchecked(reservation_size) };
+
+        scope(reservation);
+
+        Ok(unsafe { self.reserve_exact_unchecked(reservation_size) })
+    }
+
+    pub fn try_reserve_exact(&self, size: usize) -> Result<SendReservation<'_, T, N>, Error>
+    where
+        T: Copy,
+    {
+        let max_batch_size = self.buffer.capacity - N;
+
+        if size > max_batch_size || size > self.free_slots() {
+            return Err(Error::BatchTooLarge);
+        }
+
+        Ok(unsafe { self.reserve_exact_unchecked(size) })
+    }
+
+    unsafe fn reserve_exact_unchecked(&self, size: usize) -> SendReservation<'_, T, N>
+    where
+        T: Copy,
+    {
+        let curr_cl_index = self.cl_index.get();
+        let curr_cl_offset = self.cl_offset.get();
         let last_abs_index = self.buffer.capacity;
         let from_abs_index = (curr_cl_index * N) + curr_cl_offset;
-        let to_abs_index = from_abs_index + batch_size;
+        let to_abs_index = from_abs_index + size;
 
         let (s1, s1_remaining, s2, s2_remaining) = if to_abs_index < last_abs_index {
             let s_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
-            (s_ptr, batch_size, std::ptr::null_mut(), 0)
+            (s_ptr, size, std::ptr::null_mut(), 0)
         } else {
             let s1_len = last_abs_index - from_abs_index;
             let s1_ptr = unsafe { self.get_slice_ptr(curr_cl_index, curr_cl_offset) };
-            let s2_len = batch_size - s1_len;
+            let s2_len = size - s1_len;
             let s2_ptr = unsafe { self.get_slice_ptr(0, 0) };
 
             (s1_ptr, s1_len, s2_ptr, s2_len)
         };
 
-        Ok(SendReservation {
+        SendReservation {
             tx: self,
             s1,
             s1_remaining,
             s2,
             s2_remaining,
-            total_reserved: batch_size,
+            total_reserved: size,
             start_cl_index: curr_cl_index,
             start_cl_offset: curr_cl_offset,
-        })
+        }
     }
 
     pub fn flush(&self) -> Result<(), Error> {
@@ -222,8 +262,19 @@ impl<T, const N: usize> Producer<T, N> {
         Ok(())
     }
 
+    #[inline]
+    fn free_slots(&self) -> usize {
+        let curr_cl_index = self.cl_index.get();
+        let curr_cl_offset = self.cl_offset.get();
+        let tail_cl_index = self.buffer.tail.load(Ordering::Acquire);
+
+        let free_cache_lines = tail_cl_index.wrapping_sub(curr_cl_index) & self.buffer.cl_mask;
+        (free_cache_lines * N).saturating_sub(N - curr_cl_offset)
+    }
+
     // # Safety: the caller has to make sure that the index start_pos = (cl_index * N) + cl_offset
     // is within the ring buffers bounds
+    #[inline]
     unsafe fn get_slice_ptr(&self, cl_index: usize, cl_offset: usize) -> *mut T {
         unsafe {
             (&*self.buffer.inner.get())
