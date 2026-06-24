@@ -1,4 +1,4 @@
-use std::{cell::Cell, time::Duration};
+use std::cell::Cell;
 
 const SOFT_LIMIT: usize = 6;
 const HARD_LIMIT: usize = 12;
@@ -15,8 +15,6 @@ impl Spinlock {
         }
     }
 
-    /// returns true if the lock is still able to continue to spin
-    /// returns false if the ``spin_count`` has reached it limit, signalling that it should be stopped
     #[inline]
     pub fn spin(&mut self) -> bool {
         let spins = 1 << self.spin_count.get().min(SOFT_LIMIT);
